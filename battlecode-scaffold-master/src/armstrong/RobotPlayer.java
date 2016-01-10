@@ -52,7 +52,7 @@ public class RobotPlayer{
 			Clock.yield();
 		}
 	}
-	private static MapLocation getTurretEnemy(Signal s){
+	private static MapLocation getTurretEnemyMessage(Signal s){
 		int[] message = s.getMessage(); 
 		if(s.getTeam().equals(rc.getTeam()) && message != null && s.getLocation().distanceSquaredTo(rc.getLocation()) <= 2){
 			if(message[0] == MESSAGE_ENEMY){
@@ -65,28 +65,40 @@ public class RobotPlayer{
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
 		MapLocation[] enemyArray = combineThings(visibleEnemyArray,incomingSignals);
+		boolean enemiesAround = false;
 		for(Signal s: incomingSignals){
-			MapLocation enemyLocation = getTurretEnemy(s);
+			MapLocation enemyLocation = getTurretEnemyMessage(s);
 			if(enemyLocation != null && rc.canAttackLocation(enemyLocation)){
-				rc.attackLocation(enemyLocation);
+				rc.setIndicatorString(0,"Discovered an enemy around using signal");
+				enemiesAround = true;
+				if(rc.isWeaponReady()){
+					rc.setIndicatorString(0,"Attemping attacking an enemy known using signal");
+					rc.attackLocation(enemyLocation);
+				}
+
 			}
 		}
 		if(enemyArray.length>0){
+			enemiesAround = true;
 			if(rc.isWeaponReady()){
 				//look for adjacent enemies to attack
 				for(MapLocation oneEnemy:enemyArray){
 					if(rc.canAttackLocation(oneEnemy)){
-						rc.setIndicatorString(0,"trying to attack");
+						rc.setIndicatorString(1,"trying to attack");
 						rc.attackLocation(oneEnemy);
 						break;
 					}
 				}
 			}
+			
 			//could not find any enemies adjacent to attack
 			//try to move toward them
+			//TODO make sure that this if statement actually doesn't make any sense.
+			/*
 			if(rc.isCoreReady()){
 				rc.pack();
 			}
+			*/
 		}else{//there are no enemies nearby
 			//check to see if we are in the way of friends
 			//we are obstructing them
@@ -94,7 +106,7 @@ public class RobotPlayer{
 				//TODO Fix logic here choose the condition for packing
 				//rc.pack();
 				RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
-				if(nearbyFriends.length>3){
+				if(nearbyFriends.length>3 && enemiesAround == false){
 					rc.pack();
 				}
 			}
@@ -120,7 +132,13 @@ public class RobotPlayer{
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
 		MapLocation[] enemyArray = combineThings(visibleEnemyArray,incomingSignals);
-		
+		for(Signal s: incomingSignals){
+			MapLocation enemyLocation = getTurretEnemyMessage(s);
+			if(enemyLocation != null && rc.getLocation().distanceSquaredTo(enemyLocation) > 5){
+				rc.unpack();
+				return;
+			}		
+		}
 		if(enemyArray.length>0){
 			rc.unpack();
 			//could not find any enemies adjacent to attack
@@ -232,7 +250,10 @@ public class RobotPlayer{
 	private static RobotInfo findWeakestRobot(RobotInfo[] listOfRobots){
 		double weakestSoFar = 0;
 		RobotInfo weakest = null;
+		int c = 4;
 		for(RobotInfo r:listOfRobots){
+			rc.setIndicatorString(c, "Enemy at location (" + r.location.x + ", " + r.location.y + ")");
+			c++;
 			double weakness = r.maxHealth-r.health;
 			//double weakness = (r.maxHealth-r.health)*1.0/r.maxHealth;
 			if(weakness>weakestSoFar){
@@ -274,7 +295,7 @@ public class RobotPlayer{
 		return -1;
 	}
 	private static void scoutCode() throws GameActionException{		
-		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
+		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), -1);
 		Signal[] incomingSignals = rc.emptySignalQueue();
 		//MapLocation[] enemyArray = combineThings(visibleEnemyArray,incomingSignals);
 		for(Signal s: incomingSignals){
@@ -283,13 +304,6 @@ public class RobotPlayer{
 				break;
 			}
 		}
-		if(husbandTurretID != -1){
-			rc.setIndicatorString(0, "My husband ID is" + husbandTurretID);
-		}
-		else{
-			rc.setIndicatorString(1, "I am a scout with no husband");
-		}
-		//TODO can be improved by using previous information of the location of the husband
 		RobotInfo[] visibleAlliesArray = rc.senseNearbyRobots();
 		RobotInfo husband = null;
 		for(int i = 0; i < visibleAlliesArray.length; i++){
@@ -297,27 +311,50 @@ public class RobotPlayer{
 				husband = visibleAlliesArray[i];
 			}
 		}
-		RobotInfo targetRobot = findWeakestRobot(visibleEnemyArray);
-		MapLocation target = null;
-		if(targetRobot != null){
-			target = targetRobot.location;
-			rc.setIndicatorString(2, "Target is at location (" + target.x + "," + target.y + ")");			
-			rc.setIndicatorString(3, "Target is of type:" + targetRobot.type);			
-		}
 		if(husband != null){
+			RobotInfo targetRobot = getTurretTarget(husband.location, visibleEnemyArray);
+			MapLocation target = null;
+			if(targetRobot != null){
+				target = targetRobot.location;
+				rc.setIndicatorDot(target, 255, 0, 0);
+				rc.setIndicatorString(2, "Target is at location (" + target.x + "," + target.y + ")");
+			}
 			Direction toHusband = rc.getLocation().directionTo(husband.location);
-				if(rc.getLocation().distanceSquaredTo(husband.location)<= 2){
-					if(target != null){
-						rc.broadcastMessageSignal(MESSAGE_ENEMY, encodeLocation(target),rc.getLocation().distanceSquaredTo(husband.location));
-					}
-				}else{
-					if(rc.isCoreReady()){
-						tryToMove(toHusband);						
-					}
+			if(rc.getLocation().distanceSquaredTo(husband.location)<= 2){
+				if(target != null){
+					rc.broadcastMessageSignal(MESSAGE_ENEMY, encodeLocation(target),rc.getLocation().distanceSquaredTo(husband.location));
 				}
+			}else{
+				if(rc.isCoreReady()){
+					tryToMove(toHusband);						
+				}
+			}
 
 		}
 
+	}
+	private static RobotInfo getTurretTarget(MapLocation turretLocatoin, RobotInfo[] listOfRobots){
+		double weakestSoFar = -1;
+		RobotInfo weakest = null;
+		for(int i = 0; i < 3; i++){
+			rc.setIndicatorString(i, "");			
+		}
+		int c = 0;
+		for(RobotInfo r:listOfRobots){
+			int distanceSquared = r.location.distanceSquaredTo(turretLocatoin);
+			if(r.team == rc.getTeam() || distanceSquared <=5 || distanceSquared > 48){
+				continue;
+			}
+			rc.setIndicatorString(c, "can reach this enemy at location:(" + r.location.x + ", " + r.location.y + ")");
+			c++;
+			double weakness = r.maxHealth-r.health;
+			//double weakness = (r.maxHealth-r.health)*1.0/r.maxHealth;
+			if(weakness>weakestSoFar){
+				weakest = r;
+				weakestSoFar=weakness;
+			}
+		}
+		return weakest;
 	}
 	private static RobotInfo[] getArray(ArrayList<RobotInfo> selectedList){
 		RobotInfo[] selectedArray = new RobotInfo[selectedList.size()];
