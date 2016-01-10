@@ -8,11 +8,12 @@ import java.util.Set;
 
 import org.hibernate.search.analyzer.Discriminator;
 
+import armstrong.navigation.PotentialField;
+import armstrong.navigation.motion.MotionController;
+
 //import com.sun.xml.internal.bind.v2.runtime.Location;
 
 import battlecode.common.*;
-import navigation.PotentialField;
-import navigation.motion.MotionController;
 
 public class RobotPlayer {
 
@@ -54,10 +55,6 @@ public class RobotPlayer {
 				player = new Viper(field, mc);
 				break;
 			case TTM:
-				field = PotentialField.turret();
-				mc = new MotionController(field);
-				player = new TTM(field, mc);
-				break;
 			case TURRET:
 				field = PotentialField.turret();
 				mc = new MotionController(field);

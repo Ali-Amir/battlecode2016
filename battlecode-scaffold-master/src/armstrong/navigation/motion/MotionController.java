@@ -1,13 +1,13 @@
-package navigation.motion;
+package armstrong.navigation.motion;
 
 import java.util.List;
 
+import armstrong.navigation.PotentialField;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
-import navigation.PotentialField;
 
 public class MotionController {
 	// Potential field. Could be modified from outside this class.

@@ -3,9 +3,9 @@ package kyle;
 import java.util.ArrayList;
 import java.util.Random;
 
+import armstrong.navigation.PotentialField;
+import armstrong.navigation.motion.MotionController;
 import battlecode.common.*;
-import navigation.PotentialField;
-import navigation.motion.MotionController;
 
 public class RobotPlayer {
 

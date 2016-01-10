@@ -1,8 +1,8 @@
 package armstrong;
 
+import armstrong.navigation.PotentialField;
+import armstrong.navigation.motion.MotionController;
 import battlecode.common.RobotController;
-import navigation.PotentialField;
-import navigation.motion.MotionController;
 
 public class Viper implements Player {
 

@@ -2,13 +2,15 @@ package armstrong;
 
 import java.util.ArrayList;
 
+import armstrong.navigation.PotentialField;
+import armstrong.navigation.motion.MotionController;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
 import battlecode.common.Signal;
-import navigation.PotentialField;
-import navigation.motion.MotionController;
 
 public class Turret implements Player {
 	
@@ -22,6 +24,54 @@ public class Turret implements Player {
 
 	@Override
 	public void play(RobotController rc) throws GameActionException {
+		if (rc.getType().equals(RobotType.TURRET)) {
+			turretCode(rc);
+		} else {
+			ttmCode(rc);
+		}
+	}
+	
+	public void ttmCode(RobotController rc) throws GameActionException {
+		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
+		Signal[] incomingSignals = rc.emptySignalQueue();
+		MapLocation[] enemyArray = combineThings(rc, visibleEnemyArray,incomingSignals);
+		for(Signal s: incomingSignals){
+			MapLocation enemyLocation = getTurretEnemyMessage(rc, s);
+			if(enemyLocation != null && rc.getLocation().distanceSquaredTo(enemyLocation) > 5){
+				rc.unpack();
+				return;
+			}		
+		}
+		if(enemyArray.length>0){
+			rc.unpack();
+			//could not find any enemies adjacent to attack
+			//try to move toward them
+			if(rc.isCoreReady()){
+				MapLocation goal = enemyArray[0];
+				Direction toEnemy = rc.getLocation().directionTo(goal);
+				RobotPlayer.tryToMove(rc, toEnemy);
+			}
+		}else{//there are no enemies nearby
+			//check to see if we are in the way of friends
+			//we are obstructing them
+			if(rc.isCoreReady()){
+				RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
+				if(nearbyFriends.length>3){
+					Direction away = RobotPlayer.randomDirection();
+					RobotPlayer.tryToMove(rc, away);
+				}else{//maybe a friend is in need!
+					RobotInfo[] alliesToHelp = rc.senseNearbyRobots(1000000,rc.getTeam());
+					MapLocation weakestOne = RobotPlayer.findWeakest(alliesToHelp);
+					if(weakestOne!=null){//found a friend most in need
+						Direction towardFriend = rc.getLocation().directionTo(weakestOne);
+						RobotPlayer.tryToMove(rc, towardFriend);
+					}
+				}
+			}
+		}
+	}
+	
+	public void turretCode(RobotController rc) throws GameActionException {
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
 		MapLocation[] enemyArray = combineThings(rc, visibleEnemyArray,incomingSignals);

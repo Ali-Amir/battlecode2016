@@ -1,6 +1,6 @@
-package navigation.configurations;
+package armstrong.navigation.configurations;
 
-import navigation.RobotPotentialConfigurator;
+import armstrong.navigation.RobotPotentialConfigurator;
 
 public class TurretConfigurator extends RobotPotentialConfigurator {
 

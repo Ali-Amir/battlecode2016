@@ -1,13 +1,13 @@
 package armstrong;
 
+import armstrong.navigation.PotentialField;
+import armstrong.navigation.motion.MotionController;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.Signal;
-import navigation.PotentialField;
-import navigation.motion.MotionController;
 
 public class Scout implements Player {
 

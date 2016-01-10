@@ -1,4 +1,4 @@
-package utils;
+package armstrong.utils;
 
 public class Turn {
 	static private int turn = 0;

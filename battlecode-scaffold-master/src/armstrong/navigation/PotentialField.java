@@ -1,17 +1,17 @@
-package navigation;
+package armstrong.navigation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import armstrong.navigation.configurations.GuardConfigurator;
+import armstrong.navigation.configurations.ScoutConfigurator;
+import armstrong.navigation.configurations.SoldierConfigurator;
+import armstrong.navigation.configurations.TurretConfigurator;
+import armstrong.navigation.configurations.ViperConfigurator;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
-import navigation.configurations.GuardConfigurator;
-import navigation.configurations.ScoutConfigurator;
-import navigation.configurations.SoldierConfigurator;
-import navigation.configurations.TurretConfigurator;
-import navigation.configurations.ViperConfigurator;
 
 public class PotentialField {
 	// Configuration object that gives correct charged particles for each
