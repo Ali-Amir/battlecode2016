@@ -1,7 +1,12 @@
 package armstrong;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
+
+import org.hibernate.search.analyzer.Discriminator;
 
 import battlecode.common.*;
 
@@ -11,12 +16,16 @@ public class RobotPlayer{
 	static RobotController rc;
 	static int[] tryDirections = {0,-1,1,-2,2};
 	static RobotType[] buildList = new RobotType[]{RobotType.GUARD,RobotType.TURRET};
-	
+	static RobotType lastBuilt = RobotType.ARCHON;
+	static Set<Integer> marriedScouts = new HashSet<>();
+	static Set<Integer> marriedTurrets = new HashSet<>();
+	static int husbandTurretID = -1;
+	static boolean broadcastNextTurn = false;
+	static int[] toBroadcastNextTurn = new int[3];
 	public static void run(RobotController rcIn){
 		
 		rc = rcIn;
 		rnd = new Random(rc.getID());
-		
 		while(true){
 			try{
 				if(rc.getType()==RobotType.ARCHON){
@@ -29,6 +38,8 @@ public class RobotPlayer{
 					guardCode();
 				}else if(rc.getType()==RobotType.SOLDIER){
 					guardCode();
+				}else if(rc.getType()==RobotType.SCOUT){
+					scoutCode();
 				}
 			}catch(Exception e){
 				e.printStackTrace();
@@ -110,7 +121,6 @@ public class RobotPlayer{
 	
 	private static void guardCode() throws GameActionException {
 		RobotInfo[] enemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
-		
 		if(enemyArray.length>0){
 			if(rc.isWeaponReady()){
 				//look for adjacent enemies to attack
@@ -194,6 +204,7 @@ public class RobotPlayer{
 		MapLocation weakestLocation = null;
 		for(RobotInfo r:listOfRobots){
 			double weakness = r.maxHealth-r.health;
+			//double weakness = (r.maxHealth-r.health)*1.0/r.maxHealth;
 			if(weakness>weakestSoFar){
 				weakestLocation = r.location;
 				weakestSoFar=weakness;
@@ -201,20 +212,120 @@ public class RobotPlayer{
 		}
 		return weakestLocation;
 	}
+	//Gets an unmarried turret or scout
+	private static RobotInfo getLonelyRobot(RobotInfo[] robots,RobotType targetType,Set<Integer> married){
+		for(RobotInfo robot: robots){
+			if(robot.type == targetType && !married.contains(robot.ID)){
+				return robot;
+			}
+		}
+		return null;
+	}
+	//Checks 
+	private static int getHusbandTurretID(Signal s){
+		if(s.getTeam().equals(rc.getTeam()) && s.getMessage() != null){
+			if(s.getMessage()[0] == rc.getID()){
+				return s.getMessage()[1];
+			}
+		}
+		return -1;
+	}
+	private static void scoutCode(){		
+		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
+		Signal[] incomingSignals = rc.emptySignalQueue();
+		MapLocation[] enemyArray = combineThings(visibleEnemyArray,incomingSignals);
+		for(Signal s: incomingSignals){
+			husbandTurretID = getHusbandTurretID(s);
+			if(husbandTurretID != -1){
+				break;
+			}
+		}
+		if(husbandTurretID != -1){
+			rc.setIndicatorString(0, "My husband ID is" + husbandTurretID);
+		}
+		else{
+			rc.setIndicatorString(1, "I am a scout with no husband");
+		}
+		//TODO can be improved by using previous information of the location of the husband
+		RobotInfo[] visibleAlliesArray = rc.senseNearbyRobots();
+		RobotInfo husband = null;
+		for(int i = 0; i < visibleAlliesArray.length; i++){
+			if(visibleAlliesArray[i].ID ==  husbandTurretID){
+				husband = visibleAlliesArray[i];
+			}
+		}
 
+		if(husband != null){
+			Direction toHusband = rc.getLocation().directionTo(husband.location);
+			try {
+				if(rc.getLocation().distanceSquaredTo(husband.location)>= 2){
+					tryToMove(toHusband);					
+				}
+
+			} catch (GameActionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}			
+		}
+
+	}
+	private static RobotInfo[] getArray(ArrayList<RobotInfo> selectedList){
+		RobotInfo[] selectedArray = new RobotInfo[selectedList.size()];
+		for(int i = 0;i < selectedList.size();i ++){
+			selectedArray[i] = selectedList.get(i);
+		}
+		return selectedArray;
+		
+	}
 	private static void archonCode() throws GameActionException {
+		if(broadcastNextTurn){
+			rc.broadcastMessageSignal(toBroadcastNextTurn[0], toBroadcastNextTurn[1], toBroadcastNextTurn[2]);
+			broadcastNextTurn = false;
+		}
 		if(rc.isCoreReady()){
 			Direction randomDir = randomDirection();
-			RobotType toBuild = buildList[rnd.nextInt(buildList.length)];
+			boolean backupTurret = false;
+			RobotInfo choosenTurret = null;
+			RobotType toBuild;
+			if(lastBuilt == RobotType.TURRET){
+				//We can improve on this
+				//for instance we can combine the two sense statements we have.
+				RobotInfo[] alliesNearBy = rc.senseNearbyRobots(rc.getType().sensorRadiusSquared,rc.getTeam()); 
+				//turretsNearBy = filterRobotsbyType(alliesNearBy, targetType)
+				choosenTurret = getLonelyRobot(alliesNearBy,RobotType.TURRET,marriedTurrets);
+				if(choosenTurret != null){
+					toBuild = RobotType.SCOUT;
+					backupTurret = true;
+				}else{
+					toBuild = buildList[rnd.nextInt(buildList.length)];
+				}
+			}else{
+				toBuild = buildList[rnd.nextInt(buildList.length)];
+			}
 			if(rc.getTeamParts()>100){
 				if(rc.canBuild(randomDir, toBuild)){
 					rc.build(randomDir,toBuild);
+					lastBuilt = toBuild;
+					if(backupTurret){
+						RobotInfo[] alliesVeryNear = rc.senseNearbyRobots(2,rc.getTeam());
+						RobotInfo choosenScout = getLonelyRobot(alliesVeryNear, RobotType.SCOUT, marriedScouts);
+						if(choosenTurret == null){
+							rc.disintegrate();
+						}
+						//rc.broadcastMessageSignal(choosenScout.ID,choosenTurret.ID, choosenTurret.location.distanceSquaredTo(rc.getLocation()));
+						toBroadcastNextTurn[0] = choosenScout.ID;
+						toBroadcastNextTurn[1] = choosenTurret.ID;
+						toBroadcastNextTurn[2] = 8;
+						broadcastNextTurn = true;
+						marriedTurrets.add(choosenTurret.ID);
+						marriedScouts.add(choosenScout.ID);
+					}
 					return;
 				}
 			}
 			
 
-			RobotInfo[] alliesToHelp = rc.senseNearbyRobots(rc.getType().attackRadiusSquared,rc.getTeam());
+			RobotInfo[] alliesToHelp = rc.senseNearbyRobots(RobotType.ARCHON.attackRadiusSquared,rc.getTeam());
 			MapLocation weakestOne = findWeakest(alliesToHelp);
 			if(weakestOne!=null){
 				rc.repair(weakestOne);
@@ -227,5 +338,14 @@ public class RobotPlayer{
 	private static Direction randomDirection() {
 		return Direction.values()[(int)(rnd.nextDouble()*8)];
 	}
-	
+	//filters robots by type
+	private static RobotInfo[] filterRobotsbyType(RobotInfo[] robots, RobotType targetType){
+		ArrayList<RobotInfo> selectedList = new ArrayList<>();
+		for(RobotInfo r:robots){
+			if(r.type.equals(targetType)){
+				selectedList.add(r);				
+			}
+		}
+		return getArray(selectedList);
+	}
 }
