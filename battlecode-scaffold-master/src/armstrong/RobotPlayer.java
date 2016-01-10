@@ -8,6 +8,8 @@ import java.util.Set;
 
 import org.hibernate.search.analyzer.Discriminator;
 
+//import com.sun.xml.internal.bind.v2.runtime.Location;
+
 import battlecode.common.*;
 
 public class RobotPlayer{
@@ -22,6 +24,8 @@ public class RobotPlayer{
 	static int husbandTurretID = -1;
 	static boolean broadcastNextTurn = false;
 	static int[] toBroadcastNextTurn = new int[3];
+	static int MESSAGE_MARRIAGE = 0;
+	static int MESSAGE_ENEMY = 1;
 	public static void run(RobotController rcIn){
 		
 		rc = rcIn;
@@ -48,12 +52,25 @@ public class RobotPlayer{
 			Clock.yield();
 		}
 	}
-
+	private static MapLocation getTurretEnemy(Signal s){
+		int[] message = s.getMessage(); 
+		if(s.getTeam().equals(rc.getTeam()) && message != null && s.getLocation().distanceSquaredTo(rc.getLocation()) <= 2){
+			if(message[0] == MESSAGE_ENEMY){
+				return decodeLocation(message[1]);
+			}
+		}
+		return null;
+	}
 	private static void turretCode() throws GameActionException {
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
 		MapLocation[] enemyArray = combineThings(visibleEnemyArray,incomingSignals);
-		
+		for(Signal s: incomingSignals){
+			MapLocation enemyLocation = getTurretEnemy(s);
+			if(enemyLocation != null && rc.canAttackLocation(enemyLocation)){
+				rc.attackLocation(enemyLocation);
+			}
+		}
 		if(enemyArray.length>0){
 			if(rc.isWeaponReady()){
 				//look for adjacent enemies to attack
@@ -68,23 +85,37 @@ public class RobotPlayer{
 			//could not find any enemies adjacent to attack
 			//try to move toward them
 			if(rc.isCoreReady()){
-				MapLocation goal = enemyArray[0];
-				Direction toEnemy = rc.getLocation().directionTo(goal);
 				rc.pack();
 			}
 		}else{//there are no enemies nearby
 			//check to see if we are in the way of friends
 			//we are obstructing them
 			if(rc.isCoreReady()){
+				//TODO Fix logic here choose the condition for packing
+				//rc.pack();
 				RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
 				if(nearbyFriends.length>3){
-					Direction away = randomDirection();
 					rc.pack();
 				}
 			}
 		}
 	}
-	
+	private static int encodeLocation(MapLocation lc){
+		final int maxOffset = 16000;
+		final int range = 2 * maxOffset;
+		int x = lc.x;
+		int y = lc.y;
+		x += maxOffset;
+		y += maxOffset;
+		return (range + 1) * x + y;
+	}
+	private static MapLocation decodeLocation(int code){
+		final int maxOffset = 16000;
+		final int range = 2 * maxOffset;
+		int x = code/(range + 1);
+		int y = code%(range + 1);
+		return new MapLocation(x, y);
+	}
 	private static void ttmCode() throws GameActionException {
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
@@ -198,7 +229,19 @@ public class RobotPlayer{
 			}
 		}
 	}
-	
+	private static RobotInfo findWeakestRobot(RobotInfo[] listOfRobots){
+		double weakestSoFar = 0;
+		RobotInfo weakest = null;
+		for(RobotInfo r:listOfRobots){
+			double weakness = r.maxHealth-r.health;
+			//double weakness = (r.maxHealth-r.health)*1.0/r.maxHealth;
+			if(weakness>weakestSoFar){
+				weakest = r;
+				weakestSoFar=weakness;
+			}
+		}
+		return weakest;
+	}	
 	private static MapLocation findWeakest(RobotInfo[] listOfRobots){
 		double weakestSoFar = 0;
 		MapLocation weakestLocation = null;
@@ -230,10 +273,10 @@ public class RobotPlayer{
 		}
 		return -1;
 	}
-	private static void scoutCode(){		
+	private static void scoutCode() throws GameActionException{		
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
-		MapLocation[] enemyArray = combineThings(visibleEnemyArray,incomingSignals);
+		//MapLocation[] enemyArray = combineThings(visibleEnemyArray,incomingSignals);
 		for(Signal s: incomingSignals){
 			husbandTurretID = getHusbandTurretID(s);
 			if(husbandTurretID != -1){
@@ -254,18 +297,25 @@ public class RobotPlayer{
 				husband = visibleAlliesArray[i];
 			}
 		}
-
+		RobotInfo targetRobot = findWeakestRobot(visibleEnemyArray);
+		MapLocation target = null;
+		if(targetRobot != null){
+			target = targetRobot.location;
+			rc.setIndicatorString(2, "Target is at location (" + target.x + "," + target.y + ")");			
+			rc.setIndicatorString(3, "Target is of type:" + targetRobot.type);			
+		}
 		if(husband != null){
 			Direction toHusband = rc.getLocation().directionTo(husband.location);
-			try {
-				if(rc.getLocation().distanceSquaredTo(husband.location)>= 2){
-					tryToMove(toHusband);					
+				if(rc.getLocation().distanceSquaredTo(husband.location)<= 2){
+					if(target != null){
+						rc.broadcastMessageSignal(MESSAGE_ENEMY, encodeLocation(target),rc.getLocation().distanceSquaredTo(husband.location));
+					}
+				}else{
+					if(rc.isCoreReady()){
+						tryToMove(toHusband);						
+					}
 				}
 
-			} catch (GameActionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}			
 		}
 
 	}
