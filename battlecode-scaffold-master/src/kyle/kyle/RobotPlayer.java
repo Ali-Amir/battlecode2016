@@ -13,40 +13,8 @@ public class RobotPlayer {
 	static RobotController rc;
 	static int[] tryDirections = { 0, -1, 1, -2, 2 };
 	static RobotType[] buildList = new RobotType[] { RobotType.GUARD, RobotType.TURRET };
-	static MotionController mc = null;
-	static PotentialField field = null;
 
 	public static void run(RobotController rcIn) {
-
-		if (mc == null) {
-			switch (rcIn.getType()) {
-			case ARCHON:
-				break;
-			case GUARD:
-				field = PotentialField.guard();
-				mc = new MotionController(field);
-				break;
-			case SOLDIER:
-				field = PotentialField.soldier();
-				mc = new MotionController(field);
-				break;
-			case SCOUT:
-				field = PotentialField.scout();
-				mc = new MotionController(field);
-				break;
-			case VIPER:
-				field = PotentialField.viper();
-				mc = new MotionController(field);
-				break;
-			case TTM:
-			case TURRET:
-				field = PotentialField.turret();
-				mc = new MotionController(field);
-				break;
-			default:
-				throw new RuntimeException("UNKNOWN ROBOT TYPE!");
-			}
-		}
 
 		rc = rcIn;
 		rnd = new Random(rc.getID());
