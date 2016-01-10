@@ -77,7 +77,7 @@ public class PotentialField {
 	/**
 	 * @return Directions with most attraction.
 	 */
-	Direction strongetAttractionDirection(MapLocation to) {
+	public Direction strongetAttractionDirection(MapLocation to) {
 		return directionsByAttraction(to).get(0);
 	}
 
@@ -85,7 +85,7 @@ public class PotentialField {
 	 * @return Directions sorted by attraction force. Strongest attraction
 	 *         direction is first.
 	 */
-	List<Direction> directionsByAttraction(MapLocation to) {
+	public List<Direction> directionsByAttraction(MapLocation to) {
 		Vector totalForce = new Vector(0, 0);
 		for (ChargedParticle particle : particles) {
 			Vector newForce = particle.force(to);
