@@ -28,35 +28,35 @@ public class PotentialField {
 	/**
 	 * @return Potential field for a soldier type robot.
 	 */
-	static PotentialField soldier() {
+	public static PotentialField soldier() {
 		return new PotentialField(new SoldierConfigurator());
 	}
 
 	/**
 	 * @return Potential field for a turret type robot.
 	 */
-	static PotentialField turret() {
+	public static PotentialField turret() {
 		return new PotentialField(new TurretConfigurator());
 	}
 
 	/**
 	 * @return Potential field for a viper type robot.
 	 */
-	static PotentialField viper() {
+	public static PotentialField viper() {
 		return new PotentialField(new ViperConfigurator());
 	}
 
 	/**
 	 * @return Potential field for a guard type robot.
 	 */
-	static PotentialField guard() {
+	public static PotentialField guard() {
 		return new PotentialField(new GuardConfigurator());
 	}
 
 	/**
 	 * @return Potential field for a scout type robot.
 	 */
-	static PotentialField scout() {
+	public static PotentialField scout() {
 		return new PotentialField(new ScoutConfigurator());
 	}
 
