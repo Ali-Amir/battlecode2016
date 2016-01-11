@@ -22,7 +22,8 @@ public class RobotPlayer {
 	static int[] tryDirections = { 0, -1, 1, -2, 2 };
 	public static int MESSAGE_MARRIAGE = 0;
 	public static int MESSAGE_ENEMY = 1;
-
+	public static int MESSAGE_TURRET_RECOMMENDED_DIRECTION = 2;
+	
 	static Player player = null;
 	static MotionController mc = null;
 	static PotentialField field = null;
@@ -88,7 +89,14 @@ public class RobotPlayer {
 		}
 		return null;
 	}
-
+	public static int directionToInt(Direction d){
+		Direction[] directions = Direction.values();
+		for(int i = 0;i < 8;i++){
+			if(directions[i].equals(d))
+				return i;
+		}
+		return-1;
+	}
 	private static void turretCode() throws GameActionException {
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
@@ -155,7 +163,7 @@ public class RobotPlayer {
 		final int range = 2 * maxOffset;
 		int x = code / (range + 1);
 		int y = code % (range + 1);
-		return new MapLocation(x, y);
+		return new MapLocation(x - maxOffset, y - maxOffset);
 	}
 
 	private static void ttmCode() throws GameActionException {
@@ -345,8 +353,6 @@ public class RobotPlayer {
 		return weakestLocation;
 	}
 
-
-	// Checks
 	public static int getHusbandTurretID(RobotController rc, Signal s) {
 		if (s.getTeam().equals(rc.getTeam()) && s.getMessage() != null) {
 			if (s.getMessage()[0] == rc.getID()) {
@@ -356,7 +362,6 @@ public class RobotPlayer {
 		return -1;
 	}
 
-	// Checks
 	public static int getHusbandTurretID(Signal s) {
 		if (s.getTeam().equals(rc.getTeam()) && s.getMessage() != null) {
 			if (s.getMessage()[0] == rc.getID()) {
@@ -366,51 +371,7 @@ public class RobotPlayer {
 		return -1;
 	}
 
-	private static RobotInfo getTurretTarget(MapLocation turretLocatoin, RobotInfo[] listOfRobots) {
-		double weakestSoFar = -1;
-		RobotInfo weakest = null;
-		for (int i = 0; i < 3; i++) {
-			rc.setIndicatorString(i, "");
-		}
-		int c = 0;
-		for (RobotInfo r : listOfRobots) {
-			int distanceSquared = r.location.distanceSquaredTo(turretLocatoin);
-			if (r.team == rc.getTeam() || distanceSquared <= 5 || distanceSquared > 48) {
-				continue;
-			}
-			rc.setIndicatorString(c, "can reach this enemy at location:(" + r.location.x + ", " + r.location.y + ")");
-			c++;
-			double weakness = r.maxHealth - r.health;
-			// double weakness = (r.maxHealth-r.health)*1.0/r.maxHealth;
-			if (weakness > weakestSoFar) {
-				weakest = r;
-				weakestSoFar = weakness;
-			}
-		}
-		return weakest;
-	}
-
-	private static RobotInfo[] getArray(ArrayList<RobotInfo> selectedList) {
-		RobotInfo[] selectedArray = new RobotInfo[selectedList.size()];
-		for (int i = 0; i < selectedList.size(); i++) {
-			selectedArray[i] = selectedList.get(i);
-		}
-		return selectedArray;
-
-	}
-
 	public static Direction randomDirection() {
 		return Direction.values()[(int) (rnd.nextDouble() * 8)];
-	}
-
-	// filters robots by type
-	private static RobotInfo[] filterRobotsbyType(RobotInfo[] robots, RobotType targetType) {
-		ArrayList<RobotInfo> selectedList = new ArrayList<>();
-		for (RobotInfo r : robots) {
-			if (r.type.equals(targetType)) {
-				selectedList.add(r);
-			}
-		}
-		return getArray(selectedList);
 	}
 }

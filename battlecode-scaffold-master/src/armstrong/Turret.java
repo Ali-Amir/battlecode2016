@@ -2,6 +2,9 @@ package armstrong;
 
 import java.util.ArrayList;
 
+import com.sun.glass.ui.Robot;
+
+import armstrong.navigation.ParticleType;
 import armstrong.navigation.PotentialField;
 import armstrong.navigation.motion.MotionController;
 import battlecode.common.Direction;
@@ -35,12 +38,18 @@ public class Turret implements Player {
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
 		MapLocation[] enemyArray = combineThings(rc, visibleEnemyArray,incomingSignals);
+		Direction recommendedDirection = null;
 		for(Signal s: incomingSignals){
 			MapLocation enemyLocation = getTurretEnemyMessage(rc, s);
 			if(enemyLocation != null && rc.getLocation().distanceSquaredTo(enemyLocation) > 5){
 				rc.unpack();
 				return;
-			}		
+			}
+			recommendedDirection = getTurretRecommendedDirection(s);
+			rc.setIndicatorString(0, "I was recommended to move in direction:" + RobotPlayer.directionToInt(recommendedDirection));
+		}
+		if(rc.isCoreReady() && recommendedDirection != null){
+			RobotPlayer.tryToMove(rc, recommendedDirection);
 		}
 		if(enemyArray.length>0){
 			rc.unpack();
@@ -71,22 +80,37 @@ public class Turret implements Player {
 		}
 	}
 	
+	private Direction getTurretRecommendedDirection(Signal s) {
+		int[] message = s.getMessage(); 
+		if(message != null){
+			if(message[0] == RobotPlayer.MESSAGE_TURRET_RECOMMENDED_DIRECTION){
+				return Direction.values()[message[1]];
+			}
+		}
+		return null;
+	}
+
 	public void turretCode(RobotController rc) throws GameActionException {
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
 		MapLocation[] enemyArray = combineThings(rc, visibleEnemyArray,incomingSignals);
 		boolean enemiesAround = false;
+		Direction recommendedDirection = null;
 		for(Signal s: incomingSignals){
 			MapLocation enemyLocation = getTurretEnemyMessage(rc, s);
 			if(enemyLocation != null && rc.canAttackLocation(enemyLocation)){
-				rc.setIndicatorString(0,"Discovered an enemy around using signal");
+				rc.setIndicatorString(0,"Discovered an enemy around using signal.");
 				enemiesAround = true;
 				if(rc.isWeaponReady()){
-					rc.setIndicatorString(0,"Attemping attacking an enemy known using signal");
+					rc.setIndicatorString(0,"Attacking an enemy known using signal.");
 					rc.attackLocation(enemyLocation);
 				}
 
 			}
+			recommendedDirection = getTurretRecommendedDirection(s);
+		}
+		if(!enemiesAround){
+			rc.setIndicatorString(0,"No enemy known using signal.");
 		}
 		if(enemyArray.length>0){
 			enemiesAround = true;
@@ -94,7 +118,7 @@ public class Turret implements Player {
 				//look for adjacent enemies to attack
 				for(MapLocation oneEnemy:enemyArray){
 					if(rc.canAttackLocation(oneEnemy)){
-						rc.setIndicatorString(1,"trying to attack");
+						rc.setIndicatorString(1,"Attacking an enemy I can see.");
 						rc.attackLocation(oneEnemy);
 						break;
 					}
@@ -116,7 +140,7 @@ public class Turret implements Player {
 				//TODO Fix logic here choose the condition for packing
 				//rc.pack();
 				RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
-				if(nearbyFriends.length>3 && enemiesAround == false){
+				if(recommendedDirection != null && enemiesAround == false){
 					rc.pack();
 				}
 			}
