@@ -86,6 +86,8 @@ public class PotentialField {
 	 *         direction is first.
 	 */
 	public List<Direction> directionsByAttraction(MapLocation to) {
+		discardDeadParticles();
+		
 		Vector totalForce = new Vector(0, 0);
 		for (ChargedParticle particle : particles) {
 			Vector newForce = particle.force(to);
@@ -108,6 +110,18 @@ public class PotentialField {
 			sortedDirections.add(directions.get(p.get(i)));
 		}
 		return sortedDirections;
+	}
+	
+	/**
+	 * Discards particles that are not alive.
+	 */
+	private void discardDeadParticles() {
+		for (int i = 0; i < particles.size(); ++i) {
+			if (!particles.get(i).isAlive()) {
+				particles.remove(i);
+				--i;
+			}
+		}
 	}
 
 }

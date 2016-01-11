@@ -10,6 +10,7 @@ import org.hibernate.search.analyzer.Discriminator;
 
 import armstrong.navigation.PotentialField;
 import armstrong.navigation.motion.MotionController;
+import armstrong.utils.Turn;
 
 //import com.sun.xml.internal.bind.v2.runtime.Location;
 
@@ -71,6 +72,7 @@ public class RobotPlayer {
 		while (true) {
 			try {
 				player.play(rc);
+				Turn.increaseTurn();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
