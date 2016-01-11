@@ -23,7 +23,7 @@ public class MotionController {
 		}
 
 		List<Direction> directions = field.directionsByAttraction(rc.getLocation());
-		for (int i = 0; i < directions.size(); ++i) {
+		for (int i = 0; i < 3; ++i) {
 			Direction maybeForward = directions.get(i);
 			if (rc.canMove(maybeForward)) {
 				rc.move(maybeForward);
@@ -35,12 +35,15 @@ public class MotionController {
 			return false;
 		}
 
-		// failed to move, look to clear rubble
-		Direction forward = field.strongetAttractionDirection(rc.getLocation());
-		MapLocation ahead = rc.getLocation().add(forward);
-		if (rc.senseRubble(ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-			rc.clearRubble(forward);
+		for (int i = 0; i < directions.size(); ++i) {
+			Direction maybeForward = directions.get(i);
+			MapLocation ahead = rc.getLocation().add(maybeForward);
+			if (rc.senseRubble(ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+				rc.clearRubble(maybeForward);
+				return true;
+			}
 		}
-		return true;
+
+		return false;
 	}
 }
