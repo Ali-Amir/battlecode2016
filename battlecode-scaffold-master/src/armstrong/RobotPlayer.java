@@ -73,8 +73,8 @@ public class RobotPlayer {
 
 		rc = rcIn;
 		rnd = new Random(rc.getID());
-		Turn.increaseTurn();
 		while (true) {
+			Turn.increaseTurn();
 			try {
 				player.play(rc);
 			} catch (Exception e) {

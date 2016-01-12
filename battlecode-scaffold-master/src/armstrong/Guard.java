@@ -17,8 +17,9 @@ public class Guard implements Player {
 	private final PotentialField field;
 	private final MotionController mc;
 	private int lastBroadcastTurn = -100;
-	private static final int MESSAGE_DELAY_TURNS = 10;
-	private static final int BROADCAST_RADIUSSQR = 1000;
+	private int lastReceived = -100;
+	private static final int MESSAGE_DELAY_TURNS = 50;
+	private static final int BROADCAST_RADIUSSQR = 200;
 
 	public Guard(PotentialField field, MotionController mc) {
 		this.field = field;
@@ -28,19 +29,21 @@ public class Guard implements Player {
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		// Do message signaling stuff.
-		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS) {
-			final Signal[] signals = rc.emptySignalQueue();
-			for (Signal signal : signals) {
-				// If ally. Then ally is reporting enemies.
-				if (signal.getTeam().equals(rc.getTeam())) {
-					field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 5);
-					if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS) {
-						rc.broadcastSignal(BROADCAST_RADIUSSQR);
-						lastBroadcastTurn = Turn.currentTurn();
-					}
-				} else {
-					field.addParticle(ParticleType.OPPOSITE_GUARD, signal.getLocation(), 10);
-				}
+		rc.setIndicatorString(0, "Current turn: " + Turn.currentTurn());
+		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS && lastReceived > MESSAGE_DELAY_TURNS + lastBroadcastTurn) {
+			rc.broadcastSignal(BROADCAST_RADIUSSQR);
+			lastBroadcastTurn = Turn.currentTurn();
+			rc.setIndicatorString(1, "Relay message at turn: " + Turn.currentTurn());
+		}
+
+		final Signal[] signals = rc.emptySignalQueue();
+		for (Signal signal : signals) {
+			// If ally. Then ally is reporting enemies.
+			if (signal.getTeam().equals(rc.getTeam())) {
+				field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
+				//lastReceived = Turn.currentTurn();
+			} else {
+				field.addParticle(ParticleType.OPPOSITE_GUARD, signal.getLocation(), 10);
 			}
 		}
 
@@ -51,10 +54,7 @@ public class Guard implements Player {
 		// rc.setIndicatorString(2, "Enemies around: " + enemyArray.length + "
 		// turn: " + Turn.currentTurn());
 		if (enemyArray.length > 0) {
-			if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS) {
-				rc.broadcastSignal(BROADCAST_RADIUSSQR);
-				lastBroadcastTurn = Turn.currentTurn();
-			}
+			lastReceived = Turn.currentTurn();
 			if (rc.isWeaponReady()) {
 				// look for adjacent enemies to attack
 				Arrays.sort(enemyArray, (a, b) -> {
@@ -93,9 +93,9 @@ public class Guard implements Player {
 			if (field.particles().size() == 0 && nearbyFriends.length > 2) {
 				mc.tryToMoveRandom(rc);
 			} else {
-				if (!field.particles().isEmpty()) {
-					rc.setIndicatorString(2, "Turn: " + Turn.currentTurn() + " Field: " + field.toString());
-				}
+//				if (!field.particles().isEmpty()) {
+//					rc.setIndicatorString(2, "Turn: " + Turn.currentTurn() + " Field: " + field.toString());
+//				}
 				mc.tryToMove(rc);
 			}
 			//
