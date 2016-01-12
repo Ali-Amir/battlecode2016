@@ -8,6 +8,8 @@ import java.util.Set;
 
 import org.hibernate.search.analyzer.Discriminator;
 
+import com.sun.glass.ui.Robot;
+
 import armstrong.navigation.PotentialField;
 import armstrong.navigation.motion.MotionController;
 import armstrong.utils.Turn;
@@ -80,7 +82,28 @@ public class RobotPlayer {
 			Clock.yield();
 		}
 	}
+	public static int getPrice(RobotType t){
+		switch (t) {
+			
+		case GUARD:
+			return 30;
 
+		case SOLDIER:
+			return 30;
+			
+		case SCOUT:
+			return 40;
+
+		case VIPER:
+			return 100;
+			
+		case TURRET:
+			return 125;
+
+		default:
+			throw new RuntimeException("This Robot Type cannot be built!");
+		}
+	}
 	private static MapLocation getTurretEnemyMessage(Signal s) {
 		int[] message = s.getMessage();
 		if (s.getTeam().equals(rc.getTeam()) && message != null
@@ -356,6 +379,7 @@ public class RobotPlayer {
 	}
 
 	public static int getHusbandTurretID(RobotController rc, Signal s) {
+		System.out.println("m1: " + s.getMessage()[0] + "m2:" + s.getMessage()[1]);
 		if (s.getTeam().equals(rc.getTeam()) && s.getMessage() != null) {
 			if (s.getMessage()[0] == rc.getID()) {
 				return s.getMessage()[1];

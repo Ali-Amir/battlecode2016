@@ -16,7 +16,7 @@ public class Scout implements Player {
 	private final PotentialField field;
 	private final MotionController mc;
 
-	private int husbandTurretID = -1;
+	private static int husbandTurretID = -1;
 
 	public Scout(PotentialField field, MotionController mc) {
 		this.field = field;
@@ -30,10 +30,11 @@ public class Scout implements Player {
 		//MapLocation[] enemyArray =  combineThings(visibleEnemyArray,incomingSignals);
 		for (Signal s : incomingSignals) {
 			husbandTurretID = RobotPlayer.getHusbandTurretID(rc, s);
-			if (husbandTurretID != -1) {
+			if (husbandTurretID != -1) {		
 				break;
 			}
 		}
+		rc.setIndicatorString(0, "My husband has ID: " + husbandTurretID);
 		RobotInfo[] visibleAlliesArray = rc.senseNearbyRobots();
 		RobotInfo husband = null;
 		for (int i = 0; i < visibleAlliesArray.length; i++) {
@@ -73,9 +74,10 @@ public class Scout implements Player {
 		PotentialField field = PotentialField.turret();		
 		double weakestSoFar = -1;
 		RobotInfo weakest = null;
+		/*
 		for (int i = 0; i < 3; i++) {
 			rc.setIndicatorString(i, "");
-		}
+		}*/
 		int c = 0;
 		boolean farEnemies = false;
 		for (RobotInfo r : listOfRobots) {
@@ -86,7 +88,7 @@ public class Scout implements Player {
 			if(distanceSquared <= 5){
 				
 			}else if(distanceSquared <= 48){
-				rc.setIndicatorString(c, "can reach this enemy at location:(" + r.location.x + ", " + r.location.y + ")");
+				//rc.setIndicatorString(c, "can reach this enemy at location:(" + r.location.x + ", " + r.location.y + ")");
 				c++;
 				if(r.type == RobotType.ARCHON){
 					return r;
@@ -106,7 +108,7 @@ public class Scout implements Player {
 		}
 		if(weakest == null && farEnemies){
 			Direction turretRecommendedDirection = field.strongetAttractionDirection(turretLocation);
-			rc.setIndicatorString(0, "I am recommending direction: " + RobotPlayer.directionToInt(turretRecommendedDirection));
+			//rc.setIndicatorString(0, "I am recommending direction: " + RobotPlayer.directionToInt(turretRecommendedDirection));
 			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_TURRET_RECOMMENDED_DIRECTION, RobotPlayer.directionToInt(turretRecommendedDirection), rc.getLocation().distanceSquaredTo(turretLocation));
 		}
 		return weakest;
