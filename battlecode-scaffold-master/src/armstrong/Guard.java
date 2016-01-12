@@ -18,6 +18,7 @@ public class Guard implements Player {
 	private final MotionController mc;
 	private int lastBroadcastTurn = -100;
 	private static final int MESSAGE_DELAY_TURNS = 10;
+	private static final int BROADCAST_RADIUSSQR = 1000;
 
 	public Guard(PotentialField field, MotionController mc) {
 		this.field = field;
@@ -34,7 +35,7 @@ public class Guard implements Player {
 				if (signal.getTeam().equals(rc.getTeam())) {
 					field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 5);
 					if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS) {
-						rc.broadcastSignal(200);
+						rc.broadcastSignal(BROADCAST_RADIUSSQR);
 						lastBroadcastTurn = Turn.currentTurn();
 					}
 				} else {
@@ -51,7 +52,7 @@ public class Guard implements Player {
 		// turn: " + Turn.currentTurn());
 		if (enemyArray.length > 0) {
 			if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS) {
-				rc.broadcastSignal(200);
+				rc.broadcastSignal(BROADCAST_RADIUSSQR);
 				lastBroadcastTurn = Turn.currentTurn();
 			}
 			if (rc.isWeaponReady()) {
