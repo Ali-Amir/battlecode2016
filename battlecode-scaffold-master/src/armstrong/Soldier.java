@@ -21,20 +21,20 @@ public class Soldier implements Player {
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		RobotInfo[] enemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
+		boolean isWeaponReady = rc.isWeaponReady();
+		boolean enemyInAttackRange = false;
 		if (enemyArray.length > 0) {
-			if (rc.isWeaponReady()) {
 				// look for adjacent enemies to attack
 				for (RobotInfo oneEnemy : enemyArray) {
 					if (rc.canAttackLocation(oneEnemy.location)) {
-						rc.setIndicatorString(0, "trying to attack");
-						rc.attackLocation(oneEnemy.location);
+						enemyInAttackRange = true;
+						if (isWeaponReady) {
+							rc.attackLocation(oneEnemy.location);
+						}
 						break;
 					}
 				}
-			}
-			// could not find any enemies adjacent to attack
-			// try to move toward them
-			if (rc.isCoreReady()) {
+			if (rc.isCoreReady() && !enemyInAttackRange) {
 				MapLocation goal = enemyArray[0].location;
 				Direction toEnemy = rc.getLocation().directionTo(goal);
 				RobotPlayer.tryToMove(rc, toEnemy);

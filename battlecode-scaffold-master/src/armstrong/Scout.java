@@ -80,6 +80,7 @@ public class Scout implements Player {
 		}*/
 		int c = 0;
 		boolean farEnemies = false;
+		MapLocation enemyArchonLocation = null;
 		for (RobotInfo r : listOfRobots) {
 			int distanceSquared = r.location.distanceSquaredTo(turretLocation);
 			if (r.team == rc.getTeam()) {
@@ -102,12 +103,13 @@ public class Scout implements Player {
 			}else if(distanceSquared > 48){
 				farEnemies = true;
 				if(r.type.equals(RobotType.ARCHON)){
+					enemyArchonLocation = r.location;
 					field.addParticle(ParticleType.ALLY_ARCHON, r.location, 10);
 				}
 			}
 		}
-		if(weakest == null && farEnemies){
-			Direction turretRecommendedDirection = field.strongetAttractionDirection(turretLocation);
+		if(weakest == null && farEnemies && enemyArchonLocation != null){
+			Direction turretRecommendedDirection = turretLocation.directionTo(enemyArchonLocation);
 			//rc.setIndicatorString(0, "I am recommending direction: " + RobotPlayer.directionToInt(turretRecommendedDirection));
 			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_TURRET_RECOMMENDED_DIRECTION, RobotPlayer.directionToInt(turretRecommendedDirection), rc.getLocation().distanceSquaredTo(turretLocation));
 		}

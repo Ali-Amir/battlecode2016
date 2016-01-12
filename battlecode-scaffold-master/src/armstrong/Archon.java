@@ -29,6 +29,7 @@ public class Archon implements Player {
 	int turretCounter = 0;
 	boolean backupTurret = false;
 	RobotInfo choosenTurret = null;
+	static int[] tryDirections = { 0, -1, 1, -2, 2 };
 	/**
 	 * Returns a random unit to build according to buildDistribution.  
 	 */
@@ -90,6 +91,23 @@ public class Archon implements Player {
 			rc.setIndicatorString(0, "We have " + rc.getTeamParts() + "parts");
 			rc.setIndicatorString(1, "We need " + RobotPlayer.getPrice(toBuild) + "parts");
 			if (rc.getTeamParts() >= RobotPlayer.getPrice(toBuild)) {
+				/*for (int deltaD : tryDirections) {
+					Direction maybeForward = Direction.values()[(forward.ordinal() + deltaD + 8) % 8];
+					if (rc.canMove(maybeForward)) {
+						rc.move(maybeForward);
+						return;
+					}
+				}*/
+				if (backupTurret) {
+					Direction forward = rc.getLocation().directionTo(rc.senseRobot(choosenTurret.ID).location);
+					for (int deltaD : tryDirections) {
+						Direction maybeForward = Direction.values()[(forward.ordinal() + deltaD + 8) % 8];
+						if (rc.canBuild(maybeForward, toBuild)) {
+							randomDir = maybeForward;
+							break;
+						}
+					}
+				}
 				if (rc.canBuild(randomDir, toBuild)) {
 					rc.build(randomDir, toBuild);
 					lastBuilt = toBuild;
@@ -101,7 +119,7 @@ public class Archon implements Player {
 					}
 					toBuild = null;
 					//System.out.println("I discovered that backupTurret is : " + backupTurret);
-					if (backupTurret) {
+					if(backupTurret){
 						System.out.println("backupTurret is true!");
 						RobotInfo[] alliesVeryNear = rc.senseNearbyRobots(4, rc.getTeam());
 						RobotInfo choosenScout = getLonelyRobot(alliesVeryNear, RobotType.SCOUT, marriedScouts);
@@ -117,8 +135,10 @@ public class Archon implements Player {
 						backupTurret = false;
 						choosenTurret = null;
 					}
+
 					return;
 				}
+
 			}
 
 			RobotInfo[] alliesToHelp = rc.senseNearbyRobots(RobotType.ARCHON.attackRadiusSquared, rc.getTeam());
