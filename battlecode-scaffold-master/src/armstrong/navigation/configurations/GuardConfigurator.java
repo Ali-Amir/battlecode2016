@@ -36,7 +36,7 @@ public class GuardConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double allyArchonCharge() {
-		return -1.0;
+		return 0.1;
 	}
 
 	@Override

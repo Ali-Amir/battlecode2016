@@ -74,17 +74,6 @@ public class MotionController {
 		}
 
 		List<Direction> directions = field.directionsByAttraction(rc.getLocation());
-
-		{ // TODO
-			Vector totalForce = new Vector(0, 0);
-			for (ChargedParticle particle : field.particles()) {
-				Vector newForce = particle.force(rc.getLocation());
-				totalForce = new Vector(totalForce.x() + newForce.x(), totalForce.y() + newForce.y());
-			}
-			rc.setIndicatorString(1, "Turn: " + Turn.currentTurn() + " pos: " + rc.getLocation().x + " vector: ("
-					+ totalForce.x() + "," + totalForce.y() + ")" + " decided dir: " + directions.get(0));
-		}
-
 		Collections.shuffle(directions.subList(0, 2));
 		Collections.shuffle(directions.subList(2, 4));
 		Collections.shuffle(directions.subList(4, directions.size()));

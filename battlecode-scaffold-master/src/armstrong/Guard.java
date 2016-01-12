@@ -2,20 +2,22 @@ package armstrong;
 
 import java.util.Arrays;
 
+import armstrong.navigation.ParticleType;
 import armstrong.navigation.PotentialField;
 import armstrong.navigation.motion.MotionController;
 import armstrong.utils.Battle;
 import armstrong.utils.Turn;
-import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.Signal;
 
 public class Guard implements Player {
 
 	private final PotentialField field;
 	private final MotionController mc;
+	private int lastBroadcastTurn = -100;
+	private static final int MESSAGE_DELAY_TURNS = 10;
 
 	public Guard(PotentialField field, MotionController mc) {
 		this.field = field;
@@ -24,12 +26,34 @@ public class Guard implements Player {
 
 	@Override
 	public void play(RobotController rc) throws GameActionException {
+		// Do message signaling stuff.
+		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS) {
+			final Signal[] signals = rc.emptySignalQueue();
+			for (Signal signal : signals) {
+				// If ally. Then ally is reporting enemies.
+				if (signal.getTeam().equals(rc.getTeam())) {
+					field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 5);
+					if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS) {
+						rc.broadcastSignal(200);
+						lastBroadcastTurn = Turn.currentTurn();
+					}
+				} else {
+					field.addParticle(ParticleType.OPPOSITE_GUARD, signal.getLocation(), 10);
+				}
+			}
+		}
+
+		// Do sensing.
 		RobotInfo[] enemyArray = rc.senseHostileRobots(rc.getLocation(), rc.getType().sensorRadiusSquared);
 		Battle.addEnemyParticles(enemyArray, field, 5);
 
 		// rc.setIndicatorString(2, "Enemies around: " + enemyArray.length + "
 		// turn: " + Turn.currentTurn());
 		if (enemyArray.length > 0) {
+			if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS) {
+				rc.broadcastSignal(200);
+				lastBroadcastTurn = Turn.currentTurn();
+			}
 			if (rc.isWeaponReady()) {
 				// look for adjacent enemies to attack
 				Arrays.sort(enemyArray, (a, b) -> {
@@ -40,7 +64,7 @@ public class Guard implements Player {
 					if (rc.canAttackLocation(oneEnemy.location)) {
 						rc.setIndicatorString(0, "trying to attack " + Turn.currentTurn());
 						rc.attackLocation(oneEnemy.location);
-						return;
+						break;
 					}
 				}
 			} else {
@@ -50,9 +74,9 @@ public class Guard implements Player {
 			// could not find any enemies adjacent to attack
 			// try to move toward them
 			if (rc.isCoreReady()) {
-				//MapLocation goal = enemyArray[0].location;
-				//Direction toEnemy = rc.getLocation().directionTo(goal);
-				//RobotPlayer.tryToMove(rc, toEnemy);
+				// MapLocation goal = enemyArray[0].location;
+				// Direction toEnemy = rc.getLocation().directionTo(goal);
+				// RobotPlayer.tryToMove(rc, toEnemy);
 				mc.tryToMove(rc);
 				return;
 			}

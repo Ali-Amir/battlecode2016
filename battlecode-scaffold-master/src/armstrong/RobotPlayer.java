@@ -48,7 +48,7 @@ public class RobotPlayer {
 			case SOLDIER:
 				field = PotentialField.soldier();
 				mc = new MotionController(field);
-				player = new Soldier(field, mc);
+				player = new Guard(field, mc);
 				break;
 			case SCOUT:
 				field = PotentialField.scout();
@@ -73,10 +73,10 @@ public class RobotPlayer {
 
 		rc = rcIn;
 		rnd = new Random(rc.getID());
+		Turn.increaseTurn();
 		while (true) {
 			try {
 				player.play(rc);
-				Turn.increaseTurn();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -383,7 +383,7 @@ public class RobotPlayer {
 	}
 
 	public static int getHusbandTurretID(RobotController rc, Signal s) {
-		System.out.println("m1: " + s.getMessage()[0] + "m2:" + s.getMessage()[1]);
+		//System.out.println("m1: " + s.getMessage()[0] + "m2:" + s.getMessage()[1]);
 		if (s.getTeam().equals(rc.getTeam()) && s.getMessage() != null) {
 			if (s.getMessage()[0] == rc.getID()) {
 				return s.getMessage()[1];
