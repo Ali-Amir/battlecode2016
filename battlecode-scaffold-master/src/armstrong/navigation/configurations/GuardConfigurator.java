@@ -48,6 +48,11 @@ public class GuardConfigurator extends RobotPotentialConfigurator {
 	protected double fightingAllyCharge() {
 		return 2.0;
 	}
+	
+	@Override
+	protected double allyDefaultCharge() {
+		return -0.5;
+	}
 
 	@Override
 	protected double zombieCharge() {

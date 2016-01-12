@@ -5,11 +5,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import armstrong.RobotPlayer;
 import armstrong.navigation.configurations.GuardConfigurator;
 import armstrong.navigation.configurations.ScoutConfigurator;
 import armstrong.navigation.configurations.SoldierConfigurator;
 import armstrong.navigation.configurations.TurretConfigurator;
 import armstrong.navigation.configurations.ViperConfigurator;
+import armstrong.utils.Vector;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 
@@ -87,31 +89,34 @@ public class PotentialField {
 	 */
 	public List<Direction> directionsByAttraction(MapLocation to) {
 		discardDeadParticles();
-		
+
 		Vector totalForce = new Vector(0, 0);
 		for (ChargedParticle particle : particles) {
 			Vector newForce = particle.force(to);
 			totalForce = new Vector(totalForce.x() + newForce.x(), totalForce.y() + newForce.y());
 		}
 
-		List<Direction> directions = Arrays.asList(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST);
-		int[] dx = { 0, 1, 0, -1 };
-		int[] dy = { 1, 0, -1, 0 };
-		List<Integer> p = Arrays.asList(0, 1, 2, 3);
+		List<Direction> directions = new ArrayList<>(
+				Arrays.asList(Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
+						Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST));
+		final int[] dx = { 0, 1, 1, 1, 0, -1, -1, -1 };
+		final int[] dy = { -1, -1, 0, 1, 1, 1, 0, -1 };
+		List<Integer> p = new ArrayList<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7));
+		Collections.shuffle(p, RobotPlayer.rnd);
 		final Vector finalForce = totalForce;
 		Collections.sort(p, (a, b) -> {
-			double dValue = (dx[b] * finalForce.x() + dy[b] * finalForce.y())
-					- (dx[a] * finalForce.x() + dy[a] * finalForce.y());
+			double dValue = (dx[b] * finalForce.x() + dy[b] * finalForce.y()) / Math.sqrt(dx[b] * dx[b] + dy[b] * dy[b])
+					- (dx[a] * finalForce.x() + dy[a] * finalForce.y()) / Math.sqrt(dx[a] * dx[a] + dy[a] * dy[a]);
 			return dValue < 0 ? -1 : dValue > 0 ? 1 : 0;
 		});
 
 		List<Direction> sortedDirections = new ArrayList<>();
-		for (int i = 0; i < 4; ++i) {
+		for (int i = 0; i < p.size(); ++i) {
 			sortedDirections.add(directions.get(p.get(i)));
 		}
 		return sortedDirections;
 	}
-	
+
 	/**
 	 * Discards particles that are not alive.
 	 */
@@ -122,6 +127,19 @@ public class PotentialField {
 				--i;
 			}
 		}
+	}
+
+	public List<ChargedParticle> particles() {
+		return Collections.unmodifiableList(particles);
+	}
+
+	@Override
+	public String toString() {
+		String res = "{";
+		for (ChargedParticle q : particles) {
+			res += q.toString() + ",";
+		}
+		return res + "}";
 	}
 
 }
