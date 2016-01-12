@@ -87,4 +87,6 @@ public abstract class RobotPotentialConfigurator {
 	protected abstract double denCharge();
 	
 	protected abstract double defaultCharge();
+	
+	protected abstract double allyDefaultCharge();
 }

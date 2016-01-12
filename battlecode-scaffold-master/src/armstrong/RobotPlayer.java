@@ -1,20 +1,21 @@
 package armstrong;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Random;
-import java.util.Set;
-
-import org.hibernate.search.analyzer.Discriminator;
 
 import armstrong.navigation.PotentialField;
 import armstrong.navigation.motion.MotionController;
 import armstrong.utils.Turn;
 
 //import com.sun.xml.internal.bind.v2.runtime.Location;
-
-import battlecode.common.*;
+import battlecode.common.Clock;
+import battlecode.common.Direction;
+import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
+import battlecode.common.MapLocation;
+import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
+import battlecode.common.Signal;
 
 public class RobotPlayer {
 
@@ -24,7 +25,7 @@ public class RobotPlayer {
 	public static int MESSAGE_MARRIAGE = 0;
 	public static int MESSAGE_ENEMY = 1;
 	public static int MESSAGE_TURRET_RECOMMENDED_DIRECTION = 2;
-	
+
 	static Player player = null;
 	static MotionController mc = null;
 	static PotentialField field = null;
@@ -91,14 +92,16 @@ public class RobotPlayer {
 		}
 		return null;
 	}
-	public static int directionToInt(Direction d){
+
+	public static int directionToInt(Direction d) {
 		Direction[] directions = Direction.values();
-		for(int i = 0;i < 8;i++){
-			if(directions[i].equals(d))
+		for (int i = 0; i < 8; i++) {
+			if (directions[i].equals(d))
 				return i;
 		}
-		return-1;
+		return -1;
 	}
+
 	private static void turretCode() throws GameActionException {
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
 		Signal[] incomingSignals = rc.emptySignalQueue();
