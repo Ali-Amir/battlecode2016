@@ -97,7 +97,7 @@ public class Archon implements Player {
 						return;
 					}
 				}*/
-				if (backupTurret) {
+				if (backupTurret && rc.canSenseRobot(choosenTurret.ID)) {
 					Direction forward = rc.getLocation().directionTo(rc.senseRobot(choosenTurret.ID).location);
 					for (int deltaD : tryDirections) {
 						Direction maybeForward = Direction.values()[(forward.ordinal() + deltaD + 8) % 8];
