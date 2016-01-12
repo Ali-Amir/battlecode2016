@@ -40,7 +40,16 @@ public class Guard implements Player {
 		for (Signal signal : signals) {
 			// If ally. Then ally is reporting enemies.
 			if (signal.getTeam().equals(rc.getTeam())) {
-				field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
+				if(signal.getMessage() == null){
+					field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
+				}else{
+					if(signal.getMessage()[0] == RobotPlayer.MESSAGE_HELP_ARCHON){
+						field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
+						field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
+						field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
+					}
+				}
+
 				//lastReceived = Turn.currentTurn();
 			} else {
 				field.addParticle(ParticleType.OPPOSITE_GUARD, signal.getLocation(), 10);
@@ -93,27 +102,9 @@ public class Guard implements Player {
 			if (field.particles().size() == 0 && nearbyFriends.length > 2) {
 				mc.tryToMoveRandom(rc);
 			} else {
-//				if (!field.particles().isEmpty()) {
-//					rc.setIndicatorString(2, "Turn: " + Turn.currentTurn() + " Field: " + field.toString());
-//				}
 				mc.tryToMove(rc);
 			}
-			//
-			// if (nearbyFriends.length > 3) {
-			// Direction away = RobotPlayer.randomDirection();
-			// mc.tryToMove(rc);
-			// // RobotPlayer.tryToMove(rc, away);
-			// } else {// maybe a friend is in need!
-			// RobotInfo[] alliesToHelp = rc.senseNearbyRobots(1000000,
-			// rc.getTeam());
-			// MapLocation weakestOne = RobotPlayer.findWeakest(alliesToHelp);
-			// if (weakestOne != null) {// found a friend most in need
-			// mc.tryToMove(rc);
-			// // Direction towardFriend =
-			// // rc.getLocation().directionTo(weakestOne);
-			// // RobotPlayer.tryToMove(rc, towardFriend);
-			// }
-			// }
+
 		}
 	}
 

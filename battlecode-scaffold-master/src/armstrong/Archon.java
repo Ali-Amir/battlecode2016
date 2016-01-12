@@ -29,7 +29,9 @@ public class Archon implements Player {
 	int turretCounter = 0;
 	boolean backupTurret = false;
 	RobotInfo choosenTurret = null;
+	static int lastHealth = 1000;
 	static int[] tryDirections = { 0, -1, 1, -2, 2 };
+	private static final int BROADCAST_RADIUSSQR = 200;
 	/**
 	 * Returns a random unit to build according to buildDistribution.  
 	 */
@@ -57,6 +59,11 @@ public class Archon implements Player {
 	}
 	@Override
 	public void play(RobotController rc) throws GameActionException {
+		if((int)rc.getHealth() < lastHealth){
+			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELP_ARCHON, 0, 1000);
+			rc.setIndicatorString(1, "Seeking Help!");
+		}
+		lastHealth = (int) rc.getHealth();
 		if (broadcastNextTurn) {
 			System.out.println("BroadCasting.." + toBroadcastNextTurn[0] + "," + toBroadcastNextTurn[1]);
 			rc.broadcastMessageSignal(toBroadcastNextTurn[0], toBroadcastNextTurn[1], toBroadcastNextTurn[2]);

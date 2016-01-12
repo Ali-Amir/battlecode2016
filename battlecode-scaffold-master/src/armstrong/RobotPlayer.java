@@ -28,7 +28,8 @@ public class RobotPlayer {
 	public static int MESSAGE_MARRIAGE = 0;
 	public static int MESSAGE_ENEMY = 1;
 	public static int MESSAGE_TURRET_RECOMMENDED_DIRECTION = 2;
-
+	public static int MESSAGE_HELP_ARCHON = 3;
+	
 	static Player player = null;
 	static MotionController mc = null;
 	static PotentialField field = null;
