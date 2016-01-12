@@ -1,13 +1,9 @@
-package armstrong;
+package team316;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import com.sun.glass.ui.Robot;
-
-import armstrong.navigation.PotentialField;
-import armstrong.navigation.motion.MotionController;
-import armstrong.utils.Turn;
 
 //import com.sun.xml.internal.bind.v2.runtime.Location;
 import battlecode.common.Clock;
@@ -19,6 +15,9 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
+import team316.navigation.PotentialField;
+import team316.navigation.motion.MotionController;
+import team316.utils.Turn;
 
 public class RobotPlayer {
 

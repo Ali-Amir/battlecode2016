@@ -1,8 +1,8 @@
-package armstrong.navigation;
+package team316.navigation;
 
-import armstrong.utils.Turn;
-import armstrong.utils.Vector;
 import battlecode.common.MapLocation;
+import team316.utils.Turn;
+import team316.utils.Vector;
 
 /**
  * Represents a charged particle in a potential field. Charge represents the

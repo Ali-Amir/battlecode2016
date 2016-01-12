@@ -1,4 +1,4 @@
-package armstrong.navigation;
+package team316.navigation;
 
 import battlecode.common.MapLocation;
 

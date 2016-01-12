@@ -1,19 +1,19 @@
-package armstrong.navigation.motion;
+package team316.navigation.motion;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import armstrong.navigation.ChargedParticle;
-import armstrong.navigation.PotentialField;
-import armstrong.utils.Turn;
-import armstrong.utils.Vector;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+import team316.navigation.ChargedParticle;
+import team316.navigation.PotentialField;
+import team316.utils.Turn;
+import team316.utils.Vector;
 
 public class MotionController {
 	// Potential field. Could be modified from outside this class.

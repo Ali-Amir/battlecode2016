@@ -1,12 +1,15 @@
-package armstrong.navigation.configurations;
+package team316.navigation.configurations;
 
-import armstrong.navigation.RobotPotentialConfigurator;
+import battlecode.common.MapLocation;
+import team316.navigation.ChargedParticle;
+import team316.navigation.ParticleType;
+import team316.navigation.RobotPotentialConfigurator;
 
-public class SoldierConfigurator extends RobotPotentialConfigurator {
+public class ViperConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double oppositeArchonCharge() {
-		return 10.0;
+		return 3.0;
 	}
 
 	@Override
@@ -68,5 +71,5 @@ public class SoldierConfigurator extends RobotPotentialConfigurator {
 	protected double defaultCharge() {
 		return 1.0;
 	}
-	
+
 }

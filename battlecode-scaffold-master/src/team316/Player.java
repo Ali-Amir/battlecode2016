@@ -1,4 +1,4 @@
-package armstrong;
+package team316;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;

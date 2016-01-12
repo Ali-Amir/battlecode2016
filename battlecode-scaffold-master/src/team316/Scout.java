@@ -1,8 +1,5 @@
-package armstrong;
+package team316;
 
-import armstrong.navigation.ParticleType;
-import armstrong.navigation.PotentialField;
-import armstrong.navigation.motion.MotionController;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -10,6 +7,9 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
+import team316.navigation.ParticleType;
+import team316.navigation.PotentialField;
+import team316.navigation.motion.MotionController;
 
 public class Scout implements Player {
 

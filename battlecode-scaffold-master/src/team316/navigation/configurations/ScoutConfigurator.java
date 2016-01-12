@@ -1,12 +1,12 @@
-package armstrong.navigation.configurations;
+package team316.navigation.configurations;
 
-import armstrong.navigation.RobotPotentialConfigurator;
+import team316.navigation.RobotPotentialConfigurator;
 
-public class TurretConfigurator extends RobotPotentialConfigurator {
-
+public class ScoutConfigurator extends RobotPotentialConfigurator {
+	
 	@Override
 	protected double oppositeArchonCharge() {
-		return 20.0;
+		return 3.0;
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class TurretConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double fightingAllyCharge() {
-		return 2.0;
+		return 5.0;
 	}
 	
 	@Override

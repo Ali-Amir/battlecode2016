@@ -1,8 +1,8 @@
-package armstrong.utils;
+package team316.utils;
 
-import armstrong.navigation.ParticleType;
-import armstrong.navigation.PotentialField;
 import battlecode.common.RobotInfo;
+import team316.navigation.ParticleType;
+import team316.navigation.PotentialField;
 
 public class Battle {
 	public static void addAllyParticles(RobotInfo[] allyArray, PotentialField field, int lifetime) {

@@ -1,4 +1,4 @@
-package armstrong;
+package team316;
 
 import java.util.HashMap;
 import java.util.HashSet;
