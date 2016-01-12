@@ -17,7 +17,7 @@ public class Scout implements Player {
 	private final MotionController mc;
 
 	private static int husbandTurretID = -1;
-
+	private static boolean recommended = false;
 	public Scout(PotentialField field, MotionController mc) {
 		this.field = field;
 		this.mc = mc;
@@ -25,12 +25,13 @@ public class Scout implements Player {
 
 	@Override
 	public void play(RobotController rc) throws GameActionException {
+		recommended = false;
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), -1);
 		Signal[] incomingSignals = rc.emptySignalQueue();
 		//MapLocation[] enemyArray =  combineThings(visibleEnemyArray,incomingSignals);
 		for (Signal s : incomingSignals) {
-			husbandTurretID = RobotPlayer.getHusbandTurretID(rc, s);
-			if (husbandTurretID != -1) {		
+			if (RobotPlayer.getHusbandTurretID(rc, s) != -1) {		
+				husbandTurretID = RobotPlayer.getHusbandTurretID(rc, s);
 				break;
 			}
 		}
@@ -61,6 +62,11 @@ public class Scout implements Player {
 					rc.broadcastMessageSignal(RobotPlayer.MESSAGE_ENEMY, RobotPlayer.encodeLocation(target),
 							rc.getLocation().distanceSquaredTo(husband.location));
 				}
+				else{
+					if (recommended && rc.isCoreReady()) {
+						RobotPlayer.tryToMove(rc, toHusband);
+					}						
+				}
 			} else {
 				if (rc.isCoreReady()) {
 					RobotPlayer.tryToMove(rc, toHusband);
@@ -77,7 +83,8 @@ public class Scout implements Player {
 		/*
 		for (int i = 0; i < 3; i++) {
 			rc.setIndicatorString(i, "");
-		}*/
+		}
+		*/
 		int c = 0;
 		boolean farEnemies = false;
 		MapLocation enemyArchonLocation = null;
@@ -112,6 +119,7 @@ public class Scout implements Player {
 			Direction turretRecommendedDirection = turretLocation.directionTo(enemyArchonLocation);
 			//rc.setIndicatorString(0, "I am recommending direction: " + RobotPlayer.directionToInt(turretRecommendedDirection));
 			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_TURRET_RECOMMENDED_DIRECTION, RobotPlayer.directionToInt(turretRecommendedDirection), rc.getLocation().distanceSquaredTo(turretLocation));
+			recommended = true;
 		}
 		return weakest;
 	}

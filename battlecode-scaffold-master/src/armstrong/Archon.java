@@ -58,7 +58,7 @@ public class Archon implements Player {
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		if (broadcastNextTurn) {
-			System.out.println("broadcasting: " + toBroadcastNextTurn[0] + "," + toBroadcastNextTurn[1]);
+			System.out.println("BroadCasting.." + toBroadcastNextTurn[0] + "," + toBroadcastNextTurn[1]);
 			rc.broadcastMessageSignal(toBroadcastNextTurn[0], toBroadcastNextTurn[1], toBroadcastNextTurn[2]);
 			broadcastNextTurn = false;
 		}
@@ -79,7 +79,6 @@ public class Archon implements Player {
 					choosenTurret = getLonelyRobot(alliesNearBy, RobotType.TURRET, marriedTurrets);
 					if (choosenTurret != null) {
 						toBuild = RobotType.SCOUT;
-						System.out.println("building a scout.");
 						backupTurret = true;
 					} else {
 						toBuild = getRandomUntiToBuild();
@@ -118,14 +117,9 @@ public class Archon implements Player {
 						guardCounter ++;
 					}
 					toBuild = null;
-					//System.out.println("I discovered that backupTurret is : " + backupTurret);
 					if(backupTurret){
-						System.out.println("backupTurret is true!");
 						RobotInfo[] alliesVeryNear = rc.senseNearbyRobots(4, rc.getTeam());
 						RobotInfo choosenScout = getLonelyRobot(alliesVeryNear, RobotType.SCOUT, marriedScouts);
-						System.out.println("Scout ID:" + choosenScout.ID);
-						// rc.broadcastMessageSignal(choosenScout.ID,choosenTurret.ID,
-						// choosenTurret.location.distanceSquaredTo(rc.getLocation()));
 						toBroadcastNextTurn[0] = choosenScout.ID;
 						toBroadcastNextTurn[1] = choosenTurret.ID;
 						toBroadcastNextTurn[2] = 8;

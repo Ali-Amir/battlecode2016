@@ -383,7 +383,6 @@ public class RobotPlayer {
 	}
 
 	public static int getHusbandTurretID(RobotController rc, Signal s) {
-		//System.out.println("m1: " + s.getMessage()[0] + "m2:" + s.getMessage()[1]);
 		if (s.getTeam().equals(rc.getTeam()) && s.getMessage() != null) {
 			if (s.getMessage()[0] == rc.getID()) {
 				return s.getMessage()[1];
