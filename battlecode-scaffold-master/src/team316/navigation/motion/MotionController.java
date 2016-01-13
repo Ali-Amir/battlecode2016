@@ -10,10 +10,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
-import team316.navigation.ChargedParticle;
 import team316.navigation.PotentialField;
-import team316.utils.Turn;
-import team316.utils.Vector;
 
 public class MotionController {
 	// Potential field. Could be modified from outside this class.

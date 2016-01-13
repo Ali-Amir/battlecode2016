@@ -3,12 +3,10 @@ package team316;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -143,7 +141,7 @@ public class Archon implements Player {
 			}
 
 			RobotInfo[] alliesToHelp = rc.senseNearbyRobots(RobotType.ARCHON.attackRadiusSquared, rc.getTeam());
-			MapLocation weakestOne = RobotPlayer.findWeakest(alliesToHelp);
+			MapLocation weakestOne = RobotPlayer.findWeakestNonArchon(alliesToHelp);
 			if (weakestOne != null) {
 				rc.repair(weakestOne);
 				return;

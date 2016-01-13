@@ -30,7 +30,7 @@ public class ChargedParticle {
 	 *            Number of turns that the particle is valid for. 1 means it is
 	 *            valid only for the current turn.
 	 */
-	ChargedParticle(double charge, MapLocation location, int lifetime) {
+	public ChargedParticle(double charge, MapLocation location, int lifetime) {
 		this.charge = charge;
 		this.location = location;
 		this.expiryTurn = lifetime + Turn.currentTurn();

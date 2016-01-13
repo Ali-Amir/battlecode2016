@@ -17,6 +17,7 @@ import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
+import team316.utils.Battle;
 import team316.utils.Turn;
 
 public class RobotPlayer {
@@ -34,7 +35,16 @@ public class RobotPlayer {
 	static PotentialField field = null;
 
 	public static void run(RobotController rcIn) {
-
+		MapLocation archonLoc = null;
+		if (!rcIn.getType().equals(RobotType.ARCHON)) {
+			RobotInfo[] robots = rcIn.senseNearbyRobots(2, rcIn.getTeam());
+			for (RobotInfo r : robots) {
+				if (r.type.equals(RobotType.ARCHON)) {
+					archonLoc = r.location;
+				}
+			}
+		}
+		
 		if (player == null) {
 			switch (rcIn.getType()) {
 			case ARCHON:
@@ -43,28 +53,28 @@ public class RobotPlayer {
 			case GUARD:
 				field = PotentialField.guard();
 				mc = new MotionController(field);
-				player = new Guard(field, mc);
+				player = new Guard(archonLoc, field, mc);
 				break;
 			case SOLDIER:
 				field = PotentialField.soldier();
 				mc = new MotionController(field);
-				player = new SoldierPF(field, mc);
+				player = new SoldierPF(archonLoc, field, mc);
 				break;
 			case SCOUT:
 				field = PotentialField.scout();
 				mc = new MotionController(field);
-				player = new Scout(field, mc);
+				player = new Scout(archonLoc, field, mc);
 				break;
 			case VIPER:
 				field = PotentialField.viper();
 				mc = new MotionController(field);
-				player = new Viper(field, mc);
+				player = new Viper(archonLoc, field, mc);
 				break;
 			case TTM:
 			case TURRET:
 				field = PotentialField.turret();
 				mc = new MotionController(field);
-				player = new Turret(field, mc);
+				player = new Turret(archonLoc, field, mc);
 				break;
 			default:
 				throw new RuntimeException("UNKNOWN ROBOT TYPE!");
@@ -368,6 +378,25 @@ public class RobotPlayer {
 		return weakest;
 	}
 
+	public static MapLocation findWeakestNonArchon(RobotInfo[] listOfRobots) {
+		double weakestSoFar = 0;
+		MapLocation weakestLocation = null;
+		for (RobotInfo r : listOfRobots) {
+			if (r.type.equals(RobotType.ARCHON)) {
+				if (weakestLocation == null) {
+					weakestLocation = r.location;
+				}
+				continue;
+			}
+			double weakness = Battle.weakness(r);
+			if (weakness > weakestSoFar) {
+				weakestLocation = r.location;
+				weakestSoFar = weakness;
+			}
+		}
+		return weakestLocation;
+	}
+	
 	public static MapLocation findWeakest(RobotInfo[] listOfRobots) {
 		double weakestSoFar = 0;
 		MapLocation weakestLocation = null;
