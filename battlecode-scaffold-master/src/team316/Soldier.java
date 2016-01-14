@@ -16,8 +16,10 @@ public class Soldier implements Player {
 
 	private final PotentialField field;
 	private final MotionController mc;
+	private final MapLocation archonLoc;
 
-	public Soldier(PotentialField field, MotionController mc) {
+	public Soldier(MapLocation archonLoc, PotentialField field, MotionController mc) {
+		this.archonLoc = archonLoc;
 		this.field = field;
 		this.mc = mc;
 	}

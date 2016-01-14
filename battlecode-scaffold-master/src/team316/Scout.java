@@ -15,10 +15,12 @@ public class Scout implements Player {
 
 	private final PotentialField field;
 	private final MotionController mc;
+	private final MapLocation archonLoc;
 
 	private static int husbandTurretID = -1;
 	private static boolean recommended = false;
-	public Scout(PotentialField field, MotionController mc) {
+	public Scout(MapLocation archonLoc, PotentialField field, MotionController mc) {
+		this.archonLoc = archonLoc;
 		this.field = field;
 		this.mc = mc;
 	}

@@ -65,6 +65,15 @@ public class PotentialField {
 	/**
 	 * Adds a new particle into the field.
 	 * 
+	 * @param particle New particle.
+	 */
+	public void addParticle(ChargedParticle particle) {
+		particles.add(particle);
+	}
+	
+	/**
+	 * Adds a new particle into the field.
+	 * 
 	 * @param type
 	 *            Type of the particle.
 	 * @param location
