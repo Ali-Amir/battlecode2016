@@ -44,9 +44,7 @@ public class Guard implements Player {
 					field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
 				}else{
 					if(signal.getMessage()[0] == RobotPlayer.MESSAGE_HELP_ARCHON){
-						field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
-						field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
-						field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
+						field.addParticle(ParticleType.ARCHON_ATTACKED, signal.getLocation(), 10);						
 					}
 				}
 
