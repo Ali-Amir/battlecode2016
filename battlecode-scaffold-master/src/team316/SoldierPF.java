@@ -3,7 +3,6 @@ package team316;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -16,6 +15,7 @@ import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
+import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
 public class SoldierPF implements Player {
@@ -28,13 +28,15 @@ public class SoldierPF implements Player {
 	private static final int BROADCAST_RADIUSSQR = 200;
 	private final MapLocation archonLoc;
 	private final EnemyLocationModel elm;
+	private final RCWrapper rcWrapper;
 
 	public SoldierPF(MapLocation archonLoc, PotentialField field,
-			MotionController mc) {
+			MotionController mc, RobotController rc) {
 		this.archonLoc = archonLoc;
 		this.field = field;
 		this.mc = mc;
 		this.elm = new EnemyLocationModel(archonLoc);
+		this.rcWrapper = new RCWrapper(rc);
 	}
 
 	/*
@@ -97,10 +99,8 @@ public class SoldierPF implements Player {
 		return bestTarget;
 	}
 
-	@Override
-	public void play(RobotController rc) throws GameActionException {
-		field.addParticle(elm.predictEnemyBase(rc));
-
+	public void receiveIncomingSignals(RobotController rc)
+			throws GameActionException {
 		// Do message signaling stuff.
 		rc.setIndicatorString(0, "Current enemy base prediction: "
 				+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
@@ -125,6 +125,22 @@ public class SoldierPF implements Player {
 						signal.getLocation(), 10);
 			}
 		}
+	}
+
+	public void initOnNewTurn(RobotController rc) throws GameActionException {
+		// Attract towards closest enemy base location prediction.
+		field.addParticle(elm.predictEnemyBase(rc));
+
+		rcWrapper.initOnNewTurn();
+	}
+
+	@Override
+	public void play(RobotController rc) throws GameActionException {
+		// Initialize all we can.
+		initOnNewTurn(rc);
+
+		// Receive signals and update field based on the contents.
+		receiveIncomingSignals(rc);
 
 		// Do sensing.
 		RobotInfo[] enemyArray = rc.senseHostileRobots(rc.getLocation(),
