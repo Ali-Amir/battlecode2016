@@ -29,7 +29,8 @@ public class RobotPlayer {
 	public static int MESSAGE_ENEMY = 1;
 	public static int MESSAGE_TURRET_RECOMMENDED_DIRECTION = 2;
 	public static int MESSAGE_HELP_ARCHON = 3;
-	
+	public static int MESSAGE_HELLO_ARCHON = 4;
+	public static int MESSAGE_BYE_ARCHON = 5;
 	static Player player = null;
 	static MotionController mc = null;
 	static PotentialField field = null;
@@ -90,7 +91,6 @@ public class RobotPlayer {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
 			Clock.yield();
 		}
 	}
@@ -116,16 +116,7 @@ public class RobotPlayer {
 			throw new RuntimeException("This Robot Type cannot be built!");
 		}
 	}
-	private static MapLocation getTurretEnemyMessage(Signal s) {
-		int[] message = s.getMessage();
-		if (s.getTeam().equals(rc.getTeam()) && message != null
-				&& s.getLocation().distanceSquaredTo(rc.getLocation()) <= 2) {
-			if (message[0] == MESSAGE_ENEMY) {
-				return decodeLocation(message[1]);
-			}
-		}
-		return null;
-	}
+
 
 	public static int directionToInt(Direction d) {
 		Direction[] directions = Direction.values();
@@ -136,154 +127,6 @@ public class RobotPlayer {
 		return -1;
 	}
 
-	private static void turretCode() throws GameActionException {
-		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
-		Signal[] incomingSignals = rc.emptySignalQueue();
-		MapLocation[] enemyArray = combineThings(visibleEnemyArray, incomingSignals);
-		boolean enemiesAround = false;
-		for (Signal s : incomingSignals) {
-			MapLocation enemyLocation = getTurretEnemyMessage(s);
-			if (enemyLocation != null && rc.canAttackLocation(enemyLocation)) {
-				rc.setIndicatorString(0, "Discovered an enemy around using signal");
-				enemiesAround = true;
-				if (rc.isWeaponReady()) {
-					rc.setIndicatorString(0, "Attemping attacking an enemy known using signal");
-					rc.attackLocation(enemyLocation);
-				}
-
-			}
-		}
-		if (enemyArray.length > 0) {
-			enemiesAround = true;
-			if (rc.isWeaponReady()) {
-				// look for adjacent enemies to attack
-				for (MapLocation oneEnemy : enemyArray) {
-					if (rc.canAttackLocation(oneEnemy)) {
-						rc.setIndicatorString(1, "trying to attack");
-						rc.attackLocation(oneEnemy);
-						break;
-					}
-				}
-			}
-
-			// could not find any enemies adjacent to attack
-			// try to move toward them
-			// TODO make sure that this if statement actually doesn't make any
-			// sense.
-			/*
-			 * if(rc.isCoreReady()){ rc.pack(); }
-			 */
-		} else {// there are no enemies nearby
-				// check to see if we are in the way of friends
-				// we are obstructing them
-			if (rc.isCoreReady()) {
-				// TODO Fix logic here choose the condition for packing
-				// rc.pack();
-				RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
-				if (nearbyFriends.length > 3 && enemiesAround == false) {
-					rc.pack();
-				}
-			}
-		}
-	}
-
-	public static int encodeLocation(MapLocation lc) {
-		final int maxOffset = 16000;
-		final int range = 2 * maxOffset;
-		int x = lc.x;
-		int y = lc.y;
-		x += maxOffset;
-		y += maxOffset;
-		return (range + 1) * x + y;
-	}
-
-	public static MapLocation decodeLocation(int code) {
-		final int maxOffset = 16000;
-		final int range = 2 * maxOffset;
-		int x = code / (range + 1);
-		int y = code % (range + 1);
-		return new MapLocation(x - maxOffset, y - maxOffset);
-	}
-
-	private static void ttmCode() throws GameActionException {
-		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
-		Signal[] incomingSignals = rc.emptySignalQueue();
-		MapLocation[] enemyArray = combineThings(visibleEnemyArray, incomingSignals);
-		for (Signal s : incomingSignals) {
-			MapLocation enemyLocation = getTurretEnemyMessage(s);
-			if (enemyLocation != null && rc.getLocation().distanceSquaredTo(enemyLocation) > 5) {
-				rc.unpack();
-				return;
-			}
-		}
-		if (enemyArray.length > 0) {
-			rc.unpack();
-			// could not find any enemies adjacent to attack
-			// try to move toward them
-			if (rc.isCoreReady()) {
-				MapLocation goal = enemyArray[0];
-				Direction toEnemy = rc.getLocation().directionTo(goal);
-				tryToMove(toEnemy);
-			}
-		} else {// there are no enemies nearby
-				// check to see if we are in the way of friends
-				// we are obstructing them
-			if (rc.isCoreReady()) {
-				RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
-				if (nearbyFriends.length > 3) {
-					Direction away = randomDirection();
-					tryToMove(away);
-				} else {// maybe a friend is in need!
-					RobotInfo[] alliesToHelp = rc.senseNearbyRobots(1000000, rc.getTeam());
-					MapLocation weakestOne = findWeakest(alliesToHelp);
-					if (weakestOne != null) {// found a friend most in need
-						Direction towardFriend = rc.getLocation().directionTo(weakestOne);
-						tryToMove(towardFriend);
-					}
-				}
-			}
-		}
-	}
-
-	private static void guardCode() throws GameActionException {
-		RobotInfo[] enemyArray = rc.senseHostileRobots(rc.getLocation(), 1000000);
-		if (enemyArray.length > 0) {
-			if (rc.isWeaponReady()) {
-				// look for adjacent enemies to attack
-				for (RobotInfo oneEnemy : enemyArray) {
-					if (rc.canAttackLocation(oneEnemy.location)) {
-						rc.setIndicatorString(0, "trying to attack");
-						rc.attackLocation(oneEnemy.location);
-						break;
-					}
-				}
-			}
-			// could not find any enemies adjacent to attack
-			// try to move toward them
-			if (rc.isCoreReady()) {
-				MapLocation goal = enemyArray[0].location;
-				Direction toEnemy = rc.getLocation().directionTo(goal);
-				tryToMove(toEnemy);
-			}
-		} else {// there are no enemies nearby
-				// check to see if we are in the way of friends
-				// we are obstructing them
-			if (rc.isCoreReady()) {
-				RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
-				if (nearbyFriends.length > 3) {
-					Direction away = randomDirection();
-					tryToMove(away);
-				} else {// maybe a friend is in need!
-					RobotInfo[] alliesToHelp = rc.senseNearbyRobots(1000000, rc.getTeam());
-					MapLocation weakestOne = findWeakest(alliesToHelp);
-					if (weakestOne != null) {// found a friend most in need
-						Direction towardFriend = rc.getLocation().directionTo(weakestOne);
-						tryToMove(towardFriend);
-					}
-				}
-			}
-		}
-	}
 
 	private static MapLocation[] combineThings(RobotInfo[] visibleEnemyArray, Signal[] incomingSignals) {
 		ArrayList<MapLocation> attackableEnemyArray = new ArrayList<MapLocation>();

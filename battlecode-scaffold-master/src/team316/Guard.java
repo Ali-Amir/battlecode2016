@@ -15,6 +15,7 @@ import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
 import team316.utils.Turn;
 
+
 public class Guard implements Player {
 
 	private final PotentialField field;
@@ -39,6 +40,7 @@ public class Guard implements Player {
 		field.addParticle(elm.predictEnemyBase(rc));
 
 		// Do message signaling stuff.
+		System.out.println();
 		rc.setIndicatorString(0, "Current enemy base prediction: "
 				+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
 		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS
@@ -111,7 +113,6 @@ public class Guard implements Player {
 				return;
 			}
 		}
-
 		// rc.setIndicatorString(1, "Got here " + Turn.currentTurn());
 		// there are no enemies nearby
 		// check to see if we are in the way of friends
