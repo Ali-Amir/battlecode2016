@@ -43,6 +43,7 @@ public class Archon implements Player {
 	private boolean isDying = false;
 	private final PotentialField field;
 	private final MotionController mc;
+	private boolean inDanger = false;
 	// For archonRanl;
 	// 1 is the leader.
 	// 0 is unassigned
@@ -54,13 +55,12 @@ public class Archon implements Player {
 			* GameConstants.MAP_MAX_HEIGHT
 			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
 	Set<Integer> archonIDs = new HashSet<>();
-	
-	public Archon(PotentialField field,
-			MotionController mc) {
+
+	public Archon(PotentialField field, MotionController mc) {
 		this.field = field;
 		this.mc = mc;
 	}
-	
+
 	private boolean attemptBuild(RobotController rc)
 			throws GameActionException {
 		if (rc.isCoreReady()) {
@@ -167,6 +167,7 @@ public class Archon implements Player {
 			}
 		}
 		if (isAttacked || canBeAttacked) {
+			inDanger = true;
 			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELP_ARCHON, 0, 1000);
 			rc.setIndicatorString(1, "Seeking Help!");
 		}
@@ -256,22 +257,25 @@ public class Archon implements Player {
 					case RobotPlayer.MESSAGE_BYE_ARCHON :
 						if (archonRank > s.getMessage()[1]) {
 							archonRank--;
-							if(archonRank == 1){
-								rc.broadcastMessageSignal(RobotPlayer.MESSAGE_DECLARE_LEADER, 0, MAX_RADIUS);
+							if (archonRank == 1) {
+								rc.broadcastMessageSignal(
+										RobotPlayer.MESSAGE_DECLARE_LEADER, 0,
+										MAX_RADIUS);
 							}
 						}
 						healthyArchonCount--;
 						break;
 					case RobotPlayer.MESSAGE_WELCOME_ACTIVATED_ARCHON :
-						if(healthyArchonCount == 0){
+						if (healthyArchonCount == 0) {
 							healthyArchonCount = s.getMessage()[1];
 							archonRank = healthyArchonCount;
-						}else{
+						} else {
 							healthyArchonCount++;
 						}
 						break;
-					case RobotPlayer.MESSAGE_DECLARE_LEADER:
+					case RobotPlayer.MESSAGE_DECLARE_LEADER :
 						leaderID = s.getID();
+						break;
 					default :
 						break;
 				}
@@ -317,14 +321,15 @@ public class Archon implements Player {
 				bestProfit = activationProfit(neutralRobot.type);
 			}
 		}
-		if (neutralRobotToActivate != null) {
+		if (neutralRobotToActivate != null && rc.getLocation()
+				.isAdjacentTo(neutralRobotToActivate.location)) {
 			rc.activate(neutralRobotToActivate.location);
-		}
-		if (neutralRobotToActivate.type.equals(RobotType.ARCHON)) {
-			int distanceToRobot = rc.getLocation()
-					.distanceSquaredTo(neutralRobotToActivate.location);
-			addNextTurnMessage(RobotPlayer.MESSAGE_WELCOME_ACTIVATED_ARCHON,
-					healthyArchonCount + 1, distanceToRobot);
+			if (neutralRobotToActivate.type.equals(RobotType.ARCHON)) {
+				int distanceToRobot = rc.getLocation()
+						.distanceSquaredTo(neutralRobotToActivate.location);
+				addNextTurnMessage(RobotPlayer.MESSAGE_WELCOME_ACTIVATED_ARCHON,
+						healthyArchonCount + 1, distanceToRobot);
+			}
 		}
 
 	}
@@ -350,10 +355,30 @@ public class Archon implements Player {
 		figureOutDistribution();
 
 		attemptActivateRobots(rc);
+		if(!inDanger){
+			attemptBuild(rc);			
+		}
 
-		attemptBuild(rc);
 
 		attemptRepairingWeakest(rc);
+
+		adjustBattle(rc);
+		attempMoving(rc);
+	}
+
+	private void attempMoving(RobotController rc) throws GameActionException {
+		if (rc.isCoreReady()) {
+			mc.tryToMove(rc);
+		}
+	}
+
+	private void adjustBattle(RobotController rc) {
+		RobotInfo[] enemyArray = rc.senseHostileRobots(rc.getLocation(),
+				RobotType.ARCHON.sensorRadiusSquared);
+		Battle.addEnemyParticles(enemyArray, field, 5);
+
+		RobotInfo[] allyArray = rc.senseNearbyRobots(2, rc.getTeam());
+		Battle.addAllyParticles(allyArray, field, 2);
 	}
 
 	/**

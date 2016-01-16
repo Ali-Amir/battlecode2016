@@ -30,7 +30,7 @@ public class Soldier implements Player {
 				for (RobotInfo oneEnemy : enemyArray) {
 					if (rc.canAttackLocation(oneEnemy.location)) {
 						enemyInAttackRange = true;
-						if (isWeaponReady) {
+						if (rc.isWeaponReady()) {
 							rc.attackLocation(oneEnemy.location);
 						}
 						break;

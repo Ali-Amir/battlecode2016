@@ -51,7 +51,7 @@ public class RobotPlayer {
 		if (player == null) {
 			switch (rcIn.getType()) {
 			case ARCHON:
-				field = PotentialField.guard();
+				field = PotentialField.archon();
 				mc = new MotionController(field);
 				player = new Archon(field, mc);
 				break;

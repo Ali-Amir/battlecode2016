@@ -56,12 +56,12 @@ public class ArchonConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double zombieCharge() {
-		return -50.0;
+		return -100.0;
 	}
 
 	@Override
 	protected double denCharge() {
-		return 1.0;
+		return -100.0;
 	}
 
 	@Override
