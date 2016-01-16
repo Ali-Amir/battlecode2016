@@ -15,6 +15,10 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
+import battlecode.common.Team;
+import team316.navigation.EnemyLocationModel;
+import team316.navigation.PotentialField;
+import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
 import team316.utils.Probability;
 import team316.utils.Turn;
@@ -22,24 +26,23 @@ import team316.utils.Vector;
 
 public class Archon implements Player {
 
-	int[] toBroadcastNextTurn = new int[3];
-	ArrayList<ArrayList<Integer>> toBroadcastNextTurnList = new ArrayList<>();
-	RobotType[] buildList = new RobotType[]{RobotType.GUARD, RobotType.TURRET};
-	RobotType lastBuilt = RobotType.ARCHON;
-	Set<Integer> marriedScouts = new HashSet<>();
-	Set<Integer> marriedTurrets = new HashSet<>();
-	Map<RobotType, Double> buildDistribution = new HashMap<>();
-	RobotType buildNext = null;
-	RobotType toBuild = null;
-	boolean backupTurret = false;
-	RobotInfo choosenTurret = null;
-	int lastHealth = 1000;
-	int healthyArchonCount = 0;
-	final int ARCHON_UNHEALTHY_HP_THRESHOLD = 100;
-	int leaderID;
-	int buildAttempts = 0;
-	int successfulBuilds = 0;
-	boolean isDying = false;
+	private ArrayList<ArrayList<Integer>> toBroadcastNextTurnList = new ArrayList<>();
+	private RobotType lastBuilt = RobotType.ARCHON;
+	private Set<Integer> marriedScouts = new HashSet<>();
+	private Set<Integer> marriedTurrets = new HashSet<>();
+	private Map<RobotType, Double> buildDistribution = new HashMap<>();
+	private RobotType toBuild = null;
+	private boolean backupTurret = false;
+	private RobotInfo choosenTurret = null;
+	private int lastHealth = 1000;
+	private int healthyArchonCount = 0;
+	private final int ARCHON_UNHEALTHY_HP_THRESHOLD = 100;
+	private int leaderID;
+	private int buildAttempts = 0;
+	private int successfulBuilds = 0;
+	private boolean isDying = false;
+	private final PotentialField field;
+	private final MotionController mc;
 	// For archonRanl;
 	// 1 is the leader.
 	// 0 is unassigned
@@ -51,6 +54,13 @@ public class Archon implements Player {
 			* GameConstants.MAP_MAX_HEIGHT
 			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
 	Set<Integer> archonIDs = new HashSet<>();
+	
+	public Archon(PotentialField field,
+			MotionController mc) {
+		this.field = field;
+		this.mc = mc;
+	}
+	
 	private boolean attemptBuild(RobotController rc)
 			throws GameActionException {
 		if (rc.isCoreReady()) {
@@ -76,20 +86,21 @@ public class Archon implements Player {
 				} else {
 					proposedBuildDirection = RobotPlayer.randomDirection();
 				}
-				
+
 				Direction buildDirection = closestToForwardToBuild(rc,
 						proposedBuildDirection, toBuild);
-				
+
 				final double acceptProbability = 1.0
 						/ (healthyArchonCount - archonRank + 1);
-				
+
 				rc.setIndicatorString(1,
 						"Trying to build with prob:" + acceptProbability);
 				if (buildDirection != null
 						&& rc.canBuild(buildDirection, toBuild)) {
 					buildAttempts++;
 					boolean isFairResourcesDistribution = Probability
-							.acceptWithProbability(acceptProbability) || rc.getTeamParts() > 120;
+							.acceptWithProbability(acceptProbability)
+							|| rc.getTeamParts() > 120;
 					if (!isFairResourcesDistribution) {
 						return false;
 					}
@@ -161,8 +172,8 @@ public class Archon implements Player {
 		}
 		isDying = rc.getHealth() < ARCHON_UNHEALTHY_HP_THRESHOLD;
 		if (isDying) {
-			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_BYE_ARCHON, 0,
-					MAX_RADIUS);
+			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_BYE_ARCHON,
+					archonRank, MAX_RADIUS);
 			archonRank = -1;
 			healthyArchonCount--;
 		}
@@ -241,28 +252,104 @@ public class Archon implements Player {
 	private void checkInbox(RobotController rc) throws GameActionException {
 		for (Signal s : IncomingSignals) {
 			if (s.getTeam() == rc.getTeam() && s.getMessage() != null) {
-				if (s.getMessage()[0] == RobotPlayer.MESSAGE_BYE_ARCHON) {
-					// TODO do something
+				switch (s.getMessage()[0]) {
+					case RobotPlayer.MESSAGE_BYE_ARCHON :
+						if (archonRank > s.getMessage()[1]) {
+							archonRank--;
+							if(archonRank == 1){
+								rc.broadcastMessageSignal(RobotPlayer.MESSAGE_DECLARE_LEADER, 0, MAX_RADIUS);
+							}
+						}
+						healthyArchonCount--;
+						break;
+					case RobotPlayer.MESSAGE_WELCOME_ACTIVATED_ARCHON :
+						if(healthyArchonCount == 0){
+							healthyArchonCount = s.getMessage()[1];
+							archonRank = healthyArchonCount;
+						}else{
+							healthyArchonCount++;
+						}
+						break;
+					case RobotPlayer.MESSAGE_DECLARE_LEADER:
+						leaderID = s.getID();
+					default :
+						break;
 				}
 			}
 		}
 	}
+	private int activationProfit(RobotType type) {
+		switch (type) {
+			case ARCHON :
+				return 100;
 
+			case GUARD :
+				return 5;
+
+			case SOLDIER :
+				return 50;
+
+			case SCOUT :
+				return 1;
+
+			case VIPER :
+				return 20;
+
+			case TTM :
+				return 10;
+			case TURRET :
+				return 11;
+			default :
+				throw new RuntimeException("UNKNOWN ROBOT TYPE!");
+		}
+	}
+	private void attemptActivateRobots(RobotController rc)
+			throws GameActionException {
+		if (!rc.isCoreReady())
+			return;
+		RobotInfo[] neutralRobots = rc.senseNearbyRobots(
+				RobotType.ARCHON.attackRadiusSquared, Team.NEUTRAL);
+		int bestProfit = 0;
+		RobotInfo neutralRobotToActivate = null;
+		for (RobotInfo neutralRobot : neutralRobots) {
+			if (activationProfit(neutralRobot.type) > bestProfit) {
+				neutralRobotToActivate = neutralRobot;
+				bestProfit = activationProfit(neutralRobot.type);
+			}
+		}
+		if (neutralRobotToActivate != null) {
+			rc.activate(neutralRobotToActivate.location);
+		}
+		if (neutralRobotToActivate.type.equals(RobotType.ARCHON)) {
+			int distanceToRobot = rc.getLocation()
+					.distanceSquaredTo(neutralRobotToActivate.location);
+			addNextTurnMessage(RobotPlayer.MESSAGE_WELCOME_ACTIVATED_ARCHON,
+					healthyArchonCount + 1, distanceToRobot);
+		}
+
+	}
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		rc.setIndicatorString(2,
-				"Buildrate: " + successfulBuilds + "/" + buildAttempts);
+				"Acceptance Rate: " + successfulBuilds + "/" + buildAttempts);
 		healthyArchonCount = rc.getInitialArchonLocations(rc.getTeam()).length;
+
 		IncomingSignals = rc.emptySignalQueue();
+
 		if (Turn.currentTurn() == 1) {
 			figureOutRank(rc);
 		}
+
+		checkInbox(rc);
+
 		seekHelpIfNeeded(rc, lastHealth);
 		lastHealth = (int) rc.getHealth();
 
 		broadcastLateMessages(rc);
 
 		figureOutDistribution();
+
+		attemptActivateRobots(rc);
 
 		attemptBuild(rc);
 

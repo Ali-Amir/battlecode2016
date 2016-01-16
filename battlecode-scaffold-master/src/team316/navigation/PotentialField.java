@@ -8,6 +8,7 @@ import java.util.List;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import team316.RobotPlayer;
+import team316.navigation.configurations.ArchonConfigurator;
 import team316.navigation.configurations.GuardConfigurator;
 import team316.navigation.configurations.ScoutConfigurator;
 import team316.navigation.configurations.SoldierConfigurator;
@@ -25,6 +26,13 @@ public class PotentialField {
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
 		particles = Collections.synchronizedList(new ArrayList<>());
+	}
+
+	/**
+	 * @return Potential field for an archon type robot.
+	 */
+	public static PotentialField archon() {
+		return new PotentialField(new ArchonConfigurator());
 	}
 
 	/**

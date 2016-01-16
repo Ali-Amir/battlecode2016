@@ -25,12 +25,14 @@ public class RobotPlayer {
 	public static Random rnd;
 	static RobotController rc;
 	static int[] tryDirections = { 0, -1, 1, -2, 2 };
-	public static int MESSAGE_MARRIAGE = 0;
-	public static int MESSAGE_ENEMY = 1;
-	public static int MESSAGE_TURRET_RECOMMENDED_DIRECTION = 2;
-	public static int MESSAGE_HELP_ARCHON = 3;
-	public static int MESSAGE_HELLO_ARCHON = 4;
-	public static int MESSAGE_BYE_ARCHON = 5;
+	public final static int MESSAGE_MARRIAGE = 0;
+	public final static int MESSAGE_ENEMY = 1;
+	public final static int MESSAGE_TURRET_RECOMMENDED_DIRECTION = 2;
+	public final static int MESSAGE_HELP_ARCHON = 3;
+	public final static int MESSAGE_HELLO_ARCHON = 4;
+	public final static int MESSAGE_BYE_ARCHON = 5;
+	public final static int MESSAGE_WELCOME_ACTIVATED_ARCHON = 6;
+	public final static int MESSAGE_DECLARE_LEADER = 7;
 	static Player player = null;
 	static MotionController mc = null;
 	static PotentialField field = null;
@@ -49,7 +51,9 @@ public class RobotPlayer {
 		if (player == null) {
 			switch (rcIn.getType()) {
 			case ARCHON:
-				player = new Archon();
+				field = PotentialField.guard();
+				mc = new MotionController(field);
+				player = new Archon(field, mc);
 				break;
 			case GUARD:
 				field = PotentialField.guard();
