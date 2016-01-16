@@ -2,6 +2,7 @@ package team316.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import battlecode.common.RobotController;
@@ -54,11 +55,18 @@ public class RCWrapper {
 		assert robotsNearby == null;
 
 		RobotInfo[] robots = rc.senseNearbyRobots();
-		robotsNearby = Arrays.asList(robots);
+		// look for adjacent enemies to attack
+		Arrays.sort(robots, (a, b) -> {
+			double weaknessDiff = Battle.weakness(a)
+					- Battle.weakness(b);
+			return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
+		});
+		robotsNearby = Collections.unmodifiableList(Arrays.asList(robots));
 	}
 
 	/**
-	 * @return Hostile robots nearby. Caches results to avoid overhead.
+	 * @return Hostile robots nearby sorted by attack priority (first has
+	 *         highest priority). Caches results to avoid overhead.
 	 */
 	public List<RobotInfo> hostileRobotsNearby() {
 		if (robotsNearby == null) {
@@ -76,11 +84,13 @@ public class RCWrapper {
 				hostileNearby.add(r);
 			}
 		}
+		hostileNearby = Collections.unmodifiableList(hostileNearby);
 		return hostileNearby;
 	}
 
 	/**
-	 * @return Enemy team's robots nearby. Caches results to avoid overhead.
+	 * @return Enemy team's robots nearby sorted by attack priority (first has
+	 *         highest priority). Caches results to avoid overhead.
 	 */
 	public List<RobotInfo> enemyTeamRobotsNearby() {
 		if (robotsNearby == null) {
@@ -98,6 +108,7 @@ public class RCWrapper {
 				enemyTeamNearby.add(r);
 			}
 		}
+		enemyTeamNearby = Collections.unmodifiableList(enemyTeamNearby);
 		return enemyTeamNearby;
 	}
 }

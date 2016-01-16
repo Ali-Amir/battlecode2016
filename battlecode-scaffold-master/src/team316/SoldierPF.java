@@ -134,60 +134,13 @@ public class SoldierPF implements Player {
 		rcWrapper.initOnNewTurn();
 	}
 
-	@Override
-	public void play(RobotController rc) throws GameActionException {
-		// Initialize all we can.
-		initOnNewTurn(rc);
-
-		// Receive signals and update field based on the contents.
-		receiveIncomingSignals(rc);
-
-		// Do sensing.
-		RobotInfo[] enemyArray = rc.senseHostileRobots(rc.getLocation(),
-				rc.getType().sensorRadiusSquared);
-		Battle.addEnemyParticles(enemyArray, field, 5);
-
-		// rc.setIndicatorString(2, "Enemies around: " + enemyArray.length + "
-		// turn: " + Turn.currentTurn());
-		if (enemyArray.length > 0) {
-			lastReceived = Turn.currentTurn();
-			if (rc.isWeaponReady()) {
-				// look for adjacent enemies to attack
-				Arrays.sort(enemyArray, (a, b) -> {
-					double weaknessDiff = Battle.weakness(a)
-							- Battle.weakness(b);
-					return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
-				});
-				for (RobotInfo oneEnemy : enemyArray) {
-					if (rc.canAttackLocation(oneEnemy.location)) {
-						rc.setIndicatorString(0,
-								"trying to attack " + Turn.currentTurn());
-						rc.attackLocation(oneEnemy.location);
-						if (!oneEnemy.team.equals(rc.getTeam())
-								&& !oneEnemy.team.equals(Team.NEUTRAL)
-								&& !oneEnemy.team.equals(Team.ZOMBIE)) {
-							elm.enemyAtLocation(oneEnemy.location, rc);
-						}
-						break;
-					}
-				}
-			} else {
-				return;
-			}
-
-			// could not find any enemies adjacent to attack
-			// try to move toward them
-			if (rc.isCoreReady()) {
-				// MapLocation goal = enemyArray[0].location;
-				// Direction toEnemy = rc.getLocation().directionTo(goal);
-				// RobotPlayer.tryToMove(rc, toEnemy);
-				mc.tryToMove(rc);
-				return;
-			}
-		}
-
-		Battle.lookForNeutrals(rc, field);
-
+	/**
+	 * Implements logic for walking when there are no enemy robots around.
+	 * 
+	 * @param rc
+	 * @throws GameActionException
+	 */
+	public void walkingModeCode(RobotController rc) throws GameActionException {
 		// rc.setIndicatorString(1, "Got here " + Turn.currentTurn());
 		// there are no enemies nearby
 		// check to see if we are in the way of friends
@@ -198,28 +151,65 @@ public class SoldierPF implements Player {
 			if (field.particles().size() == 0 && nearbyFriends.length > 2) {
 				mc.tryToMoveRandom(rc);
 			} else {
-				// if (!field.particles().isEmpty()) {
-				// rc.setIndicatorString(2, "Turn: " + Turn.currentTurn() + "
-				// Field: " + field.toString());
-				// }
 				mc.tryToMove(rc);
 			}
-			//
-			// if (nearbyFriends.length > 3) {
-			// Direction away = RobotPlayer.randomDirection();
-			// mc.tryToMove(rc);
-			// // RobotPlayer.tryToMove(rc, away);
-			// } else {// maybe a friend is in need!
-			// RobotInfo[] alliesToHelp = rc.senseNearbyRobots(1000000,
-			// rc.getTeam());
-			// MapLocation weakestOne = RobotPlayer.findWeakest(alliesToHelp);
-			// if (weakestOne != null) {// found a friend most in need
-			// mc.tryToMove(rc);
-			// // Direction towardFriend =
-			// // rc.getLocation().directionTo(weakestOne);
-			// // RobotPlayer.tryToMove(rc, towardFriend);
-			// }
-			// }
+		}
+	}
+
+	/**
+	 * Implements logic for fighting, that is when an enemy robot is visible.
+	 * 
+	 * @param rc
+	 * @throws GameActionException
+	 */
+	public void fightingModeCode(RobotController rc)
+			throws GameActionException {
+		// Add two types of particles for each hostile:
+		// 1. Repelling that lasts only for one turn (so that we walk away as we
+		// shoot).
+		// 2. And attracting that lasts for 5 turns (so that when the enemy out
+		// of sight we try to go back).
+		Battle.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
+		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 5);
+
+		lastReceived = Turn.currentTurn();
+		if (rc.isWeaponReady()) {
+			for (RobotInfo oneEnemy : rcWrapper.hostileRobotsNearby()) {
+				if (rc.canAttackLocation(oneEnemy.location)) {
+					rc.setIndicatorString(0,
+							"trying to attack " + Turn.currentTurn());
+					rc.attackLocation(oneEnemy.location);
+					if (!oneEnemy.team.equals(rc.getTeam())
+							&& !oneEnemy.team.equals(Team.NEUTRAL)
+							&& !oneEnemy.team.equals(Team.ZOMBIE)) {
+						elm.enemyAtLocation(oneEnemy.location, rc);
+					}
+					break;
+				}
+			}
+		}
+
+		// could not find any enemies adjacent to attack
+		// try to move toward them
+		if (rc.isCoreReady()) {
+			mc.tryToMove(rc);
+			return;
+		}
+	}
+
+	@Override
+	public void play(RobotController rc) throws GameActionException {
+		// Initialize all we can.
+		initOnNewTurn(rc);
+
+		// Receive signals and update field based on the contents.
+		receiveIncomingSignals(rc);
+
+		// Decide on mode: Walking vs. Fighting.
+		if (rcWrapper.hostileRobotsNearby().isEmpty()) { // Walking.
+			walkingModeCode(rc);
+		} else { // Fighting.
+			fightingModeCode(rc);
 		}
 	}
 
