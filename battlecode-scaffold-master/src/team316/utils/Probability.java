@@ -30,10 +30,11 @@ public class Probability <T>{
 		System.out.println(options);
 		return options.get(options.size()-1);
 	}
-	public static boolean accepts(double acceptProbability){
+	
+	public static boolean acceptWithProbability(double acceptProbability){
 		if(acceptProbability < EPS)
 			return false;
-		if((int)(acceptProbability + EPS) > 1)
+		if((int)(acceptProbability + EPS) >= 1)
 			return true;
 		return RobotPlayer.rnd.nextDouble() < acceptProbability;
 	}
