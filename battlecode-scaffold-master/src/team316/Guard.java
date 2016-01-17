@@ -39,7 +39,6 @@ public class Guard implements Player {
 		field.addParticle(elm.predictEnemyBase(rc));
 
 		// Do message signaling stuff.
-		System.out.println();
 		rc.setIndicatorString(0, "Current enemy base prediction: "
 				+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
 		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS
