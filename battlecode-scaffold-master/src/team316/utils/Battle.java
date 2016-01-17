@@ -148,6 +148,63 @@ public class Battle {
 		}
 	}
 
+	public static void addUniqueEnemyParticles(RobotInfo[] enemyArray,
+			PotentialField field, int lifetime) {
+		for (RobotInfo e : enemyArray) {
+			addUniqueEnemyParticle(e, field, lifetime);
+		}
+	}
+	public static void addUniqueEnemyParticle(RobotInfo e, PotentialField field,
+			int lifetime) {
+		switch (e.type) {
+			case ARCHON :
+				field.addParticle(e.ID, ParticleType.OPPOSITE_ARCHON, e.location,
+						lifetime);
+				break;
+			case GUARD :
+				field.addParticle(e.ID, ParticleType.OPPOSITE_GUARD, e.location,
+						lifetime);
+				break;
+			case SCOUT :
+				field.addParticle(e.ID, ParticleType.OPPOSITE_SCOUT, e.location,
+						lifetime);
+				break;
+			case TTM :
+				field.addParticle(e.ID, ParticleType.OPPOSITE_TURRET, e.location,
+						lifetime);
+				break;
+			case TURRET :
+				field.addParticle(e.ID, ParticleType.OPPOSITE_TURRET, e.location,
+						lifetime);
+				break;
+			case SOLDIER :
+				field.addParticle(e.ID, ParticleType.OPPOSITE_SOLDIER, e.location,
+						lifetime);
+				break;
+			case VIPER :
+				field.addParticle(e.ID, ParticleType.OPPOSITE_VIPER, e.location,
+						lifetime);
+				break;
+			case BIGZOMBIE :
+				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location, lifetime);
+				break;
+			case FASTZOMBIE :
+				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location, lifetime);
+				break;
+			case RANGEDZOMBIE :
+				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location, lifetime);
+				break;
+			case STANDARDZOMBIE :
+				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location, lifetime);
+				break;
+			case ZOMBIEDEN :
+				field.addParticle(e.ID, ParticleType.DEN, e.location, lifetime);
+				break;
+			default :
+				throw new RuntimeException("Unknown type!");
+		}
+	}
+
 	public static void addEnemyParticle(RobotInfo e, PotentialField field,
 			int lifetime) {
 		switch (e.type) {
