@@ -18,7 +18,7 @@ public class ChargedParticle {
 	private final MapLocation location;
 	// Turn at which the particle expires.
 	private final int expiryTurn;
-	
+
 	private final int id;
 
 	/**
@@ -52,8 +52,9 @@ public class ChargedParticle {
 	 *            Number of turns that the particle is valid for. 1 means it is
 	 *            valid only for the current turn.
 	 */
-	public ChargedParticle(int id, double charge, MapLocation location, int lifetime) {
-		this.id  = id;
+	public ChargedParticle(int id, double charge, MapLocation location,
+			int lifetime) {
+		this.id = id;
 		this.charge = charge;
 		this.location = location;
 		this.expiryTurn = lifetime + Turn.currentTurn();
@@ -67,16 +68,19 @@ public class ChargedParticle {
 	 * @return Force exerted by this.
 	 */
 	public Vector force(MapLocation to) {
-		if (Turn.currentTurn() >= expiryTurn) {
+		double distanceSquared = to.distanceSquaredTo(location);
+		if (Turn.currentTurn() >= expiryTurn || distanceSquared == 0) {
 			return new Vector(0.0, 0.0);
 		}
-		return new Vector((location.x - to.x) * charge, (location.y - to.y) * charge);
+		return new Vector(
+				(location.x - to.x) * charge / to.distanceSquaredTo(location),
+				(location.y - to.y) * charge / to.distanceSquaredTo(location));
 	}
-	
+
 	public boolean isAlive() {
 		return Turn.currentTurn() < expiryTurn;
 	}
-	public int getID(){
+	public int getID() {
 		return this.id;
 	}
 	@Override
