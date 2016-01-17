@@ -21,6 +21,7 @@ import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
 import team316.utils.Encoding;
 import team316.utils.Probability;
+import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
 public class Archon implements Player {
@@ -49,6 +50,7 @@ public class Archon implements Player {
 	private Set<MapLocation> consideredPartsBeforeFrom = new HashSet<>();
 	private Set<MapLocation> partsAdded = new HashSet<>();
 	private int helpMessageDelay = 0;
+	private final RCWrapper rcWrapper;
 	// For archonRanl;
 	// 1 is the leader.
 	// 0 is unassigned
@@ -61,9 +63,10 @@ public class Archon implements Player {
 			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
 	Set<Integer> archonIDs = new HashSet<>();
 
-	public Archon(PotentialField field, MotionController mc) {
+	public Archon(PotentialField field, MotionController mc, RobotController rc) {
 		this.field = field;
 		this.mc = mc;
+		this.rcWrapper = new RCWrapper(rc);
 	}
 	private boolean attemptBuild(RobotController rc)
 			throws GameActionException {
@@ -154,9 +157,9 @@ public class Archon implements Player {
 		}
 		toBroadcastNextTurnList.clear();
 	}
-	private void seekHelpIfNeeded(RobotController rc, int lastHealth)
+	private void seekHelpIfNeeded(RobotController rc)
 			throws GameActionException {
-		boolean isAttacked = (int) rc.getHealth() < lastHealth;
+		boolean isAttacked = rcWrapper.isUnderAttack();
 		boolean canBeAttacked = false;
 		RobotInfo[] enemiesSensed = rc.senseHostileRobots(myCurrentLocation,
 				RobotType.ARCHON.sensorRadiusSquared);
@@ -178,7 +181,7 @@ public class Archon implements Player {
 		}
 		if (isAttacked || canBeAttacked) {
 			inDanger = true;
-			if(helpMessageDelay == 0){
+			if(helpMessageDelay == 0 && rc.getRobotCount() > 1){
 				rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELP_ARCHON, 0, 1000);
 				rc.setIndicatorString(1, "Seeking Help!");
 				helpMessageDelay = 15;
@@ -219,6 +222,7 @@ public class Archon implements Player {
 		}
 		return null;
 	}
+	
 	private void declareTurretScoutMarriage(RobotController rc) {
 		RobotInfo[] alliesVeryNear = rc.senseNearbyRobots(4, myTeam);
 		RobotInfo choosenScout = getLonelyRobot(alliesVeryNear, RobotType.SCOUT,
@@ -229,6 +233,7 @@ public class Archon implements Player {
 		backupTurret = false;
 		choosenTurret = null;
 	}
+	
 	private void attemptRepairingWeakest(RobotController rc)
 			throws GameActionException {
 		RobotInfo[] alliesToHelp = rc.senseNearbyRobots(
@@ -359,6 +364,7 @@ public class Archon implements Player {
 	}
 
 	public void initializeArchon(RobotController rc) {
+		rcWrapper.initOnNewTurn();
 		myCurrentLocation = rc.getLocation();
 		myTeam = rc.getTeam();
 		inDanger = false;
@@ -382,8 +388,7 @@ public class Archon implements Player {
 		}
 		checkInbox(rc);
 
-		seekHelpIfNeeded(rc, lastHealth);
-		lastHealth = (int) rc.getHealth();
+		seekHelpIfNeeded(rc);
 
 		broadcastLateMessages(rc);
 
@@ -414,9 +419,6 @@ public class Archon implements Player {
 		RobotInfo[] allyArray = rc.senseNearbyRobots(
 				RobotType.ARCHON.sensorRadiusSquared, myTeam);
 		Battle.addUniqueAllyParticles(allyArray, field, 1);
-		// MapLocation[] senseLocations = MapLocation
-		// .getAllMapLocationsWithinRadiusSq(myCurrentLocation,
-		// RobotType.ARCHON.sensorRadiusSquared);
 		if (!consideredPartsBeforeFrom.contains(myCurrentLocation)) {
 			MapLocation[] partsLocations = rc
 					.sensePartLocations(RobotType.ARCHON.sensorRadiusSquared);
@@ -431,6 +433,7 @@ public class Archon implements Player {
 			}
 			consideredPartsBeforeFrom.add(myCurrentLocation);
 		}
+		
 
 	}
 
@@ -451,5 +454,5 @@ public class Archon implements Player {
 		}
 		return null;
 	}
-
+	
 }

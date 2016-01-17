@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
@@ -25,10 +26,15 @@ public class RCWrapper {
 	private List<RobotInfo> enemyTeamNearby = null;
 	private List<RobotInfo> attackableHostile = null;
 	private List<RobotInfo> attackableEnemyTeam = null;
+	private Integer maxRow = null;
+	private Integer minRow = null;
+	private Integer maxWidth = null;
+	private Integer maxHeight = null;
 	public RobotInfo archonNearby = null;
 	public final Team enemyTeam;
 	private double previousHealth;
 	private double currentHealth;
+	private MapLocation currentLocation;
 
 	/**
 	 * Creates a new instance of RobotController wrapper class with given robot
@@ -44,8 +50,8 @@ public class RCWrapper {
 		} else {
 			enemyTeam = Team.A;
 		}
-		this.previousHealth = rc.getHealth();
 		this.currentHealth = rc.getHealth();
+		this.previousHealth = this.currentHealth;
 	}
 
 	/**
@@ -60,8 +66,15 @@ public class RCWrapper {
 		archonNearby = null;
 		this.previousHealth = this.currentHealth;
 		this.currentHealth = rc.getHealth();
+		this.currentLocation = null;
 	}
 
+	public MapLocation getCurrentLocation(){
+		if(this.currentLocation == null){
+			this.currentLocation = rc.getLocation();
+		}
+		return this.currentLocation;
+	}
 	/**
 	 * @return Whether current robot is under attack (with reference to previous
 	 *         turn).
@@ -90,8 +103,8 @@ public class RCWrapper {
 				return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
 			}
 
-			return rc.getLocation().distanceSquaredTo(a.location)
-					- rc.getLocation().distanceSquaredTo(b.location);
+			return getCurrentLocation().distanceSquaredTo(a.location)
+					- getCurrentLocation().distanceSquaredTo(b.location);
 		});
 		robotsNearby = Collections.unmodifiableList(Arrays.asList(robots));
 		
@@ -100,8 +113,8 @@ public class RCWrapper {
 			if (r.type.equals(RobotType.ARCHON)
 					&& r.team.equals(rc.getTeam())) {
 				if (archonNearby == null || archonNearby.location
-						.distanceSquaredTo(rc.getLocation()) > r.location
-								.distanceSquaredTo(rc.getLocation())) {
+						.distanceSquaredTo(getCurrentLocation()) > r.location
+								.distanceSquaredTo(getCurrentLocation())) {
 					archonNearby = r;
 				}
 			}

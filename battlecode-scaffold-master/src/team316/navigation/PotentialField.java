@@ -33,7 +33,7 @@ public class PotentialField {
 	// List of IDs to be removed in the next time directionsByAttraction is called.
 	private final Set<Integer> removeIDWaitlist = new HashSet<>();
 	
-	private final Map<Integer, Integer> queuedNewExpiryDate = new HashMap<>();
+	private final Map<Integer, ChargedParticle> queuedParticles = new HashMap<>();
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
 		particles = new LinkedList<>();
@@ -122,16 +122,16 @@ public class PotentialField {
 	public void addParticle(int id, ParticleType type, MapLocation location,
 			int lifetime) {
 		if(!currentIDs.contains(id)){
-			particles.add(config.particle(id, type, location, lifetime));			
+			particles.add(config.particle(id, type, location, lifetime));
 		}else{
-			queuedNewExpiryDate.put(id, Turn.currentTurn() + lifetime);
+			queuedParticles.put(id, config.particle(id, type, location, lifetime));
 		}
 	}
 
 	public void removeParticleByID(int id) {
 		if(currentIDs.contains(id)){
 			removeIDWaitlist.add(id);
-			queuedNewExpiryDate.remove(id);			
+			queuedParticles.remove(id);			
 		}
 	}
 	/**
@@ -190,11 +190,12 @@ public class PotentialField {
 		for (int i = 0; i < particles.size(); ++i) {
 			int id = particles.get(i).getID();
 			if (!particles.get(i).isAlive() || removeIDWaitlist.contains(id)) {
-				if(Turn.currentTurn() < queuedNewExpiryDate.getOrDefault(id, -1)){
-					continue;
-				}
 				currentIDs.remove(id);
 				particles.remove(i);
+				if(queuedParticles.containsKey(id)){
+					particles.add(queuedParticles.get(id));
+				}
+
 				--i;
 			}
 		}

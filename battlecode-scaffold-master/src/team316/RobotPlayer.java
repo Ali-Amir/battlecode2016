@@ -53,7 +53,7 @@ public class RobotPlayer {
 				case ARCHON :
 					field = PotentialField.archon();
 					mc = new MotionController(field);
-					player = new Archon(field, mc);
+					player = new Archon(field, mc, rcIn);
 					break;
 				case GUARD :
 					field = PotentialField.guard();
