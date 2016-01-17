@@ -3,6 +3,7 @@ package team316.navigation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import battlecode.common.Direction;
@@ -25,7 +26,7 @@ public class PotentialField {
 
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
-		particles = Collections.synchronizedList(new ArrayList<>());
+		particles = new LinkedList<>();
 	}
 
 	/**
@@ -73,12 +74,13 @@ public class PotentialField {
 	/**
 	 * Adds a new particle into the field.
 	 * 
-	 * @param particle New particle.
+	 * @param particle
+	 *            New particle.
 	 */
 	public void addParticle(ChargedParticle particle) {
 		particles.add(particle);
 	}
-	
+
 	/**
 	 * Adds a new particle into the field.
 	 * 
@@ -89,7 +91,8 @@ public class PotentialField {
 	 * @param lifetime
 	 *            Life time of the particle in turns.
 	 */
-	public void addParticle(ParticleType type, MapLocation location, int lifetime) {
+	public void addParticle(ParticleType type, MapLocation location,
+			int lifetime) {
 		particles.add(config.particle(type, location, lifetime));
 	}
 
@@ -110,20 +113,25 @@ public class PotentialField {
 		Vector totalForce = new Vector(0, 0);
 		for (ChargedParticle particle : particles) {
 			Vector newForce = particle.force(to);
-			totalForce = new Vector(totalForce.x() + newForce.x(), totalForce.y() + newForce.y());
+			totalForce = new Vector(totalForce.x() + newForce.x(),
+					totalForce.y() + newForce.y());
 		}
 
-		List<Direction> directions = new ArrayList<>(
-				Arrays.asList(Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
-						Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST));
-		final int[] dx = { 0, 1, 1, 1, 0, -1, -1, -1 };
-		final int[] dy = { -1, -1, 0, 1, 1, 1, 0, -1 };
-		List<Integer> p = new ArrayList<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7));
+		List<Direction> directions = new ArrayList<>(Arrays.asList(
+				Direction.NORTH, Direction.NORTH_EAST, Direction.EAST,
+				Direction.SOUTH_EAST, Direction.SOUTH, Direction.SOUTH_WEST,
+				Direction.WEST, Direction.NORTH_WEST));
+		final int[] dx = {0, 1, 1, 1, 0, -1, -1, -1};
+		final int[] dy = {-1, -1, 0, 1, 1, 1, 0, -1};
+		List<Integer> p = new ArrayList<>(
+				Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7));
 		Collections.shuffle(p, RobotPlayer.rnd);
 		final Vector finalForce = totalForce;
 		Collections.sort(p, (a, b) -> {
-			double dValue = (dx[b] * finalForce.x() + dy[b] * finalForce.y()) / Math.sqrt(dx[b] * dx[b] + dy[b] * dy[b])
-					- (dx[a] * finalForce.x() + dy[a] * finalForce.y()) / Math.sqrt(dx[a] * dx[a] + dy[a] * dy[a]);
+			double dValue = (dx[b] * finalForce.x() + dy[b] * finalForce.y())
+					/ Math.sqrt(dx[b] * dx[b] + dy[b] * dy[b])
+					- (dx[a] * finalForce.x() + dy[a] * finalForce.y())
+							/ Math.sqrt(dx[a] * dx[a] + dy[a] * dy[a]);
 			return dValue < 0 ? -1 : dValue > 0 ? 1 : 0;
 		});
 

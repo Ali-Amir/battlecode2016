@@ -25,13 +25,11 @@ public class SoldierPF implements Player {
 	private int lastReceived = -100;
 	private static final int MESSAGE_DELAY_TURNS = 50;
 	private static final int BROADCAST_RADIUSSQR = 200;
-	private final MapLocation archonLoc;
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
 
 	public SoldierPF(MapLocation archonLoc, PotentialField field,
 			MotionController mc, RobotController rc) {
-		this.archonLoc = archonLoc;
 		this.field = field;
 		this.mc = mc;
 		this.rcWrapper = new RCWrapper(rc);
@@ -130,7 +128,7 @@ public class SoldierPF implements Player {
 
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		// Attract towards closest enemy base location prediction.
-		//field.addParticle(elm.predictEnemyBase(rc));
+		// field.addParticle(elm.predictEnemyBase(rc));
 
 		rcWrapper.initOnNewTurn();
 	}

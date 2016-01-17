@@ -5,7 +5,6 @@ import java.util.List;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
-import battlecode.common.RobotType;
 import team316.RobotPlayer;
 import team316.navigation.ChargedParticle;
 import team316.navigation.ParticleType;
@@ -147,8 +146,11 @@ public class Battle {
 						lifetime);
 				break;
 			case BIGZOMBIE :
+				break;
 			case FASTZOMBIE :
+				break;
 			case RANGEDZOMBIE :
+				break;
 			case STANDARDZOMBIE :
 				field.addParticle(ParticleType.ZOMBIE, e.location, lifetime);
 				break;
