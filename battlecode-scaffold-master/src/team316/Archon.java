@@ -368,7 +368,9 @@ public class Archon implements Player {
 		IncomingSignals = rc.emptySignalQueue();
 		field.removeParticleByID(
 				Encoding.encodePartsID(this.myCurrentLocation));
-		helpMessageDelay--;
+		if(helpMessageDelay > 0){
+			helpMessageDelay--;			
+		}
 		return;
 	}
 
