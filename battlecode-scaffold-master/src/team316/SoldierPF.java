@@ -1,7 +1,6 @@
 package team316;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -35,8 +34,10 @@ public class SoldierPF implements Player {
 		this.archonLoc = archonLoc;
 		this.field = field;
 		this.mc = mc;
-		this.elm = new EnemyLocationModel(archonLoc);
 		this.rcWrapper = new RCWrapper(rc);
+		RobotPlayer.rcWrapper = rcWrapper;
+		this.elm = new EnemyLocationModel(archonLoc);
+		this.elm.enemyBaseAt(rc.getInitialArchonLocations(rcWrapper.enemyTeam));
 	}
 
 	/*
@@ -129,7 +130,7 @@ public class SoldierPF implements Player {
 
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		// Attract towards closest enemy base location prediction.
-		field.addParticle(elm.predictEnemyBase(rc));
+		//field.addParticle(elm.predictEnemyBase(rc));
 
 		rcWrapper.initOnNewTurn();
 	}
@@ -148,7 +149,7 @@ public class SoldierPF implements Player {
 		if (rc.isCoreReady()) {
 			RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
 			Battle.addAllyParticles(nearbyFriends, field, 2);
-			if (field.particles().size() == 0 && nearbyFriends.length > 2) {
+			if (field.particles().size() == 0 || nearbyFriends.length > 2) {
 				mc.tryToMoveRandom(rc);
 			} else {
 				mc.tryToMove(rc);

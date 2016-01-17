@@ -21,7 +21,9 @@ public class RCWrapper {
 	private List<RobotInfo> robotsNearby = null;
 	private List<RobotInfo> hostileNearby = null;
 	private List<RobotInfo> enemyTeamNearby = null;
-	private final Team enemyTeam;
+	public final Team enemyTeam;
+	private double previousHealth;
+	private double currentHealth;
 
 	/**
 	 * Creates a new instance of RobotController wrapper class with given robot
@@ -37,6 +39,8 @@ public class RCWrapper {
 		} else {
 			enemyTeam = Team.A;
 		}
+		this.previousHealth = rc.getHealth();
+		this.currentHealth = rc.getHealth();
 	}
 
 	/**
@@ -46,6 +50,16 @@ public class RCWrapper {
 		robotsNearby = null;
 		hostileNearby = null;
 		enemyTeamNearby = null;
+		this.previousHealth = this.currentHealth;
+		this.currentHealth = rc.getHealth();
+	}
+
+	/**
+	 * @return Whether current robot is under attack (with reference to previous
+	 *         turn).
+	 */
+	public boolean isUnderAttack() {
+		return currentHealth < previousHealth;
 	}
 
 	/**
@@ -57,8 +71,7 @@ public class RCWrapper {
 		RobotInfo[] robots = rc.senseNearbyRobots();
 		// look for adjacent enemies to attack
 		Arrays.sort(robots, (a, b) -> {
-			double weaknessDiff = Battle.weakness(a)
-					- Battle.weakness(b);
+			double weaknessDiff = Battle.weakness(a) - Battle.weakness(b);
 			return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
 		});
 		robotsNearby = Collections.unmodifiableList(Arrays.asList(robots));

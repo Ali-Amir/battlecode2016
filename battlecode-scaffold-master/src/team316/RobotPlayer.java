@@ -3,8 +3,6 @@ package team316;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.sun.glass.ui.Robot;
-
 //import com.sun.xml.internal.bind.v2.runtime.Location;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -18,12 +16,14 @@ import battlecode.common.Signal;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
+import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
 public class RobotPlayer {
 
 	public static Random rnd;
-	static RobotController rc;
+	public static RobotController rc;
+	public static RCWrapper rcWrapper;
 	static int[] tryDirections = {0, -1, 1, -2, 2};
 	public final static int MESSAGE_MARRIAGE = 0;
 	public final static int MESSAGE_ENEMY = 1;

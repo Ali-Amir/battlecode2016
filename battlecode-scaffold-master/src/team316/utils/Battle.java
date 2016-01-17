@@ -2,12 +2,11 @@ package team316.utils;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import team316.RobotPlayer;
 import team316.navigation.ChargedParticle;
 import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
@@ -30,8 +29,11 @@ public class Battle {
 							lifetime);
 					break;
 				case GUARD :
+					break;
 				case SCOUT :
+					break;
 				case SOLDIER :
+					break;
 				case VIPER :
 					// field.addParticle(ParticleType.ALLY_DEFAULT, e.location,
 					// lifetime);
@@ -45,11 +47,56 @@ public class Battle {
 	public static void addScaryParticles(List<RobotInfo> scaryArray,
 			PotentialField field, int lifetime) {
 		for (RobotInfo s : scaryArray) {
-			if (!s.type.equals(RobotType.ARCHON)
-					&& !s.type.equals(RobotType.ZOMBIEDEN)
-					&& !s.type.equals(RobotType.TURRET)) {
-				field.addParticle(
-						new ChargedParticle(-100.0, s.location, lifetime));
+			switch (s.type) {
+				case SOLDIER :
+					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
+						break;
+					}
+					field.addParticle(
+							new ChargedParticle(-100.0, s.location, lifetime));
+					break;
+				case RANGEDZOMBIE :
+					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
+						break;
+					}
+					field.addParticle(
+							new ChargedParticle(-100.0, s.location, lifetime));
+					break;
+				case ARCHON :
+					break;
+				case ZOMBIEDEN :
+					break;
+				case TURRET :
+					break;
+				case TTM :
+					break;
+				case GUARD :
+					if (s.location.distanceSquaredTo(
+							RobotPlayer.rc.getLocation()) >= 9) {
+						break;
+					}
+					field.addParticle(
+							new ChargedParticle(-100.0, s.location, lifetime));
+					break;
+				case BIGZOMBIE :
+					if (s.location.distanceSquaredTo(
+							RobotPlayer.rc.getLocation()) >= 9) {
+						break;
+					}
+					field.addParticle(
+							new ChargedParticle(-100.0, s.location, lifetime));
+					break;
+				case STANDARDZOMBIE :
+					if (s.location.distanceSquaredTo(
+							RobotPlayer.rc.getLocation()) >= 9) {
+						break;
+					}
+					field.addParticle(
+							new ChargedParticle(-100.0, s.location, lifetime));
+					break;
+				default :
+					field.addParticle(
+							new ChargedParticle(-100.0, s.location, lifetime));
 			}
 		}
 	}
@@ -114,7 +161,8 @@ public class Battle {
 	}
 
 	public static double weakness(RobotInfo r) {
-		double weakness = r.attackPower * (r.maxHealth - r.health + 1.0);
+		double weakness = r.attackPower * r.attackPower
+				* (r.maxHealth - r.health + 1.0);
 		return weakness;
 	}
 
