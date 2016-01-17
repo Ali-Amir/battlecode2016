@@ -24,7 +24,7 @@ public class RobotPlayer {
 
 	public static Random rnd;
 	static RobotController rc;
-	static int[] tryDirections = { 0, -1, 1, -2, 2 };
+	static int[] tryDirections = {0, -1, 1, -2, 2};
 	public final static int MESSAGE_MARRIAGE = 0;
 	public final static int MESSAGE_ENEMY = 1;
 	public final static int MESSAGE_TURRET_RECOMMENDED_DIRECTION = 2;
@@ -47,42 +47,42 @@ public class RobotPlayer {
 				}
 			}
 		}
-		
+
 		if (player == null) {
 			switch (rcIn.getType()) {
-			case ARCHON:
-				field = PotentialField.archon();
-				mc = new MotionController(field);
-				player = new Archon(field, mc);
-				break;
-			case GUARD:
-				field = PotentialField.guard();
-				mc = new MotionController(field);
-				player = new Guard(archonLoc, field, mc);
-				break;
-			case SOLDIER:
-				field = PotentialField.soldier();
-				mc = new MotionController(field);
-				player = new SoldierPF(archonLoc, field, mc);
-				break;
-			case SCOUT:
-				field = PotentialField.scout();
-				mc = new MotionController(field);
-				player = new Scout(archonLoc, field, mc);
-				break;
-			case VIPER:
-				field = PotentialField.viper();
-				mc = new MotionController(field);
-				player = new Viper(archonLoc, field, mc);
-				break;
-			case TTM:
-			case TURRET:
-				field = PotentialField.turret();
-				mc = new MotionController(field);
-				player = new Turret(archonLoc, field, mc);
-				break;
-			default:
-				throw new RuntimeException("UNKNOWN ROBOT TYPE!");
+				case ARCHON :
+					field = PotentialField.archon();
+					mc = new MotionController(field);
+					player = new Archon(field, mc);
+					break;
+				case GUARD :
+					field = PotentialField.guard();
+					mc = new MotionController(field);
+					player = new Guard(archonLoc, field, mc);
+					break;
+				case SOLDIER :
+					field = PotentialField.soldier();
+					mc = new MotionController(field);
+					player = new SoldierPF(archonLoc, field, mc, rcIn);
+					break;
+				case SCOUT :
+					field = PotentialField.scout();
+					mc = new MotionController(field);
+					player = new Scout(archonLoc, field, mc);
+					break;
+				case VIPER :
+					field = PotentialField.viper();
+					mc = new MotionController(field);
+					player = new Viper(archonLoc, field, mc);
+					break;
+				case TTM :
+				case TURRET :
+					field = PotentialField.turret();
+					mc = new MotionController(field);
+					player = new Turret(archonLoc, field, mc);
+					break;
+				default :
+					throw new RuntimeException("UNKNOWN ROBOT TYPE!");
 			}
 		}
 
@@ -98,29 +98,28 @@ public class RobotPlayer {
 			Clock.yield();
 		}
 	}
-	public static int getPrice(RobotType t){
+	public static int getPrice(RobotType t) {
 		switch (t) {
-			
-		case GUARD:
-			return 30;
 
-		case SOLDIER:
-			return 30;
-			
-		case SCOUT:
-			return 40;
+			case GUARD :
+				return 30;
 
-		case VIPER:
-			return 100;
-			
-		case TURRET:
-			return 125;
+			case SOLDIER :
+				return 30;
 
-		default:
-			throw new RuntimeException("This Robot Type cannot be built!");
+			case SCOUT :
+				return 40;
+
+			case VIPER :
+				return 100;
+
+			case TURRET :
+				return 125;
+
+			default :
+				throw new RuntimeException("This Robot Type cannot be built!");
 		}
 	}
-
 
 	public static int directionToInt(Direction d) {
 		Direction[] directions = Direction.values();
@@ -131,8 +130,8 @@ public class RobotPlayer {
 		return -1;
 	}
 
-
-	private static MapLocation[] combineThings(RobotInfo[] visibleEnemyArray, Signal[] incomingSignals) {
+	private static MapLocation[] combineThings(RobotInfo[] visibleEnemyArray,
+			Signal[] incomingSignals) {
 		ArrayList<MapLocation> attackableEnemyArray = new ArrayList<MapLocation>();
 		for (RobotInfo r : visibleEnemyArray) {
 			attackableEnemyArray.add(r.location);
@@ -140,23 +139,28 @@ public class RobotPlayer {
 		for (Signal s : incomingSignals) {
 			if (s.getTeam() == rc.getTeam().opponent()) {
 				MapLocation enemySignalLocation = s.getLocation();
-				int distanceToSignalingEnemy = rc.getLocation().distanceSquaredTo(enemySignalLocation);
-				if (distanceToSignalingEnemy <= rc.getType().attackRadiusSquared) {
+				int distanceToSignalingEnemy = rc.getLocation()
+						.distanceSquaredTo(enemySignalLocation);
+				if (distanceToSignalingEnemy <= rc
+						.getType().attackRadiusSquared) {
 					attackableEnemyArray.add(enemySignalLocation);
 				}
 			}
 		}
-		MapLocation[] finishedArray = new MapLocation[attackableEnemyArray.size()];
+		MapLocation[] finishedArray = new MapLocation[attackableEnemyArray
+				.size()];
 		for (int i = 0; i < attackableEnemyArray.size(); i++) {
 			finishedArray[i] = attackableEnemyArray.get(i);
 		}
 		return finishedArray;
 	}
 
-	public static void tryToMove(RobotController rc, Direction forward) throws GameActionException {
+	public static void tryToMove(RobotController rc, Direction forward)
+			throws GameActionException {
 		if (rc.isCoreReady()) {
 			for (int deltaD : tryDirections) {
-				Direction maybeForward = Direction.values()[(forward.ordinal() + deltaD + 8) % 8];
+				Direction maybeForward = Direction
+						.values()[(forward.ordinal() + deltaD + 8) % 8];
 				if (rc.canMove(maybeForward)) {
 					rc.move(maybeForward);
 					return;
@@ -165,7 +169,8 @@ public class RobotPlayer {
 			if (rc.getType().canClearRubble()) {
 				// failed to move, look to clear rubble
 				MapLocation ahead = rc.getLocation().add(forward);
-				if (rc.senseRubble(ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+				if (rc.senseRubble(
+						ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 					rc.clearRubble(forward);
 				}
 			}
@@ -175,7 +180,8 @@ public class RobotPlayer {
 	public static void tryToMove(Direction forward) throws GameActionException {
 		if (rc.isCoreReady()) {
 			for (int deltaD : tryDirections) {
-				Direction maybeForward = Direction.values()[(forward.ordinal() + deltaD + 8) % 8];
+				Direction maybeForward = Direction
+						.values()[(forward.ordinal() + deltaD + 8) % 8];
 				if (rc.canMove(maybeForward)) {
 					rc.move(maybeForward);
 					return;
@@ -184,7 +190,8 @@ public class RobotPlayer {
 			if (rc.getType().canClearRubble()) {
 				// failed to move, look to clear rubble
 				MapLocation ahead = rc.getLocation().add(forward);
-				if (rc.senseRubble(ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+				if (rc.senseRubble(
+						ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 					rc.clearRubble(forward);
 				}
 			}
@@ -196,7 +203,8 @@ public class RobotPlayer {
 		RobotInfo weakest = null;
 		int c = 4;
 		for (RobotInfo r : listOfRobots) {
-			rc.setIndicatorString(c, "Enemy at location (" + r.location.x + ", " + r.location.y + ")");
+			rc.setIndicatorString(c, "Enemy at location (" + r.location.x + ", "
+					+ r.location.y + ")");
 			c++;
 			double weakness = r.maxHealth - r.health;
 			// double weakness = (r.maxHealth-r.health)*1.0/r.maxHealth;
@@ -208,12 +216,14 @@ public class RobotPlayer {
 		return weakest;
 	}
 
-	public static RobotInfo findWeakestRobot(RobotController rc, RobotInfo[] listOfRobots) {
+	public static RobotInfo findWeakestRobot(RobotController rc,
+			RobotInfo[] listOfRobots) {
 		double weakestSoFar = 0;
 		RobotInfo weakest = null;
 		int c = 4;
 		for (RobotInfo r : listOfRobots) {
-			rc.setIndicatorString(c, "Enemy at location (" + r.location.x + ", " + r.location.y + ")");
+			rc.setIndicatorString(c, "Enemy at location (" + r.location.x + ", "
+					+ r.location.y + ")");
 			c++;
 			double weakness = r.maxHealth - r.health;
 			// double weakness = (r.maxHealth-r.health)*1.0/r.maxHealth;
@@ -243,7 +253,7 @@ public class RobotPlayer {
 		}
 		return weakestLocation;
 	}
-	
+
 	public static MapLocation findWeakest(RobotInfo[] listOfRobots) {
 		double weakestSoFar = 0;
 		MapLocation weakestLocation = null;

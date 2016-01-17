@@ -15,7 +15,6 @@ import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
 import team316.utils.Turn;
 
-
 public class Guard implements Player {
 
 	private final PotentialField field;
@@ -55,11 +54,14 @@ public class Guard implements Player {
 		for (Signal signal : signals) {
 			// If ally. Then ally is reporting enemies.
 			if (signal.getTeam().equals(rc.getTeam())) {
-				if(signal.getMessage() == null){
-					field.addParticle(ParticleType.FIGHTING_ALLY, signal.getLocation(), 10);
-				}else{
-					if(signal.getMessage()[0] == RobotPlayer.MESSAGE_HELP_ARCHON){
-						field.addParticle(ParticleType.ARCHON_ATTACKED, signal.getLocation(), 10);
+				if (signal.getMessage() == null) {
+					field.addParticle(ParticleType.FIGHTING_ALLY,
+							signal.getLocation(), 10);
+				} else {
+					if (signal
+							.getMessage()[0] == RobotPlayer.MESSAGE_HELP_ARCHON) {
+						field.addParticle(ParticleType.ARCHON_ATTACKED,
+								signal.getLocation(), 10);
 					}
 				}
 
