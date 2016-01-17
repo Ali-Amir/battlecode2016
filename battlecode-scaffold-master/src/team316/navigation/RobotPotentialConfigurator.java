@@ -59,6 +59,9 @@ public abstract class RobotPotentialConfigurator {
 		case ARCHON_ATTACKED:
 			result = new ChargedParticle(6, location, lifetime);
 			break;
+		case PARTS:
+			result = new ChargedParticle(1, location, lifetime);
+			break;
 		default:
 			System.out.println("UNKNOWN TYPE: " + type + ". Using default configuration.");
 			result = new ChargedParticle(defaultCharge(), location, lifetime);

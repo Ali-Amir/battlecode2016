@@ -161,7 +161,7 @@ public class Battle {
 				throw new RuntimeException("Unknown type!");
 		}
 	}
-
+	
 	public static double weakness(RobotInfo r) {
 		double weakness = r.attackPower * r.attackPower
 				* (r.maxHealth - r.health + 1.0);
