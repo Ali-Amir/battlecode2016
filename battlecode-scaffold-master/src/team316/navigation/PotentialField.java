@@ -95,7 +95,8 @@ public class PotentialField {
 			int lifetime) {
 		particles.add(config.particle(type, location, lifetime));
 	}
-	public void removeParticle(ParticleType type, MapLocation location, int lifetime) {
+	public void removeParticle(ParticleType type, MapLocation location,
+			int lifetime) {
 	}
 	/**
 	 * @return Directions with most attraction.
@@ -114,8 +115,11 @@ public class PotentialField {
 		Vector totalForce = new Vector(0, 0);
 		for (ChargedParticle particle : particles) {
 			Vector newForce = particle.force(to);
-			totalForce = new Vector(totalForce.x() + newForce.x(),
-					totalForce.y() + newForce.y());
+			double randomXAdjustment = RobotPlayer.rnd.nextDouble() / 100.0;
+			double randomYAdjustment = RobotPlayer.rnd.nextDouble() / 100.0;
+			totalForce = new Vector(
+					totalForce.x() + newForce.x() + randomXAdjustment,
+					totalForce.y() + newForce.y() + randomYAdjustment);
 		}
 
 		List<Direction> directions = new ArrayList<>(Arrays.asList(
