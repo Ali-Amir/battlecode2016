@@ -112,7 +112,7 @@ public class SoldierPF implements Player {
 			// If ally. Then ally is reporting enemies.
 			if (signal.getTeam().equals(rc.getTeam())) {
 				field.addParticle(ParticleType.FIGHTING_ALLY,
-						signal.getLocation(), 10);
+						signal.getLocation(), 4);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
 			} else {
@@ -171,14 +171,14 @@ public class SoldierPF implements Player {
 		// shoot).
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
+		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
 		boolean somethingIsScary = Battle
 				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
-		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
 
 		lastReceived = Turn.currentTurn();
 
 		if (rcWrapper.attackableHostileRobots().isEmpty()) {
-			mc.tryToMoveRandom(rc);
+			mc.tryToMove(rc);
 			return;
 		}
 		
@@ -202,11 +202,13 @@ public class SoldierPF implements Player {
 			}
 		}
 
+		/*
 		// could not find any enemies adjacent to attack
 		// try to move toward them
 		if (rc.isCoreReady()) {
 			mc.tryToMove(rc);
 		}
+		*/
 	}
 
 	@Override

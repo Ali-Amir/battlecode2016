@@ -84,16 +84,13 @@ public class RCWrapper {
 					- SoldierPF.getAttakTypePriority(a.type);
 			if (priorityDiff != 0) {
 				return priorityDiff;
-			}
-
+			}*/
+			
 			double weaknessDiff = Battle.weakness(a) - Battle.weakness(b);
 			if (weaknessDiff != 0.0) {
 				return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
 			}
-			*/
-
-			return rc.getLocation().distanceSquaredTo(a.location)
-					- rc.getLocation().distanceSquaredTo(b.location);
+			return a.ID - b.ID;
 		});
 		robotsNearby = Collections.unmodifiableList(Arrays.asList(robots));
 		

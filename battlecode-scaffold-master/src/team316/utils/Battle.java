@@ -266,8 +266,7 @@ public class Battle {
 	}
 
 	public static double weakness(RobotInfo r) {
-		double weakness = r.attackPower * r.attackPower
-				* (r.maxHealth - r.health + 1.0);
+		double weakness = r.attackPower / (r.health + 1.0) / r.maxHealth;
 		return weakness;
 	}
 
