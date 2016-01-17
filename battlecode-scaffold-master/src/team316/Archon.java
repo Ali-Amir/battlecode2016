@@ -14,10 +14,12 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import battlecode.common.Team;
+import team316.navigation.ChargedParticle;
 import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
+import team316.utils.Encoding;
 import team316.utils.Probability;
 import team316.utils.Turn;
 
@@ -45,6 +47,8 @@ public class Archon implements Player {
 	private Team myTeam = null;
 	// maps Locations with parts to the turns they were added at.
 	private Set<MapLocation> consideredPartsBeforeFrom = new HashSet<>();
+	private Set<MapLocation> partsAdded = new HashSet<>();
+	private int helpMessageDelay = 0;
 	// For archonRanl;
 	// 1 is the leader.
 	// 0 is unassigned
@@ -61,7 +65,6 @@ public class Archon implements Player {
 		this.field = field;
 		this.mc = mc;
 	}
-
 	private boolean attemptBuild(RobotController rc)
 			throws GameActionException {
 		if (rc.isCoreReady()) {
@@ -159,9 +162,15 @@ public class Archon implements Player {
 				RobotType.ARCHON.sensorRadiusSquared);
 
 		if (!isAttacked) {
+			canBeAttacked = enemiesSensed.length > 0;
 			for (RobotInfo enemy : enemiesSensed) {
+				/*
 				if (myCurrentLocation.distanceSquaredTo(
 						enemy.location) <= enemy.type.attackRadiusSquared) {
+					canBeAttacked = true;
+					break;
+				}*/
+				if(enemy.type != RobotType.ARCHON && enemy.type != RobotType.SCOUT){
 					canBeAttacked = true;
 					break;
 				}
@@ -169,16 +178,22 @@ public class Archon implements Player {
 		}
 		if (isAttacked || canBeAttacked) {
 			inDanger = true;
-			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELP_ARCHON, 0, 1000);
-			rc.setIndicatorString(1, "Seeking Help!");
+			if(helpMessageDelay == 0){
+				rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELP_ARCHON, 0, 1000);
+				rc.setIndicatorString(1, "Seeking Help!");
+				helpMessageDelay = 15;
+			}
 		}
 		isDying = rc.getHealth() < ARCHON_UNHEALTHY_HP_THRESHOLD;
-		if (isDying) {
+		//TODO fix this:
+		/*
+		if (isDying && !isAttacked && !canBeAttacked) {
 			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_BYE_ARCHON,
 					archonRank, MAX_RADIUS);
 			archonRank = -1;
 			healthyArchonCount--;
 		}
+		*/
 	}
 
 	public void figureOutDistribution() {
@@ -222,7 +237,7 @@ public class Archon implements Player {
 		double weakestWeakness = -(1e9);
 		for (RobotInfo ally : alliesToHelp) {
 			if (!ally.type.equals(RobotType.ARCHON)
-					&& Battle.weakness(ally) > weakestWeakness) {
+					&& Battle.weakness(ally) > weakestWeakness && ally.health < ally.maxHealth) {
 				weakestOneLocation = ally.location;
 				weakestWeakness = Battle.weakness(ally);
 			}
@@ -232,6 +247,14 @@ public class Archon implements Player {
 		}
 	}
 	private void figureOutRank(RobotController rc) throws GameActionException {
+		MapLocation[] archonLocations = rc.getInitialArchonLocations(myTeam);
+		int furthestArchonDistance = 0;
+		for(MapLocation location: archonLocations){
+			int distance = myCurrentLocation.distanceSquaredTo(location);
+			if(distance > furthestArchonDistance){
+				distance = furthestArchonDistance;
+			}
+		}
 		for (Signal s : IncomingSignals) {
 			if (s.getTeam() == myTeam && s.getMessage() != null) {
 				if (s.getMessage()[0] == RobotPlayer.MESSAGE_HELLO_ARCHON) {
@@ -244,7 +267,7 @@ public class Archon implements Player {
 		}
 		archonRank++;
 		rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELLO_ARCHON, 0,
-				MAX_RADIUS);
+				furthestArchonDistance);
 		rc.setIndicatorString(0, "My archon rank is: " + archonRank);
 		if (archonRank == 1) {
 			leaderID = rc.getID();
@@ -313,17 +336,17 @@ public class Archon implements Player {
 		if (!rc.isCoreReady())
 			return;
 		RobotInfo[] neutralRobots = rc.senseNearbyRobots(
-				RobotType.ARCHON.attackRadiusSquared, Team.NEUTRAL);
+				2, Team.NEUTRAL);
 		int bestProfit = 0;
 		RobotInfo neutralRobotToActivate = null;
 		for (RobotInfo neutralRobot : neutralRobots) {
-			if (activationProfit(neutralRobot.type) > bestProfit) {
+			if (activationProfit(neutralRobot.type) > bestProfit && myCurrentLocation
+					.isAdjacentTo(neutralRobot.location)) {
 				neutralRobotToActivate = neutralRobot;
 				bestProfit = activationProfit(neutralRobot.type);
 			}
 		}
-		if (neutralRobotToActivate != null && myCurrentLocation
-				.isAdjacentTo(neutralRobotToActivate.location)) {
+		if (neutralRobotToActivate != null) {
 			rc.activate(neutralRobotToActivate.location);
 			if (neutralRobotToActivate.type.equals(RobotType.ARCHON)) {
 				int distanceToRobot = myCurrentLocation
@@ -334,8 +357,8 @@ public class Archon implements Player {
 		}
 
 	}
-	@Override
-	public void play(RobotController rc) throws GameActionException {
+
+	public void initializeArchon(RobotController rc) {
 		myCurrentLocation = rc.getLocation();
 		myTeam = rc.getTeam();
 		inDanger = false;
@@ -343,7 +366,17 @@ public class Archon implements Player {
 				"Acceptance Rate: " + successfulBuilds + "/" + buildAttempts);
 		healthyArchonCount = rc.getInitialArchonLocations(rc.getTeam()).length;
 		IncomingSignals = rc.emptySignalQueue();
+		field.removeParticleByID(
+				Encoding.encodePartsID(this.myCurrentLocation));
+		if(helpMessageDelay > 0){
+			helpMessageDelay--;			
+		}
+		return;
+	}
 
+	@Override
+	public void play(RobotController rc) throws GameActionException {
+		initializeArchon(rc);
 		if (Turn.currentTurn() == 1) {
 			figureOutRank(rc);
 		}
@@ -377,22 +410,23 @@ public class Archon implements Player {
 	private void adjustBattle(RobotController rc) {
 		RobotInfo[] enemyArray = rc.senseHostileRobots(myCurrentLocation,
 				RobotType.ARCHON.sensorRadiusSquared);
-		Battle.addEnemyParticles(enemyArray, field, 5);
-
-		RobotInfo[] allyArray = rc.senseNearbyRobots(2, myTeam);
-		Battle.addAllyParticles(allyArray, field, 2);
+		Battle.addUniqueEnemyParticles(enemyArray, field, 5);
+		RobotInfo[] allyArray = rc.senseNearbyRobots(
+				RobotType.ARCHON.sensorRadiusSquared, myTeam);
+		Battle.addUniqueAllyParticles(allyArray, field, 1);
 		// MapLocation[] senseLocations = MapLocation
 		// .getAllMapLocationsWithinRadiusSq(myCurrentLocation,
 		// RobotType.ARCHON.sensorRadiusSquared);
-		if(!consideredPartsBeforeFrom.contains(myCurrentLocation)){
-			MapLocation[] senseLocations = rc
+		if (!consideredPartsBeforeFrom.contains(myCurrentLocation)) {
+			MapLocation[] partsLocations = rc
 					.sensePartLocations(RobotType.ARCHON.sensorRadiusSquared);
-			for (MapLocation senseLocation : senseLocations) {
-				field.addParticle(ParticleType.PARTS, senseLocation, 2);
-				double amount = rc.senseParts(senseLocation);
-				while (amount > 0) {
-					//field.addParticle(ParticleType.PARTS, senseLocation, 2);
-					amount /= 10;
+			for (MapLocation partsLocation : partsLocations) {
+				if (partsAdded.contains(partsLocations)) {
+					double amount = rc.senseParts(partsLocation);
+					field.addParticle(new ChargedParticle(
+							Encoding.encodePartsID(partsLocation),
+							amount / 100.0, partsLocation, 3000));
+					partsAdded.add(partsLocation);
 				}
 			}
 			consideredPartsBeforeFrom.add(myCurrentLocation);

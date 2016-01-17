@@ -11,7 +11,7 @@ import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
-import team316.utils.Location;
+import team316.utils.Encoding;
 
 public class Turret implements Player {
 
@@ -145,14 +145,15 @@ public class Turret implements Player {
 		}
 		return finishedArray;
 	}
-
+	
 	private static MapLocation getTurretEnemyMessage(RobotController rc,
 			Signal s) {
 		int[] message = s.getMessage();
 		if (s.getTeam().equals(rc.getTeam()) && message != null
 				&& s.getLocation().distanceSquaredTo(rc.getLocation()) <= 2) {
 			if (message[0] == RobotPlayer.MESSAGE_ENEMY) {
-				return Location.decodeLocation(message[1]);
+				return Encoding.decodeLocation(message[1]);
+
 			}
 		}
 		return null;

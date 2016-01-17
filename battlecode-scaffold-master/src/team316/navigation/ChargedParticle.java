@@ -18,6 +18,8 @@ public class ChargedParticle {
 	private final MapLocation location;
 	// Turn at which the particle expires.
 	private final int expiryTurn;
+	
+	private final int id;
 
 	/**
 	 * Creates a new charge.
@@ -31,6 +33,27 @@ public class ChargedParticle {
 	 *            valid only for the current turn.
 	 */
 	public ChargedParticle(double charge, MapLocation location, int lifetime) {
+		this.id = -1;
+		this.charge = charge;
+		this.location = location;
+		this.expiryTurn = lifetime + Turn.currentTurn();
+	}
+	/**
+	 * Creates a new charge.
+	 * 
+	 * @param id
+	 *            id of the given charge.
+	 * 
+	 * @param charge
+	 *            Charge value.
+	 * @param location
+	 *            Charge location.
+	 * @param lifetime
+	 *            Number of turns that the particle is valid for. 1 means it is
+	 *            valid only for the current turn.
+	 */
+	public ChargedParticle(int id, double charge, MapLocation location, int lifetime) {
+		this.id  = id;
 		this.charge = charge;
 		this.location = location;
 		this.expiryTurn = lifetime + Turn.currentTurn();
@@ -53,7 +76,9 @@ public class ChargedParticle {
 	public boolean isAlive() {
 		return Turn.currentTurn() < expiryTurn;
 	}
-	
+	public int getID(){
+		return this.id;
+	}
 	@Override
 	public String toString() {
 		return this.charge + "(" + location.x + "," + location.y + ")";
