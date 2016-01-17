@@ -1,8 +1,9 @@
 package team316.utils;
 
+import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 
-public class Location {
+public class Encoding {
 
 	public static int encodeLocation(MapLocation lc) {
 		final int maxOffset = 16000;
@@ -22,5 +23,14 @@ public class Location {
 		return new MapLocation(x - maxOffset, y - maxOffset);
 	}
 
+	public static int encodePartsID(MapLocation lc) {
+		final int maxRobotID = 	32000;
+		return maxRobotID + 1 + encodeLocation(lc);
+	}
+
+	public static MapLocation decodePartsID(int code) {
+		final int maxRobotID = 	32000;
+		return decodeLocation(code - (maxRobotID + 1));
+	}
 
 }

@@ -10,7 +10,7 @@ import battlecode.common.Signal;
 import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
-import team316.utils.Location;
+import team316.utils.Encoding;
 
 public class Scout implements Player {
 
@@ -62,7 +62,7 @@ public class Scout implements Player {
 			Direction toHusband = rc.getLocation().directionTo(husband.location);
 			if (rc.getLocation().distanceSquaredTo(husband.location) <= 2) {
 				if (target != null) {
-					rc.broadcastMessageSignal(RobotPlayer.MESSAGE_ENEMY, Location.encodeLocation(target),
+					rc.broadcastMessageSignal(RobotPlayer.MESSAGE_ENEMY, Encoding.encodeLocation(target),
 							rc.getLocation().distanceSquaredTo(husband.location));
 				}
 				else{

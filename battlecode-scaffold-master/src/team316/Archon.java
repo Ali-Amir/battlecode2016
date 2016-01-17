@@ -14,10 +14,12 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import battlecode.common.Team;
+import team316.navigation.ChargedParticle;
 import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
+import team316.utils.Encoding;
 import team316.utils.Probability;
 import team316.utils.Turn;
 
@@ -45,6 +47,7 @@ public class Archon implements Player {
 	private Team myTeam = null;
 	// maps Locations with parts to the turns they were added at.
 	private Set<MapLocation> consideredPartsBeforeFrom = new HashSet<>();
+	private Set<MapLocation> partsAdded = new HashSet<>();
 	// For archonRanl;
 	// 1 is the leader.
 	// 0 is unassigned
@@ -61,7 +64,6 @@ public class Archon implements Player {
 		this.field = field;
 		this.mc = mc;
 	}
-
 	private boolean attemptBuild(RobotController rc)
 			throws GameActionException {
 		if (rc.isCoreReady()) {
@@ -334,8 +336,8 @@ public class Archon implements Player {
 		}
 
 	}
-	@Override
-	public void play(RobotController rc) throws GameActionException {
+
+	public void initializeArchon(RobotController rc) {
 		myCurrentLocation = rc.getLocation();
 		myTeam = rc.getTeam();
 		inDanger = false;
@@ -343,7 +345,14 @@ public class Archon implements Player {
 				"Acceptance Rate: " + successfulBuilds + "/" + buildAttempts);
 		healthyArchonCount = rc.getInitialArchonLocations(rc.getTeam()).length;
 		IncomingSignals = rc.emptySignalQueue();
+		field.removeParticleByID(
+				Encoding.encodePartsID(this.myCurrentLocation));
+		return;
+	}
 
+	@Override
+	public void play(RobotController rc) throws GameActionException {
+		initializeArchon(rc);
 		if (Turn.currentTurn() == 1) {
 			figureOutRank(rc);
 		}
@@ -379,20 +388,22 @@ public class Archon implements Player {
 				RobotType.ARCHON.sensorRadiusSquared);
 		Battle.addEnemyParticles(enemyArray, field, 5);
 
-		RobotInfo[] allyArray = rc.senseNearbyRobots(2, myTeam);
-		Battle.addAllyParticles(allyArray, field, 2);
+		RobotInfo[] allyArray = rc.senseNearbyRobots(
+				RobotType.ARCHON.sensorRadiusSquared, myTeam);
+		Battle.addAllyParticles(allyArray, field, 10);
 		// MapLocation[] senseLocations = MapLocation
 		// .getAllMapLocationsWithinRadiusSq(myCurrentLocation,
 		// RobotType.ARCHON.sensorRadiusSquared);
-		if(!consideredPartsBeforeFrom.contains(myCurrentLocation)){
-			MapLocation[] senseLocations = rc
+		if (!consideredPartsBeforeFrom.contains(myCurrentLocation)) {
+			MapLocation[] partsLocations = rc
 					.sensePartLocations(RobotType.ARCHON.sensorRadiusSquared);
-			for (MapLocation senseLocation : senseLocations) {
-				field.addParticle(ParticleType.PARTS, senseLocation, 2);
-				double amount = rc.senseParts(senseLocation);
-				while (amount > 0) {
-					//field.addParticle(ParticleType.PARTS, senseLocation, 2);
-					amount /= 10;
+			for (MapLocation partsLocation : partsLocations) {
+				if (partsAdded.contains(partsLocations)) {
+					double amount = rc.senseParts(partsLocation);
+					field.addParticle(new ChargedParticle(
+							Encoding.encodePartsID(partsLocation),
+							amount / 100.0, partsLocation, 3000));
+					partsAdded.add(partsLocation);
 				}
 			}
 			consideredPartsBeforeFrom.add(myCurrentLocation);

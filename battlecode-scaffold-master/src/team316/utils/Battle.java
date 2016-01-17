@@ -43,6 +43,40 @@ public class Battle {
 		}
 	}
 
+	public static void addUniqueAllyParticles(RobotInfo[] allyArray,
+			PotentialField field, int lifetime) {
+		for (RobotInfo e : allyArray) {
+			switch (e.type) {
+				case ARCHON :
+					field.addParticle(e.ID, ParticleType.ALLY_ARCHON, e.location,
+							lifetime);
+					break;
+				case TTM :
+					field.addParticle(e.ID, ParticleType.ALLY_TURRET, e.location,
+							lifetime);
+					break;
+				case TURRET :
+					field.addParticle(e.ID, ParticleType.ALLY_TURRET, e.location,
+							lifetime);
+					break;
+				case GUARD :
+					field.addParticle(e.ID, ParticleType.ALLY_DEFAULT, e.location,
+							lifetime);
+					break;
+				case SCOUT :
+					break;
+				case SOLDIER :
+					break;
+				case VIPER :
+					// field.addParticle(ParticleType.ALLY_DEFAULT, e.location,
+					// lifetime);
+					break;
+				default :
+					throw new RuntimeException("Unknown type!");
+			}
+		}
+	}
+
 	public static void addScaryParticles(List<RobotInfo> scaryArray,
 			PotentialField field, int lifetime) {
 		for (RobotInfo s : scaryArray) {
