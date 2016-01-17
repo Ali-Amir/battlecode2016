@@ -43,14 +43,16 @@ public class Battle {
 		}
 	}
 
-	public static void addScaryParticles(List<RobotInfo> scaryArray,
+	public static boolean addScaryParticles(List<RobotInfo> scaryArray,
 			PotentialField field, int lifetime) {
+		boolean added = false;
 		for (RobotInfo s : scaryArray) {
 			switch (s.type) {
 				case SOLDIER :
 					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
@@ -58,6 +60,7 @@ public class Battle {
 					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
@@ -71,33 +74,38 @@ public class Battle {
 					break;
 				case GUARD :
 					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 9) {
+							RobotPlayer.rc.getLocation()) >= 6) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
 				case BIGZOMBIE :
 					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 9) {
+							RobotPlayer.rc.getLocation()) >= 6) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
 				case STANDARDZOMBIE :
 					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 9) {
+							RobotPlayer.rc.getLocation()) >= 6) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
 				default :
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 			}
 		}
+		return added;
 	}
 
 	public static void addEnemyParticles(List<RobotInfo> enemyArray,
