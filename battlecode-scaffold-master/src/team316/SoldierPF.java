@@ -9,6 +9,7 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import battlecode.common.Team;
+import team316.navigation.ChargedParticle;
 import team316.navigation.EnemyLocationModel;
 import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
@@ -41,38 +42,33 @@ public class SoldierPF implements Player {
 	/*
 	 * Smallest number here must be non-negative.
 	 */
-	private int getAttakTypePriority(RobotType t) {
+	public static int getAttakTypePriority(RobotType t) {
 		switch (t) {
 			case ARCHON :
-				return 5;
-
-			case GUARD :
-				return 15;
-
-			case SOLDIER :
 				return 100;
-
+			case GUARD :
+				return 102;
+			case SOLDIER :
+				return 104;
 			case SCOUT :
-				return 1;
-
+				return 101;
 			case VIPER :
-				return 10;
-
+				return 103;
 			case TTM :
-				return 5;
-
+				return 105;
 			case TURRET :
-				return 5;
+				return 106;
+
 			case BIGZOMBIE :
-				return 10;
-			case RANGEDZOMBIE :
-				return 10;
-			case STANDARDZOMBIE :
 				return 5;
-			case FASTZOMBIE :
-				return 10;
-			case ZOMBIEDEN :
+			case RANGEDZOMBIE :
+				return 4;
+			case STANDARDZOMBIE :
 				return 2;
+			case FASTZOMBIE :
+				return 3;
+			case ZOMBIEDEN :
+				return 1;
 			default :
 				throw new RuntimeException("UNKNOWN ROBOT TYPE!");
 		}
@@ -104,7 +100,7 @@ public class SoldierPF implements Player {
 		rc.setIndicatorString(0, "Current enemy base prediction: "
 				+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
 		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS
-				&& lastReceived > MESSAGE_DELAY_TURNS + lastBroadcastTurn) {
+				&& lastReceived > lastBroadcastTurn) {
 			rc.broadcastSignal(BROADCAST_RADIUSSQR);
 			lastBroadcastTurn = Turn.currentTurn();
 			rc.setIndicatorString(1,
@@ -128,8 +124,9 @@ public class SoldierPF implements Player {
 
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		// Attract towards closest enemy base location prediction.
-		// field.addParticle(elm.predictEnemyBase(rc));
+		field.addParticle(elm.predictEnemyBase(rc));
 
+		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
 	}
 
@@ -140,6 +137,12 @@ public class SoldierPF implements Player {
 	 * @throws GameActionException
 	 */
 	public void walkingModeCode(RobotController rc) throws GameActionException {
+		if (rc.getHealth() < rc.getType().maxHealth
+				&& rcWrapper.archonNearby != null) {
+			field.addParticle(new ChargedParticle(100,
+					rcWrapper.archonNearby.location, 2));
+		}
+
 		// rc.setIndicatorString(1, "Got here " + Turn.currentTurn());
 		// there are no enemies nearby
 		// check to see if we are in the way of friends
@@ -169,19 +172,25 @@ public class SoldierPF implements Player {
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
 		Battle.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
-		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 5);
+		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
 
 		lastReceived = Turn.currentTurn();
+
+		if (rcWrapper.attackableHostileRobots().isEmpty()) {
+			mc.tryToMoveRandom(rc);
+			return;
+		}
+
 		if (rc.isWeaponReady()) {
-			for (RobotInfo oneEnemy : rcWrapper.hostileRobotsNearby()) {
+			for (RobotInfo oneEnemy : rcWrapper.attackableHostileRobots()) {
 				if (rc.canAttackLocation(oneEnemy.location)) {
 					rc.setIndicatorString(0,
 							"trying to attack " + Turn.currentTurn());
 					rc.attackLocation(oneEnemy.location);
-					if (!oneEnemy.team.equals(rc.getTeam())
-							&& !oneEnemy.team.equals(Team.NEUTRAL)
-							&& !oneEnemy.team.equals(Team.ZOMBIE)) {
+					if (oneEnemy.team.equals(rcWrapper.enemyTeam)) {
 						elm.enemyAtLocation(oneEnemy.location, rc);
+					} else if (oneEnemy.team.equals(Team.ZOMBIE)) {
+						elm.zombieAtLocation(oneEnemy.location, rc);
 					}
 					break;
 				}

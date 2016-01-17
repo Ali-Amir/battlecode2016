@@ -42,7 +42,7 @@ public class EnemyLocationModel {
 			return new ChargedParticle(0.0, rc.getLocation(), 0);
 		}
 
-		return new ChargedParticle(2.0, enemyArchon.get(p), 1);
+		return new ChargedParticle(5.0, enemyArchon.get(p), 5);
 		/*
 		int p = 0;
 		for (; !enemyArchon.isEmpty();) {
@@ -67,6 +67,25 @@ public class EnemyLocationModel {
 
 		return new ChargedParticle(2.0, enemyArchon.get(p), 1);
 		*/
+	}
+	
+	public void onNewTurn() {
+		enemyArchon.clear();
+	}
+	
+	public void zombieAtLocation(MapLocation loc, RobotController rc) {
+		MapLocation estimate = new MapLocation(
+				loc.x + (loc.x - archonLoc.x) * 2,
+				loc.y + (loc.y - archonLoc.y) * 2);
+		for (MapLocation location : enemyArchon) {
+			if (estimate.distanceSquaredTo(location) < 25) {
+				return;
+			}
+		}
+		enemyArchon.add(estimate);
+		if (enemyArchon.size() > 10) {
+			enemyArchon.remove(RobotPlayer.rnd.nextInt(11));
+		}
 	}
 
 	public void enemyAtLocation(MapLocation loc, RobotController rc) {
