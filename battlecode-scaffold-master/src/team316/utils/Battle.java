@@ -48,20 +48,20 @@ public class Battle {
 		for (RobotInfo e : allyArray) {
 			switch (e.type) {
 				case ARCHON :
-					field.addParticle(e.ID, ParticleType.ALLY_ARCHON, e.location,
-							lifetime);
+					field.addParticle(e.ID, ParticleType.ALLY_ARCHON,
+							e.location, lifetime);
 					break;
 				case TTM :
-					field.addParticle(e.ID, ParticleType.ALLY_TURRET, e.location,
-							lifetime);
+					field.addParticle(e.ID, ParticleType.ALLY_TURRET,
+							e.location, lifetime);
 					break;
 				case TURRET :
-					field.addParticle(e.ID, ParticleType.ALLY_TURRET, e.location,
-							lifetime);
+					field.addParticle(e.ID, ParticleType.ALLY_TURRET,
+							e.location, lifetime);
 					break;
 				case GUARD :
-					field.addParticle(e.ID, ParticleType.ALLY_DEFAULT, e.location,
-							lifetime);
+					field.addParticle(e.ID, ParticleType.ALLY_DEFAULT,
+							e.location, lifetime);
 					break;
 				case SCOUT :
 					break;
@@ -77,14 +77,16 @@ public class Battle {
 		}
 	}
 
-	public static void addScaryParticles(List<RobotInfo> scaryArray,
+	public static boolean addScaryParticles(List<RobotInfo> scaryArray,
 			PotentialField field, int lifetime) {
+		boolean added = false;
 		for (RobotInfo s : scaryArray) {
 			switch (s.type) {
 				case SOLDIER :
 					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
@@ -92,6 +94,7 @@ public class Battle {
 					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
@@ -105,33 +108,38 @@ public class Battle {
 					break;
 				case GUARD :
 					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 9) {
+							RobotPlayer.rc.getLocation()) >= 6) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
 				case BIGZOMBIE :
 					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 9) {
+							RobotPlayer.rc.getLocation()) >= 6) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
 				case STANDARDZOMBIE :
 					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 9) {
+							RobotPlayer.rc.getLocation()) >= 6) {
 						break;
 					}
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
 				default :
+					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 			}
 		}
+		return added;
 	}
 
 	public static void addEnemyParticles(List<RobotInfo> enemyArray,
@@ -158,8 +166,8 @@ public class Battle {
 			int lifetime) {
 		switch (e.type) {
 			case ARCHON :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_ARCHON, e.location,
-						lifetime);
+				field.addParticle(e.ID, ParticleType.OPPOSITE_ARCHON,
+						e.location, lifetime);
 				break;
 			case GUARD :
 				field.addParticle(e.ID, ParticleType.OPPOSITE_GUARD, e.location,
@@ -170,32 +178,36 @@ public class Battle {
 						lifetime);
 				break;
 			case TTM :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_TURRET, e.location,
-						lifetime);
+				field.addParticle(e.ID, ParticleType.OPPOSITE_TURRET,
+						e.location, lifetime);
 				break;
 			case TURRET :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_TURRET, e.location,
-						lifetime);
+				field.addParticle(e.ID, ParticleType.OPPOSITE_TURRET,
+						e.location, lifetime);
 				break;
 			case SOLDIER :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_SOLDIER, e.location,
-						lifetime);
+				field.addParticle(e.ID, ParticleType.OPPOSITE_SOLDIER,
+						e.location, lifetime);
 				break;
 			case VIPER :
 				field.addParticle(e.ID, ParticleType.OPPOSITE_VIPER, e.location,
 						lifetime);
 				break;
 			case BIGZOMBIE :
-				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location, lifetime);
+				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location,
+						lifetime);
 				break;
 			case FASTZOMBIE :
-				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location, lifetime);
+				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location,
+						lifetime);
 				break;
 			case RANGEDZOMBIE :
-				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location, lifetime);
+				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location,
+						lifetime);
 				break;
 			case STANDARDZOMBIE :
-				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location, lifetime);
+				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location,
+						lifetime);
 				break;
 			case ZOMBIEDEN :
 				field.addParticle(e.ID, ParticleType.DEN, e.location, lifetime);
@@ -252,10 +264,9 @@ public class Battle {
 				throw new RuntimeException("Unknown type!");
 		}
 	}
-	
+
 	public static double weakness(RobotInfo r) {
-		double weakness = r.attackPower * r.attackPower
-				* (r.maxHealth - r.health + 1.0);
+		double weakness = r.attackPower / (r.health + 1.0) / r.maxHealth;
 		return weakness;
 	}
 

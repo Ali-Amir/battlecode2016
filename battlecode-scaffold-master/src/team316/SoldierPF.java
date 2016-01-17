@@ -112,7 +112,7 @@ public class SoldierPF implements Player {
 			// If ally. Then ally is reporting enemies.
 			if (signal.getTeam().equals(rc.getTeam())) {
 				field.addParticle(ParticleType.FIGHTING_ALLY,
-						signal.getLocation(), 10);
+						signal.getLocation(), 4);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
 			} else {
@@ -171,14 +171,19 @@ public class SoldierPF implements Player {
 		// shoot).
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
-		Battle.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
+		boolean somethingIsScary = Battle
+				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 
 		lastReceived = Turn.currentTurn();
 
 		if (rcWrapper.attackableHostileRobots().isEmpty()) {
-			mc.tryToMoveRandom(rc);
+			mc.tryToMove(rc);
 			return;
+		}
+		
+		if (somethingIsScary && rc.isCoreReady()) {
+			mc.tryToMove(rc);
 		}
 
 		if (rc.isWeaponReady()) {
@@ -190,19 +195,20 @@ public class SoldierPF implements Player {
 					if (oneEnemy.team.equals(rcWrapper.enemyTeam)) {
 						elm.enemyAtLocation(oneEnemy.location, rc);
 					} else if (oneEnemy.team.equals(Team.ZOMBIE)) {
-						elm.zombieAtLocation(oneEnemy.location, rc);
+						// elm.zombieAtLocation(oneEnemy.location, rc);
 					}
 					break;
 				}
 			}
 		}
 
+		/*
 		// could not find any enemies adjacent to attack
 		// try to move toward them
 		if (rc.isCoreReady()) {
 			mc.tryToMove(rc);
-			return;
 		}
+		*/
 	}
 
 	@Override

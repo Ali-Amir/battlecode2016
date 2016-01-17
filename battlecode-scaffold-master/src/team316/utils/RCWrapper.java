@@ -92,19 +92,18 @@ public class RCWrapper {
 		RobotInfo[] robots = rc.senseNearbyRobots();
 		// look for adjacent enemies to attack
 		Arrays.sort(robots, (a, b) -> {
+			/*
 			int priorityDiff = SoldierPF.getAttakTypePriority(b.type)
 					- SoldierPF.getAttakTypePriority(a.type);
 			if (priorityDiff != 0) {
 				return priorityDiff;
-			}
-
+			}*/
+			
 			double weaknessDiff = Battle.weakness(a) - Battle.weakness(b);
 			if (weaknessDiff != 0.0) {
 				return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
 			}
-
-			return getCurrentLocation().distanceSquaredTo(a.location)
-					- getCurrentLocation().distanceSquaredTo(b.location);
+			return a.ID - b.ID;
 		});
 		robotsNearby = Collections.unmodifiableList(Arrays.asList(robots));
 		
