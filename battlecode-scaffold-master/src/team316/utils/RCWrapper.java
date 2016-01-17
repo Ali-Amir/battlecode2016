@@ -79,6 +79,7 @@ public class RCWrapper {
 		RobotInfo[] robots = rc.senseNearbyRobots();
 		// look for adjacent enemies to attack
 		Arrays.sort(robots, (a, b) -> {
+			/*
 			int priorityDiff = SoldierPF.getAttakTypePriority(b.type)
 					- SoldierPF.getAttakTypePriority(a.type);
 			if (priorityDiff != 0) {
@@ -89,6 +90,7 @@ public class RCWrapper {
 			if (weaknessDiff != 0.0) {
 				return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
 			}
+			*/
 
 			return rc.getLocation().distanceSquaredTo(a.location)
 					- rc.getLocation().distanceSquaredTo(b.location);
