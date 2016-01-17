@@ -171,7 +171,8 @@ public class SoldierPF implements Player {
 		// shoot).
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
-		Battle.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
+		boolean somethingIsScary = Battle
+				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
 
 		lastReceived = Turn.currentTurn();
@@ -179,6 +180,10 @@ public class SoldierPF implements Player {
 		if (rcWrapper.attackableHostileRobots().isEmpty()) {
 			mc.tryToMoveRandom(rc);
 			return;
+		}
+		
+		if (somethingIsScary && rc.isCoreReady()) {
+			mc.tryToMove(rc);
 		}
 
 		if (rc.isWeaponReady()) {
@@ -190,7 +195,7 @@ public class SoldierPF implements Player {
 					if (oneEnemy.team.equals(rcWrapper.enemyTeam)) {
 						elm.enemyAtLocation(oneEnemy.location, rc);
 					} else if (oneEnemy.team.equals(Team.ZOMBIE)) {
-						elm.zombieAtLocation(oneEnemy.location, rc);
+						// elm.zombieAtLocation(oneEnemy.location, rc);
 					}
 					break;
 				}
@@ -201,7 +206,6 @@ public class SoldierPF implements Player {
 		// try to move toward them
 		if (rc.isCoreReady()) {
 			mc.tryToMove(rc);
-			return;
 		}
 	}
 
