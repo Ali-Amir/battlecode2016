@@ -92,7 +92,8 @@ public class PotentialField {
 	public void addParticle(ParticleType type, MapLocation location, int lifetime) {
 		particles.add(config.particle(type, location, lifetime));
 	}
-
+	public void removeParticle(ParticleType type, MapLocation location, int lifetime) {
+	}
 	/**
 	 * @return Directions with most attraction.
 	 */
