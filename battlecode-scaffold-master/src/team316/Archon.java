@@ -33,7 +33,7 @@ public class Archon implements Player {
 	private Map<RobotType, Double> buildDistribution = new HashMap<>();
 	private RobotType toBuild = null;
 	private boolean backupTurret = false;
-	private RobotInfo choosenTurret = null;
+	private RobotInfo chosenTurret = null;
 	private int lastHealth = 1000;
 	private int healthyArchonCount = 0;
 	private final int ARCHON_UNHEALTHY_HP_THRESHOLD = 100;
@@ -63,20 +63,22 @@ public class Archon implements Player {
 			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
 	Set<Integer> archonIDs = new HashSet<>();
 
-	public Archon(PotentialField field, MotionController mc, RobotController rc) {
+	public Archon(PotentialField field, MotionController mc,
+			RobotController rc) {
 		this.field = field;
 		this.mc = mc;
 		this.rcWrapper = new RCWrapper(rc);
 	}
+
 	private boolean attemptBuild(RobotController rc)
 			throws GameActionException {
 		if (rc.isCoreReady()) {
 			if (toBuild == null && lastBuilt.equals(RobotType.TURRET)) {
 				RobotInfo[] alliesNearBy = rc.senseNearbyRobots(
 						rc.getType().sensorRadiusSquared, myTeam);
-				choosenTurret = getLonelyRobot(alliesNearBy, RobotType.TURRET,
+				chosenTurret = getLonelyRobot(alliesNearBy, RobotType.TURRET,
 						marriedTurrets);
-				if (choosenTurret != null) {
+				if (chosenTurret != null) {
 					toBuild = RobotType.SCOUT;
 					backupTurret = true;
 				}
@@ -87,9 +89,9 @@ public class Archon implements Player {
 			}
 			if (rc.hasBuildRequirements(toBuild)) {
 				Direction proposedBuildDirection;
-				if (backupTurret && rc.canSenseRobot(choosenTurret.ID)) {
+				if (backupTurret && rc.canSenseRobot(chosenTurret.ID)) {
 					proposedBuildDirection = myCurrentLocation.directionTo(
-							rc.senseRobot(choosenTurret.ID).location);
+							rc.senseRobot(chosenTurret.ID).location);
 				} else {
 					proposedBuildDirection = RobotPlayer.randomDirection();
 				}
@@ -142,6 +144,7 @@ public class Archon implements Player {
 		message.add(radius);
 		toBroadcastNextTurnList.add(message);
 	}
+
 	/**
 	 * Broadcasts all messages that are on the queue.
 	 */
@@ -157,6 +160,7 @@ public class Archon implements Player {
 		}
 		toBroadcastNextTurnList.clear();
 	}
+
 	private void seekHelpIfNeeded(RobotController rc)
 			throws GameActionException {
 		boolean isAttacked = rcWrapper.isUnderAttack();
@@ -168,12 +172,12 @@ public class Archon implements Player {
 			canBeAttacked = enemiesSensed.length > 0;
 			for (RobotInfo enemy : enemiesSensed) {
 				/*
-				if (myCurrentLocation.distanceSquaredTo(
-						enemy.location) <= enemy.type.attackRadiusSquared) {
-					canBeAttacked = true;
-					break;
-				}*/
-				if(enemy.type != RobotType.ARCHON && enemy.type != RobotType.SCOUT){
+				 * if (myCurrentLocation.distanceSquaredTo( enemy.location) <=
+				 * enemy.type.attackRadiusSquared) { canBeAttacked = true;
+				 * break; }
+				 */
+				if (enemy.type != RobotType.ARCHON
+						&& enemy.type != RobotType.SCOUT) {
 					canBeAttacked = true;
 					break;
 				}
@@ -181,32 +185,31 @@ public class Archon implements Player {
 		}
 		if (isAttacked || canBeAttacked) {
 			inDanger = true;
-			if(helpMessageDelay == 0 && rc.getRobotCount() > 1){
-				rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELP_ARCHON, 0, 1000);
+			if (helpMessageDelay == 0 && rc.getRobotCount() > 1) {
+				rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELP_ARCHON, 0,
+						1000);
 				rc.setIndicatorString(1, "Seeking Help!");
 				helpMessageDelay = 15;
 			}
 		}
 		isDying = rc.getHealth() < ARCHON_UNHEALTHY_HP_THRESHOLD;
-		//TODO fix this:
+		// TODO fix this:
 		/*
-		if (isDying && !isAttacked && !canBeAttacked) {
-			rc.broadcastMessageSignal(RobotPlayer.MESSAGE_BYE_ARCHON,
-					archonRank, MAX_RADIUS);
-			archonRank = -1;
-			healthyArchonCount--;
-		}
-		*/
+		 * if (isDying && !isAttacked && !canBeAttacked) {
+		 * rc.broadcastMessageSignal(RobotPlayer.MESSAGE_BYE_ARCHON, archonRank,
+		 * MAX_RADIUS); archonRank = -1; healthyArchonCount--; }
+		 */
 	}
 
 	public void figureOutDistribution() {
-		if (Turn.currentTurn() == 1) {
+		if (Turn.currentTurn() == 0) {
 			buildDistribution.clear();
 			// buildDistribution.put(RobotType.GUARD, 5.0);
 			buildDistribution.put(RobotType.SOLDIER, 100.0);
 			// buildDistribution.put(RobotType.TURRET, 5.0);
 		}
 	}
+
 	/**
 	 * Returns the build direction closest to a given direction Returns null if
 	 * it can't build anywhere.
@@ -222,18 +225,18 @@ public class Archon implements Player {
 		}
 		return null;
 	}
-	
+
 	private void declareTurretScoutMarriage(RobotController rc) {
 		RobotInfo[] alliesVeryNear = rc.senseNearbyRobots(4, myTeam);
-		RobotInfo choosenScout = getLonelyRobot(alliesVeryNear, RobotType.SCOUT,
+		RobotInfo chosenScout = getLonelyRobot(alliesVeryNear, RobotType.SCOUT,
 				marriedScouts);
-		addNextTurnMessage(choosenScout.ID, choosenTurret.ID, 8);
-		marriedTurrets.add(choosenTurret.ID);
-		marriedScouts.add(choosenScout.ID);
+		addNextTurnMessage(chosenScout.ID, chosenTurret.ID, 8);
+		marriedTurrets.add(chosenTurret.ID);
+		marriedScouts.add(chosenScout.ID);
 		backupTurret = false;
-		choosenTurret = null;
+		chosenTurret = null;
 	}
-	
+
 	private void attemptRepairingWeakest(RobotController rc)
 			throws GameActionException {
 		RobotInfo[] alliesToHelp = rc.senseNearbyRobots(
@@ -242,7 +245,8 @@ public class Archon implements Player {
 		double weakestWeakness = -(1e9);
 		for (RobotInfo ally : alliesToHelp) {
 			if (!ally.type.equals(RobotType.ARCHON)
-					&& Battle.weakness(ally) > weakestWeakness && ally.health < ally.maxHealth) {
+					&& Battle.weakness(ally) > weakestWeakness
+					&& ally.health < ally.maxHealth) {
 				weakestOneLocation = ally.location;
 				weakestWeakness = Battle.weakness(ally);
 			}
@@ -251,17 +255,11 @@ public class Archon implements Player {
 			rc.repair(weakestOneLocation);
 		}
 	}
+
 	private void figureOutRank(RobotController rc) throws GameActionException {
-		MapLocation[] archonLocations = rc.getInitialArchonLocations(myTeam);
-		int furthestArchonDistance = 0;
-		for(MapLocation location: archonLocations){
-			int distance = myCurrentLocation.distanceSquaredTo(location);
-			if(distance > furthestArchonDistance){
-				distance = furthestArchonDistance;
-			}
-		}
+		// Get all incoming archon signals who were initialized before me.
 		for (Signal s : IncomingSignals) {
-			if (s.getTeam() == myTeam && s.getMessage() != null) {
+			if (s.getTeam().equals(myTeam) && s.getMessage() != null) {
 				if (s.getMessage()[0] == RobotPlayer.MESSAGE_HELLO_ARCHON) {
 					archonRank++;
 					if (archonRank == 1) {
@@ -271,9 +269,21 @@ public class Archon implements Player {
 			}
 		}
 		archonRank++;
+
+		// Find farthest archon from me and broadcast that I'm initialized.
+		MapLocation[] archonLocations = rc.getInitialArchonLocations(myTeam);
+		int furthestArchonDistance = 0;
+		for (MapLocation location : archonLocations) {
+			int distance = myCurrentLocation.distanceSquaredTo(location);
+			if (distance > furthestArchonDistance) {
+				furthestArchonDistance = distance;
+			}
+		}
 		rc.broadcastMessageSignal(RobotPlayer.MESSAGE_HELLO_ARCHON, 0,
 				furthestArchonDistance);
+
 		rc.setIndicatorString(0, "My archon rank is: " + archonRank);
+
 		if (archonRank == 1) {
 			leaderID = rc.getID();
 		}
@@ -311,6 +321,7 @@ public class Archon implements Player {
 			}
 		}
 	}
+
 	private int activationProfit(RobotType type) {
 		switch (type) {
 			case ARCHON :
@@ -336,17 +347,17 @@ public class Archon implements Player {
 				throw new RuntimeException("UNKNOWN ROBOT TYPE!");
 		}
 	}
+
 	private void attemptActivateRobots(RobotController rc)
 			throws GameActionException {
 		if (!rc.isCoreReady())
 			return;
-		RobotInfo[] neutralRobots = rc.senseNearbyRobots(
-				2, Team.NEUTRAL);
+		RobotInfo[] neutralRobots = rc.senseNearbyRobots(2, Team.NEUTRAL);
 		int bestProfit = 0;
 		RobotInfo neutralRobotToActivate = null;
 		for (RobotInfo neutralRobot : neutralRobots) {
-			if (activationProfit(neutralRobot.type) > bestProfit && myCurrentLocation
-					.isAdjacentTo(neutralRobot.location)) {
+			if (activationProfit(neutralRobot.type) > bestProfit
+					&& myCurrentLocation.isAdjacentTo(neutralRobot.location)) {
 				neutralRobotToActivate = neutralRobot;
 				bestProfit = activationProfit(neutralRobot.type);
 			}
@@ -363,7 +374,8 @@ public class Archon implements Player {
 
 	}
 
-	public void initializeArchon(RobotController rc) {
+	public void initializeArchon(RobotController rc)
+			throws GameActionException {
 		rcWrapper.initOnNewTurn();
 		myCurrentLocation = rc.getLocation();
 		myTeam = rc.getTeam();
@@ -374,18 +386,19 @@ public class Archon implements Player {
 		IncomingSignals = rc.emptySignalQueue();
 		field.removeParticleByID(
 				Encoding.encodeLocationID(this.myCurrentLocation));
-		if(helpMessageDelay > 0){
-			helpMessageDelay--;			
+		if (helpMessageDelay > 0) {
+			helpMessageDelay--;
 		}
-		return;
+
+		if (Turn.currentTurn() == 0) {
+			figureOutRank(rc);
+		}
 	}
 
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		initializeArchon(rc);
-		if (Turn.currentTurn() == 1) {
-			figureOutRank(rc);
-		}
+
 		checkInbox(rc);
 
 		seekHelpIfNeeded(rc);
@@ -415,7 +428,7 @@ public class Archon implements Player {
 	private void adjustBattle(RobotController rc) throws GameActionException {
 		RobotInfo[] enemyArray = rc.senseHostileRobots(myCurrentLocation,
 				RobotType.ARCHON.sensorRadiusSquared);
-		Battle.addUniqueEnemyParticles(enemyArray, field, 5);
+		Battle.addUniqueEnemyParticles(enemyArray, field, 2);
 		RobotInfo[] allyArray = rc.senseNearbyRobots(
 				RobotType.ARCHON.sensorRadiusSquared, myTeam);
 		Battle.addUniqueAllyParticles(allyArray, field, 1);
@@ -427,7 +440,7 @@ public class Archon implements Player {
 					double amount = rc.senseParts(partsLocation);
 					field.addParticle(new ChargedParticle(
 							Encoding.encodeLocationID(partsLocation),
-							amount / 100.0, partsLocation, 3000));
+							amount / 100.0, partsLocation, 30));
 					partsAdded.add(partsLocation);
 				}
 			}
@@ -456,5 +469,5 @@ public class Archon implements Player {
 		}
 		return null;
 	}
-	
+
 }
