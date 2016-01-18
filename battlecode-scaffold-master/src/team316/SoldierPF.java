@@ -111,10 +111,18 @@ public class SoldierPF implements Player {
 		final Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals) {
 			// If ally. Then ally is reporting enemies.
-			if (signal.getTeam().equals(rc.getTeam()) && lastBroadcastTurn
-					+ MESSAGE_DELAY_TURNS < Turn.currentTurn()) {
+			if (signal.getMessage() == null
+					|| signal.getTeam().equals(rc.getTeam())
+							&& lastBroadcastTurn + MESSAGE_DELAY_TURNS < Turn
+									.currentTurn()) {
 				field.addParticle(ParticleType.FIGHTING_ALLY,
-						signal.getLocation(), 4);
+						signal.getLocation(), 3);
+				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
+				// lastReceived = Turn.currentTurn();
+			} else if (signal.getTeam().equals(rc.getTeam())
+					&& signal.getMessage() != null) {
+				field.addParticle(ParticleType.FIGHTING_ALLY,
+						signal.getLocation(), 6);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
 			}
