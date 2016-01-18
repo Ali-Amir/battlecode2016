@@ -24,7 +24,7 @@ import team316.utils.PairIntDouble;
 import team316.utils.Vector;
 
 public class PotentialField {
-	private final static int PARTICLE_LIMIT = 100;
+	private final static int PARTICLE_LIMIT = 200;
 	// Configuration object that gives correct charged particles for each
 	// observation.
 	private final RobotPotentialConfigurator config;
