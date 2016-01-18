@@ -61,11 +61,10 @@ public class MotionController {
 			return false;
 		}
 
-		if (field.particles().size() == 0) {
-			List<Direction> directions = field
-					.directionsByAttraction(rc.getLocation());
-			for (int i = 0; i < directions.size(); ++i) {
-				Direction maybeForward = directions.get(i);
+		if (field.numParticles == 0) {
+			int[] directions = field.directionsByAttraction(rc.getLocation());
+			for (int i = 0; i < directions.length; ++i) {
+				Direction maybeForward = Direction.values()[directions[i]];
 				MapLocation ahead = rc.getLocation().add(maybeForward);
 				if (rc.getType().canClearRubble() && rc.senseRubble(
 						ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
@@ -76,13 +75,12 @@ public class MotionController {
 			return false;
 		}
 
-		List<Direction> directions = field
-				.directionsByAttraction(rc.getLocation());
-		Collections.shuffle(directions.subList(0, 2));
-		Collections.shuffle(directions.subList(2, 4));
-		Collections.shuffle(directions.subList(4, directions.size()));
-		for (int i = 0; i < 5; ++i) {
-			Direction maybeForward = directions.get(i);
+		int[] directions = field.directionsByAttraction(rc.getLocation());
+		// Collections.shuffle(directions.subList(0, 2));
+		// Collections.shuffle(directions.subList(2, 4));
+		// Collections.shuffle(directions.subList(4, directions.size()));
+		for (int i = 0; i < directions.length; ++i) {
+			Direction maybeForward = Direction.values()[directions[i]];
 			if (rc.canMove(maybeForward)
 					&& rc.onTheMap(rc.getLocation().add(maybeForward))) {
 				rc.move(maybeForward);
@@ -94,8 +92,8 @@ public class MotionController {
 			return false;
 		}
 
-		for (int i = 0; i < directions.size(); ++i) {
-			Direction maybeForward = directions.get(i);
+		for (int i = 0; i < directions.length; ++i) {
+			Direction maybeForward = Direction.values()[directions[i]];
 			MapLocation ahead = rc.getLocation().add(maybeForward);
 			if (rc.senseRubble(
 					ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {

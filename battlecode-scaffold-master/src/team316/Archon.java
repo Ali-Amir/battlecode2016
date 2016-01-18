@@ -428,7 +428,7 @@ public class Archon implements Player {
 	private void adjustBattle(RobotController rc) {
 		RobotInfo[] enemyArray = rc.senseHostileRobots(myCurrentLocation,
 				RobotType.ARCHON.sensorRadiusSquared);
-		Battle.addUniqueEnemyParticles(enemyArray, field, 5);
+		Battle.addUniqueEnemyParticles(enemyArray, field, 2);
 		RobotInfo[] allyArray = rc.senseNearbyRobots(
 				RobotType.ARCHON.sensorRadiusSquared, myTeam);
 		Battle.addUniqueAllyParticles(allyArray, field, 1);
@@ -440,7 +440,7 @@ public class Archon implements Player {
 					double amount = rc.senseParts(partsLocation);
 					field.addParticle(new ChargedParticle(
 							Encoding.encodeLocationID(partsLocation),
-							amount / 100.0, partsLocation, 3000));
+							amount / 100.0, partsLocation, 30));
 					partsAdded.add(partsLocation);
 				}
 			}

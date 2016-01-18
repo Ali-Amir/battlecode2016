@@ -24,6 +24,7 @@ public class SoldierPF implements Player {
 	private final MotionController mc;
 	private int lastBroadcastTurn = -100;
 	private int lastReceived = -100;
+	private int maxParticlesSoFar = 0;
 	private static final int MESSAGE_DELAY_TURNS = 50;
 	private static final int BROADCAST_RADIUSSQR = 200;
 	private final EnemyLocationModel elm;
@@ -97,9 +98,8 @@ public class SoldierPF implements Player {
 	public void receiveIncomingSignals(RobotController rc)
 			throws GameActionException {
 		// Do message signaling stuff.
-		//rc.setIndicatorString(0, "Current enemy base prediction: "
-		//		+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
-		rc.setIndicatorString(0, field.particles()+"");
+		// rc.setIndicatorString(0, "Current enemy base prediction: "
+		// + elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
 		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS
 				&& lastReceived > lastBroadcastTurn) {
 			rc.broadcastSignal(BROADCAST_RADIUSSQR);
@@ -111,22 +111,23 @@ public class SoldierPF implements Player {
 		final Signal[] signals = rc.emptySignalQueue();
 		for (Signal signal : signals) {
 			// If ally. Then ally is reporting enemies.
-			if (signal.getTeam().equals(rc.getTeam())) {
+			if (signal.getTeam().equals(rc.getTeam()) && lastBroadcastTurn
+					+ MESSAGE_DELAY_TURNS < Turn.currentTurn()) {
 				field.addParticle(ParticleType.FIGHTING_ALLY,
 						signal.getLocation(), 4);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
 			}
-			/*else {
-				field.addParticle(ParticleType.OPPOSITE_GUARD,
-						signal.getLocation(), 10);
-			}*/
+			/*
+			 * else { field.addParticle(ParticleType.OPPOSITE_GUARD,
+			 * signal.getLocation(), 10); }
+			 */
 		}
 	}
 
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		// Attract towards closest enemy base location prediction.
-		//field.addParticle(elm.predictEnemyBase(rc));
+		// field.addParticle(elm.predictEnemyBase(rc));
 
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
@@ -173,7 +174,8 @@ public class SoldierPF implements Player {
 		// shoot).
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
-		Battle.addUniqueEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
+		Battle.addUniqueEnemyParticles(rcWrapper.hostileRobotsNearby(), field,
+				3);
 		boolean somethingIsScary = Battle
 				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 
@@ -183,34 +185,31 @@ public class SoldierPF implements Player {
 			mc.tryToMove(rc);
 			return;
 		}
-		
+
 		if (somethingIsScary && rc.isCoreReady()) {
 			mc.tryToMove(rc);
+			return;
 		}
 
 		if (rc.isWeaponReady()) {
 			for (RobotInfo oneEnemy : rcWrapper.attackableHostileRobots()) {
 				if (rc.canAttackLocation(oneEnemy.location)) {
-					rc.setIndicatorString(0,
-							"trying to attack " + Turn.currentTurn());
 					rc.attackLocation(oneEnemy.location);
-					if (oneEnemy.team.equals(rcWrapper.enemyTeam)) {
-						elm.enemyAtLocation(oneEnemy.location, rc);
-					} else if (oneEnemy.team.equals(Team.ZOMBIE)) {
-						elm.zombieAtLocation(oneEnemy.location, rc);
-					}
+					/*
+					 * if (oneEnemy.team.equals(rcWrapper.enemyTeam)) {
+					 * elm.enemyAtLocation(oneEnemy.location, rc); } else if
+					 * (oneEnemy.team.equals(Team.ZOMBIE)) {
+					 * elm.zombieAtLocation(oneEnemy.location, rc); }
+					 */
 					break;
 				}
 			}
 		}
 
 		/*
-		// could not find any enemies adjacent to attack
-		// try to move toward them
-		if (rc.isCoreReady()) {
-			mc.tryToMove(rc);
-		}
-		*/
+		 * // could not find any enemies adjacent to attack // try to move
+		 * toward them if (rc.isCoreReady()) { mc.tryToMove(rc); }
+		 */
 	}
 
 	@Override
@@ -221,10 +220,21 @@ public class SoldierPF implements Player {
 		// Receive signals and update field based on the contents.
 		receiveIncomingSignals(rc);
 
+		String statusString;
+		{
+			maxParticlesSoFar = Math.max(field.particles().size(),
+					maxParticlesSoFar);
+			statusString = "Currently have " + field.particles().size()
+					+ " particles in store. Max so far: " + maxParticlesSoFar;
+		}
+
 		// Decide on mode: Walking vs. Fighting.
 		if (rcWrapper.hostileRobotsNearby().isEmpty()) { // Walking.
+			rc.setIndicatorString(0, statusString + " MODE: WALKING");
 			walkingModeCode(rc);
 		} else { // Fighting.
+			rc.setIndicatorString(0, statusString + " MODE: FIGHTING. field: "
+					+ field.particles());
 			fightingModeCode(rc);
 		}
 	}

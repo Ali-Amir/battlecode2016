@@ -3,16 +3,15 @@ package team316.navigation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
-import team316.utils.Turn;
 import team316.RobotPlayer;
 import team316.navigation.configurations.ArchonConfigurator;
 import team316.navigation.configurations.GuardConfigurator;
@@ -20,14 +19,18 @@ import team316.navigation.configurations.ScoutConfigurator;
 import team316.navigation.configurations.SoldierConfigurator;
 import team316.navigation.configurations.TurretConfigurator;
 import team316.navigation.configurations.ViperConfigurator;
+import team316.utils.FastArrays;
+import team316.utils.PairIntDouble;
 import team316.utils.Vector;
 
 public class PotentialField {
+	private final static int PARTICLE_LIMIT = 100;
 	// Configuration object that gives correct charged particles for each
 	// observation.
 	private final RobotPotentialConfigurator config;
 	// List of observed particles in the field.
-	private final List<ChargedParticle> particles;
+	private final ChargedParticle[] particles;
+	public int numParticles;
 	// List of IDs currently in particles.
 	private final Set<Integer> currentIDs = new HashSet<>();
 	// List of IDs to be removed in the next time directionsByAttraction is
@@ -37,7 +40,9 @@ public class PotentialField {
 	private final Map<Integer, ChargedParticle> queuedParticles = new HashMap<>();
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
-		particles = new ArrayList<>();
+
+		particles = new ChargedParticle[PARTICLE_LIMIT];
+		numParticles = 0;
 	}
 
 	/**
@@ -89,7 +94,10 @@ public class PotentialField {
 	 *            New particle.
 	 */
 	public void addParticle(ChargedParticle particle) {
-		particles.add(particle);
+		assert numParticles < PARTICLE_LIMIT : "Too many particles!!!";
+
+		particles[numParticles] = particle;
+		++numParticles;
 	}
 
 	/**
@@ -104,7 +112,10 @@ public class PotentialField {
 	 */
 	public void addParticle(ParticleType type, MapLocation location,
 			int lifetime) {
-		particles.add(config.particle(type, location, lifetime));
+		assert numParticles < PARTICLE_LIMIT : "Too many particles!!!";
+
+		particles[numParticles] = config.particle(type, location, lifetime);
+		++numParticles;
 	}
 
 	/**
@@ -123,7 +134,10 @@ public class PotentialField {
 	public void addParticle(int id, ParticleType type, MapLocation location,
 			int lifetime) {
 		if (!currentIDs.contains(id)) {
-			particles.add(config.particle(id, type, location, lifetime));
+			assert numParticles < PARTICLE_LIMIT : "Too many particles!!!";
+
+			particles[numParticles] = config.particle(type, location, lifetime);
+			++numParticles;
 		} else {
 			queuedParticles.put(id,
 					config.particle(id, type, location, lifetime));
@@ -136,22 +150,24 @@ public class PotentialField {
 			queuedParticles.remove(id);
 		}
 	}
+
 	/**
 	 * @return Directions with most attraction.
 	 */
 	public Direction strongetAttractionDirection(MapLocation to) {
-		return directionsByAttraction(to).get(0);
+		return Direction.values()[directionsByAttraction(to)[0]];
 	}
 
 	/**
 	 * @return Directions sorted by attraction force. Strongest attraction
 	 *         direction is first.
 	 */
-	public List<Direction> directionsByAttraction(MapLocation to) {
+	public int[] directionsByAttraction(MapLocation to) {
 		discardDeadParticles();
 
 		Vector totalForce = new Vector(0, 0);
-		for (ChargedParticle particle : particles) {
+		for (int i = 0; i < numParticles; ++i) {
+			ChargedParticle particle = particles[i];
 			Vector newForce = particle.force(to);
 			double randomXAdjustment = RobotPlayer.rnd.nextDouble() / 100.0;
 			double randomYAdjustment = RobotPlayer.rnd.nextDouble() / 100.0;
@@ -160,68 +176,54 @@ public class PotentialField {
 					totalForce.y() + newForce.y() + randomYAdjustment);
 		}
 
-		List<Direction> directions = new ArrayList<>(Arrays.asList(
-				Direction.NORTH, Direction.NORTH_EAST, Direction.EAST,
-				Direction.SOUTH_EAST, Direction.SOUTH, Direction.SOUTH_WEST,
-				Direction.WEST, Direction.NORTH_WEST));
+		final int[] directions = new int[]{Direction.NORTH.ordinal(),
+				Direction.NORTH_EAST.ordinal(), Direction.EAST.ordinal(),
+				Direction.SOUTH_EAST.ordinal(), Direction.SOUTH.ordinal(),
+				Direction.SOUTH_WEST.ordinal(), Direction.WEST.ordinal(),
+				Direction.NORTH_WEST.ordinal()};
 		final int[] dx = {0, 1, 1, 1, 0, -1, -1, -1};
 		final int[] dy = {-1, -1, 0, 1, 1, 1, 0, -1};
-		List<Integer> p = new ArrayList<>(
-				Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7));
-		Collections.shuffle(p, RobotPlayer.rnd);
-		final Vector finalForce = totalForce;
-		Collections.sort(p, (a, b) -> {
-			double dValue = (dx[b] * finalForce.x() + dy[b] * finalForce.y())
-					/ Math.sqrt(dx[b] * dx[b] + dy[b] * dy[b])
-					- (dx[a] * finalForce.x() + dy[a] * finalForce.y())
-							/ Math.sqrt(dx[a] * dx[a] + dy[a] * dy[a]);
-			return dValue < 0 ? -1 : dValue > 0 ? 1 : 0;
-		});
+		
+		PairIntDouble[] p = new PairIntDouble[8];
+		for (int i = 0; i < p.length; ++i) {
+			p[i] = new PairIntDouble(i,
+					-(dx[i] * totalForce.x() + dy[i] * totalForce.y())
+							/ Math.sqrt(dx[i] * dx[i] + dy[i] * dy[i]));
+		}
+		FastArrays.shuffle(p);
+		FastArrays.quickSort(p);
 
-		List<Direction> sortedDirections = new ArrayList<>();
-		for (int i = 0; i < p.size(); ++i) {
-			sortedDirections.add(directions.get(p.get(i)));
+		int[] sortedDirections = new int[p.length];
+		for (int i = 0; i < p.length; ++i) {
+			sortedDirections[i] = directions[p[i].x];
 		}
 		return sortedDirections;
 	}
-	
+
 	/**
 	 * Discards particles that are not alive.
 	 */
 	private void discardDeadParticles() {
-		List<ChargedParticle> newParticles = new ArrayList<>();
-		for (int i = 0; i < particles.size(); ++i) {
-			ChargedParticle particle = particles.get(i);
-			int id = particle.getID();
-			boolean isdead = !particle.isAlive()
-					|| removeIDWaitlist.contains(id);
-			if (isdead && !queuedParticles.containsKey(id)) {
-					currentIDs.remove(id);
-			} 
-			if(!isdead) {
-				if (queuedParticles.containsKey(id)) {
-					newParticles.add(queuedParticles.get(id));
-				} else {
-					newParticles.add(particle);
-				}
+		for (int i = 0; i < numParticles; ++i) {
+			if (!particles[i].isAlive()) {
+				particles[i] = particles[numParticles - 1];
+				particles[numParticles - 1] = null;
+				--numParticles;
+				--i;
 			}
 		}
-		particles.clear();
-		for (ChargedParticle newParticle: newParticles) {
-			particles.add(newParticle);
-		}
-		
 	}
 
 	public List<ChargedParticle> particles() {
-		return Collections.unmodifiableList(particles);
+		return Collections.unmodifiableList(
+				Arrays.asList(particles).subList(0, numParticles));
 	}
 
 	@Override
 	public String toString() {
 		String res = "{";
-		for (ChargedParticle q : particles) {
-			res += q.toString() + ",";
+		for (int i = 0; i < numParticles; ++i) {
+			res += particles[i].toString() + ",";
 		}
 		return res + "}";
 	}
