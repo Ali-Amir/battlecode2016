@@ -185,7 +185,7 @@ public class SoldierPF implements Player {
 		Battle.addUniqueEnemyParticles(rcWrapper.hostileRobotsNearby(), field,
 				3);
 		boolean somethingIsScary = Battle
-				.addUniqueScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
+				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 
 		lastReceived = Turn.currentTurn();
 
