@@ -24,6 +24,7 @@ public class SoldierPF implements Player {
 	private final MotionController mc;
 	private int lastBroadcastTurn = -100;
 	private int lastTimeEnemySeen = -100;
+	private int birthday;
 	private int maxParticlesSoFar = 0;
 	private static final int MESSAGE_DELAY_TURNS = 50;
 	private static final int BROADCAST_RADIUSSQR = 200;
@@ -44,6 +45,7 @@ public class SoldierPF implements Player {
 		RobotPlayer.rcWrapper = rcWrapper;
 		this.elm = new EnemyLocationModel(archonLoc);
 		this.elm.enemyBaseAt(rc.getInitialArchonLocations(rcWrapper.enemyTeam));
+		this.birthday = Turn.currentTurn();
 	}
 
 	/*
@@ -142,6 +144,13 @@ public class SoldierPF implements Player {
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		// Attract towards closest enemy base location prediction.
 		// field.addParticle(elm.predictEnemyBase(rc));
+		if (Turn.currentTurn() == birthday) {
+			while (true) {
+				if (Turn.currentTurn() != birthday) {
+					break;
+				}
+			}
+		}
 
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();

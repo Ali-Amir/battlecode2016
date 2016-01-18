@@ -38,6 +38,10 @@ public class RobotPlayer {
 	static PotentialField field = null;
 
 	public static void run(RobotController rcIn) {
+
+		rc = rcIn;
+		rnd = new Random(rc.getID());
+
 		MapLocation archonLoc = null;
 		if (!rcIn.getType().equals(RobotType.ARCHON)) {
 			RobotInfo[] robots = rcIn.senseNearbyRobots(2, rcIn.getTeam());
@@ -85,9 +89,7 @@ public class RobotPlayer {
 					throw new RuntimeException("UNKNOWN ROBOT TYPE!");
 			}
 		}
-
-		rc = rcIn;
-		rnd = new Random(rc.getID());
+		
 		while (true) {
 			try {
 				player.play(rc);
