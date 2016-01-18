@@ -26,8 +26,6 @@ public class Probability <T>{
 				return option;
 			}
 		}
-		System.out.println(distribution);
-		System.out.println(options);
 		return options.get(options.size()-1);
 	}
 	

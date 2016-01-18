@@ -33,7 +33,7 @@ public class Archon implements Player {
 	private Map<RobotType, Double> buildDistribution = new HashMap<>();
 	private RobotType toBuild = null;
 	private boolean backupTurret = false;
-	private RobotInfo choosenTurret = null;
+	private RobotInfo chosenTurret = null;
 	private int lastHealth = 1000;
 	private int healthyArchonCount = 0;
 	private final int ARCHON_UNHEALTHY_HP_THRESHOLD = 100;
@@ -76,9 +76,9 @@ public class Archon implements Player {
 			if (toBuild == null && lastBuilt.equals(RobotType.TURRET)) {
 				RobotInfo[] alliesNearBy = rc.senseNearbyRobots(
 						rc.getType().sensorRadiusSquared, myTeam);
-				choosenTurret = getLonelyRobot(alliesNearBy, RobotType.TURRET,
+				chosenTurret = getLonelyRobot(alliesNearBy, RobotType.TURRET,
 						marriedTurrets);
-				if (choosenTurret != null) {
+				if (chosenTurret != null) {
 					toBuild = RobotType.SCOUT;
 					backupTurret = true;
 				}
@@ -89,9 +89,9 @@ public class Archon implements Player {
 			}
 			if (rc.hasBuildRequirements(toBuild)) {
 				Direction proposedBuildDirection;
-				if (backupTurret && rc.canSenseRobot(choosenTurret.ID)) {
+				if (backupTurret && rc.canSenseRobot(chosenTurret.ID)) {
 					proposedBuildDirection = myCurrentLocation.directionTo(
-							rc.senseRobot(choosenTurret.ID).location);
+							rc.senseRobot(chosenTurret.ID).location);
 				} else {
 					proposedBuildDirection = RobotPlayer.randomDirection();
 				}
@@ -202,7 +202,7 @@ public class Archon implements Player {
 	}
 
 	public void figureOutDistribution() {
-		if (Turn.currentTurn() == 1) {
+		if (Turn.currentTurn() == 0) {
 			buildDistribution.clear();
 			// buildDistribution.put(RobotType.GUARD, 5.0);
 			buildDistribution.put(RobotType.SOLDIER, 100.0);
@@ -228,13 +228,13 @@ public class Archon implements Player {
 
 	private void declareTurretScoutMarriage(RobotController rc) {
 		RobotInfo[] alliesVeryNear = rc.senseNearbyRobots(4, myTeam);
-		RobotInfo choosenScout = getLonelyRobot(alliesVeryNear, RobotType.SCOUT,
+		RobotInfo chosenScout = getLonelyRobot(alliesVeryNear, RobotType.SCOUT,
 				marriedScouts);
-		addNextTurnMessage(choosenScout.ID, choosenTurret.ID, 8);
-		marriedTurrets.add(choosenTurret.ID);
-		marriedScouts.add(choosenScout.ID);
+		addNextTurnMessage(chosenScout.ID, chosenTurret.ID, 8);
+		marriedTurrets.add(chosenTurret.ID);
+		marriedScouts.add(chosenScout.ID);
 		backupTurret = false;
-		choosenTurret = null;
+		chosenTurret = null;
 	}
 
 	private void attemptRepairingWeakest(RobotController rc)
