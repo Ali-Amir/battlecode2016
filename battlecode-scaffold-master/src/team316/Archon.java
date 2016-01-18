@@ -373,7 +373,7 @@ public class Archon implements Player {
 		healthyArchonCount = rc.getInitialArchonLocations(rc.getTeam()).length;
 		IncomingSignals = rc.emptySignalQueue();
 		field.removeParticleByID(
-				Encoding.encodePartsID(this.myCurrentLocation));
+				Encoding.encodeLocationID(this.myCurrentLocation));
 		if(helpMessageDelay > 0){
 			helpMessageDelay--;			
 		}
@@ -426,7 +426,7 @@ public class Archon implements Player {
 				if (partsAdded.contains(partsLocations)) {
 					double amount = rc.senseParts(partsLocation);
 					field.addParticle(new ChargedParticle(
-							Encoding.encodePartsID(partsLocation),
+							Encoding.encodeLocationID(partsLocation),
 							amount / 100.0, partsLocation, 3000));
 					partsAdded.add(partsLocation);
 				}

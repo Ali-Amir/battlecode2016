@@ -30,13 +30,14 @@ public class PotentialField {
 	private final List<ChargedParticle> particles;
 	// List of IDs currently in particles.
 	private final Set<Integer> currentIDs = new HashSet<>();
-	// List of IDs to be removed in the next time directionsByAttraction is called.
+	// List of IDs to be removed in the next time directionsByAttraction is
+	// called.
 	private final Set<Integer> removeIDWaitlist = new HashSet<>();
-	
+
 	private final Map<Integer, ChargedParticle> queuedParticles = new HashMap<>();
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
-		particles = new LinkedList<>();
+		particles = new ArrayList<>();
 	}
 
 	/**
@@ -121,17 +122,18 @@ public class PotentialField {
 	 */
 	public void addParticle(int id, ParticleType type, MapLocation location,
 			int lifetime) {
-		if(!currentIDs.contains(id)){
+		if (!currentIDs.contains(id)) {
 			particles.add(config.particle(id, type, location, lifetime));
-		}else{
-			queuedParticles.put(id, config.particle(id, type, location, lifetime));
+		} else {
+			queuedParticles.put(id,
+					config.particle(id, type, location, lifetime));
 		}
 	}
 
 	public void removeParticleByID(int id) {
-		if(currentIDs.contains(id)){
+		if (currentIDs.contains(id)) {
 			removeIDWaitlist.add(id);
-			queuedParticles.remove(id);			
+			queuedParticles.remove(id);
 		}
 	}
 	/**
@@ -183,22 +185,48 @@ public class PotentialField {
 		return sortedDirections;
 	}
 
+	private void oldImplementationdiscardDeadParticles(){
+		for (int i = 0; i < particles.size(); ++i) {
+			int id = particles.get(i).getID();
+			if (!particles.get(i).isAlive() || removeIDWaitlist.contains(id)) {
+				particles.remove(i);
+				if (queuedParticles.containsKey(id)) {
+					particles.add(queuedParticles.get(id));
+				}else{
+					currentIDs.remove(id);
+				}
+				--i;
+			}
+		}		
+	}
+	
 	/**
 	 * Discards particles that are not alive.
 	 */
 	private void discardDeadParticles() {
+		//oldImplementationdiscardDeadParticles();
+		List<ChargedParticle> newParticles = new ArrayList<>();
 		for (int i = 0; i < particles.size(); ++i) {
-			int id = particles.get(i).getID();
-			if (!particles.get(i).isAlive() || removeIDWaitlist.contains(id)) {
-				currentIDs.remove(id);
-				particles.remove(i);
-				if(queuedParticles.containsKey(id)){
-					particles.add(queuedParticles.get(id));
+			ChargedParticle particle = particles.get(i);
+			int id = particle.getID();
+			boolean isdead = !particle.isAlive()
+					|| removeIDWaitlist.contains(id);
+			if (isdead && !queuedParticles.containsKey(id)) {
+					currentIDs.remove(id);
+			} 
+			if(!isdead) {
+				if (queuedParticles.containsKey(id)) {
+					newParticles.add(queuedParticles.get(id));
+				} else {
+					newParticles.add(particle);
 				}
-
-				--i;
 			}
 		}
+		particles.clear();
+		for (ChargedParticle newParticle: newParticles) {
+			particles.add(newParticle);
+		}
+		
 	}
 
 	public List<ChargedParticle> particles() {

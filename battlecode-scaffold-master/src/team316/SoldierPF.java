@@ -149,7 +149,7 @@ public class SoldierPF implements Player {
 		// we are obstructing them
 		if (rc.isCoreReady()) {
 			RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
-			Battle.addAllyParticles(nearbyFriends, field, 2);
+			Battle.addUniqueAllyParticles(nearbyFriends, field, 2);
 			if (field.particles().size() == 0 || nearbyFriends.length > 2) {
 				mc.tryToMoveRandom(rc);
 			} else {
@@ -171,7 +171,7 @@ public class SoldierPF implements Player {
 		// shoot).
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
-		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
+		Battle.addUniqueEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
 		boolean somethingIsScary = Battle
 				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 

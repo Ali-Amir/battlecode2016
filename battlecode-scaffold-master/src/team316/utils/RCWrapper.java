@@ -28,8 +28,8 @@ public class RCWrapper {
 	private List<RobotInfo> attackableEnemyTeam = null;
 	private Integer maxRow = null;
 	private Integer minRow = null;
-	private Integer maxWidth = null;
-	private Integer maxHeight = null;
+	private Integer minColumn = null;
+	private Integer maxColumn = null;
 	public RobotInfo archonNearby = null;
 	public final Team enemyTeam;
 	private double previousHealth;
@@ -195,7 +195,15 @@ public class RCWrapper {
 		attackableHostile = Collections.unmodifiableList(attackableHostile);
 		return attackableHostile;
 	}
-
+	public Integer senseMinRow(){
+		if(this.maxRow != null){
+			return this.maxRow;
+		}
+		for(int dx = -1; dx*dx <= rc.getType().sensorRadiusSquared; dx --){
+			
+		}
+		return null;
+	}
 	/**
 	 * @return Enemy team's robots nearby sorted by attack priority (first has
 	 *         highest priority). Caches results to avoid overhead.

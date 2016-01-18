@@ -22,13 +22,19 @@ public class Encoding {
 		int y = code % (range + 1);
 		return new MapLocation(x - maxOffset, y - maxOffset);
 	}
-
-	public static int encodePartsID(MapLocation lc) {
+	
+	/**
+	 * Gives locations IDs such that no robot and location have the same ID.
+	 */
+	public static int encodeLocationID(MapLocation lc) {
 		final int maxRobotID = 	32000;
 		return maxRobotID + 1 + encodeLocation(lc);
 	}
-
-	public static MapLocation decodePartsID(int code) {
+	
+	/**
+	 * Decode a certain code for a given location ID encoded according to encodeLocationID.
+	 */
+	public static MapLocation decodeLocationID(int code) {
 		final int maxRobotID = 	32000;
 		return decodeLocation(code - (maxRobotID + 1));
 	}

@@ -156,6 +156,13 @@ public class Battle {
 		}
 	}
 
+	public static void addUniqueEnemyParticles(List<RobotInfo> enemyArray,
+			PotentialField field, int lifetime) {
+		for (RobotInfo e : enemyArray) {
+			addUniqueEnemyParticle(e, field, lifetime);
+		}
+	}
+
 	public static void addUniqueEnemyParticles(RobotInfo[] enemyArray,
 			PotentialField field, int lifetime) {
 		for (RobotInfo e : enemyArray) {
