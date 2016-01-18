@@ -233,8 +233,7 @@ public class SoldierPF implements Player {
 			rc.setIndicatorString(0, statusString + " MODE: WALKING");
 			walkingModeCode(rc);
 		} else { // Fighting.
-			rc.setIndicatorString(0, statusString + " MODE: FIGHTING. field: "
-					+ field.particles());
+			rc.setIndicatorString(0, statusString + " MODE: FIGHTING.");
 			fightingModeCode(rc);
 		}
 	}

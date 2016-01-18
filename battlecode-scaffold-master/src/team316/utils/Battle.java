@@ -133,6 +133,8 @@ public class Battle {
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
+				case SCOUT :
+					break;
 				default :
 					added = true;
 					field.addParticle(
