@@ -173,7 +173,7 @@ public class SoldierPF implements Player {
 		// of sight we try to go back).
 		Battle.addUniqueEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
 		boolean somethingIsScary = Battle
-				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
+				.addUniqueScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 
 		lastReceived = Turn.currentTurn();
 

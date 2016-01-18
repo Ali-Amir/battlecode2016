@@ -412,7 +412,7 @@ public class Archon implements Player {
 		}
 	}
 
-	private void adjustBattle(RobotController rc) {
+	private void adjustBattle(RobotController rc) throws GameActionException {
 		RobotInfo[] enemyArray = rc.senseHostileRobots(myCurrentLocation,
 				RobotType.ARCHON.sensorRadiusSquared);
 		Battle.addUniqueEnemyParticles(enemyArray, field, 5);
@@ -433,7 +433,9 @@ public class Archon implements Player {
 			}
 			consideredPartsBeforeFrom.add(myCurrentLocation);
 		}
-		
+		if(inDanger){
+			//Battle.addUniqueBorderParticles(rcWrapper, field);
+		}
 
 	}
 

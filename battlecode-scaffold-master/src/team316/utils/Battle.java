@@ -2,7 +2,9 @@ package team316.utils;
 
 import java.util.List;
 
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import team316.RobotPlayer;
@@ -137,6 +139,71 @@ public class Battle {
 					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
+			}
+		}
+		return added;
+	}
+
+	public static boolean addUniqueScaryParticles(List<RobotInfo> scaryArray,
+			PotentialField field, int lifetime) {
+		boolean added = false;
+		for (RobotInfo s : scaryArray) {
+			switch (s.type) {
+				case SOLDIER :
+					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
+						break;
+					}
+					added = true;
+					field.addParticle(
+							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					break;
+				case RANGEDZOMBIE :
+					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
+						break;
+					}
+					added = true;
+					field.addParticle(
+							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					break;
+				case ARCHON :
+					break;
+				case ZOMBIEDEN :
+					break;
+				case TURRET :
+					break;
+				case TTM :
+					break;
+				case GUARD :
+					if (s.location.distanceSquaredTo(
+							RobotPlayer.rc.getLocation()) >= 6) {
+						break;
+					}
+					added = true;
+					field.addParticle(
+							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					break;
+				case BIGZOMBIE :
+					if (s.location.distanceSquaredTo(
+							RobotPlayer.rc.getLocation()) >= 6) {
+						break;
+					}
+					added = true;
+					field.addParticle(
+							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					break;
+				case STANDARDZOMBIE :
+					if (s.location.distanceSquaredTo(
+							RobotPlayer.rc.getLocation()) >= 6) {
+						break;
+					}
+					added = true;
+					field.addParticle(
+							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					break;
+				default :
+					added = true;
+					field.addParticle(
+							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
 			}
 		}
 		return added;
@@ -279,7 +346,7 @@ public class Battle {
 
 	public static void lookForNeutrals(RobotController rc, PotentialField field)
 			throws GameActionException {
-		return;
+		return;		
 		// // Do sensing.
 		// RobotInfo[] neutralArray = rc.senseNearbyRobots(
 		// rc.getType().attackRadiusSquared, Team.NEUTRAL);
@@ -295,4 +362,42 @@ public class Battle {
 		// }
 		// }
 	}
+	public static void addUniqueBorderParticles(RCWrapper rcWrapper, PotentialField field) throws GameActionException{
+		Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+		for(Direction direction: directions){
+			Integer c = rcWrapper.getMaxCoordinate(direction);
+			if(c == null){
+				continue;
+			}
+			System.out.println("Direction:" + directions + "c = " + c);
+			MapLocation location;
+			int charge = -1000;
+			if(direction.equals(Direction.NORTH) || direction.equals(Direction.SOUTH)){
+				location = new MapLocation(rcWrapper.getCurrentLocation().x, c);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.EAST, 1);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.EAST, 2);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.WEST, 1);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.WEST, 2);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+			}else{
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.NORTH, 1);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.NORTH, 2);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.SOUTH, 1);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.SOUTH, 2);
+				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+			}
+			
+		}
+		
+	}
+
 }

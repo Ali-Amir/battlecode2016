@@ -3,8 +3,12 @@ package team316.utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import battlecode.common.Direction;
+import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -26,16 +30,14 @@ public class RCWrapper {
 	private List<RobotInfo> enemyTeamNearby = null;
 	private List<RobotInfo> attackableHostile = null;
 	private List<RobotInfo> attackableEnemyTeam = null;
-	private Integer maxRow = null;
-	private Integer minRow = null;
-	private Integer minColumn = null;
-	private Integer maxColumn = null;
+	private Map<Direction, Integer> maxCoordinate = new HashMap<>();
+	private Integer senseRadius = null;
 	public RobotInfo archonNearby = null;
 	public final Team enemyTeam;
 	private double previousHealth;
 	private double currentHealth;
 	private MapLocation currentLocation;
-
+	private RobotType type;
 	/**
 	 * Creates a new instance of RobotController wrapper class with given robot
 	 * controller.
@@ -52,6 +54,7 @@ public class RCWrapper {
 		}
 		this.currentHealth = rc.getHealth();
 		this.previousHealth = this.currentHealth;
+		this.type = rc.getType();
 	}
 
 	/**
@@ -68,9 +71,24 @@ public class RCWrapper {
 		this.currentHealth = rc.getHealth();
 		this.currentLocation = null;
 	}
+	
+	/**
+	 * Returns the senseRadius (not squared) of the robot.
+	 * @return
+	 */
+	public Integer getSenseRaidus() {
+		if (senseRadius != null)
+			return senseRadius;
+		senseRadius = 0;
+		while (senseRadius * senseRadius <= this.type.sensorRadiusSquared) {
+			senseRadius++;
+		}
+		senseRadius -= 1;
+		return senseRadius;
+	}
 
-	public MapLocation getCurrentLocation(){
-		if(this.currentLocation == null){
+	public MapLocation getCurrentLocation() {
+		if (this.currentLocation == null) {
 			this.currentLocation = rc.getLocation();
 		}
 		return this.currentLocation;
@@ -93,12 +111,11 @@ public class RCWrapper {
 		// look for adjacent enemies to attack
 		Arrays.sort(robots, (a, b) -> {
 			/*
-			int priorityDiff = SoldierPF.getAttakTypePriority(b.type)
-					- SoldierPF.getAttakTypePriority(a.type);
-			if (priorityDiff != 0) {
-				return priorityDiff;
-			}*/
-			
+			 * int priorityDiff = SoldierPF.getAttakTypePriority(b.type) -
+			 * SoldierPF.getAttakTypePriority(a.type); if (priorityDiff != 0) {
+			 * return priorityDiff; }
+			 */
+
 			double weaknessDiff = Battle.weakness(a) - Battle.weakness(b);
 			if (weaknessDiff != 0.0) {
 				return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
@@ -106,7 +123,7 @@ public class RCWrapper {
 			return a.ID - b.ID;
 		});
 		robotsNearby = Collections.unmodifiableList(Arrays.asList(robots));
-		
+
 		// Get closest archon.
 		for (RobotInfo r : robots) {
 			if (r.type.equals(RobotType.ARCHON)
@@ -195,14 +212,51 @@ public class RCWrapper {
 		attackableHostile = Collections.unmodifiableList(attackableHostile);
 		return attackableHostile;
 	}
-	public Integer senseMinRow(){
-		if(this.maxRow != null){
-			return this.maxRow;
+	/**
+	 * Gets the max coordinate in a certain direction.
+	 * 
+	 * @param direction
+	 *            has to be NORTH, SOUTH, EAST, or WEST.
+	 * @return
+	 * @throws GameActionException
+	 */
+	public Integer getMaxCoordinate(Direction direction)
+			throws GameActionException {
+		if (this.maxCoordinate.containsKey(direction)) {
+			return this.maxCoordinate.get(direction);
 		}
-		for(int dx = -1; dx*dx <= rc.getType().sensorRadiusSquared; dx --){
-			
+		MapLocation lastTile = getLastTile(direction);
+		if (lastTile == null) {
+			return null;
 		}
-		return null;
+		if (direction.equals(Direction.WEST)
+				|| direction.equals(Direction.EAST)) {
+			maxCoordinate.put(direction, lastTile.x);
+		} else {
+			if (direction.equals(Direction.NORTH)
+					|| direction.equals(Direction.SOUTH)) {
+				maxCoordinate.put(direction, lastTile.y);
+			} else {
+				return null;
+			}
+		}
+		return this.maxCoordinate.get(direction);
+
+	}
+	public MapLocation getLastTile(Direction direction)
+			throws GameActionException {
+		if (rc.onTheMap(
+				getCurrentLocation().add(direction, getSenseRaidus()))) {
+			return null;
+		}
+		for (int d = getSenseRaidus() - 1; d > 0; d--) {
+			MapLocation proposedLocation = getCurrentLocation().add(direction,
+					-d);
+			if (rc.onTheMap(proposedLocation)) {
+				return proposedLocation;
+			}
+		}
+		return this.currentLocation;
 	}
 	/**
 	 * @return Enemy team's robots nearby sorted by attack priority (first has

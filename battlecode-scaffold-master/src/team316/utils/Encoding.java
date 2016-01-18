@@ -1,26 +1,24 @@
 package team316.utils;
 
+
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
+import battlecode.common.Direction;
 
 public class Encoding {
 
 	public static int encodeLocation(MapLocation lc) {
-		final int maxOffset = 16000;
-		final int range = 2 * maxOffset;
+		final int range = 580;
 		int x = lc.x;
 		int y = lc.y;
-		x += maxOffset;
-		y += maxOffset;
 		return (range + 1) * x + y;
 	}
 
 	public static MapLocation decodeLocation(int code) {
-		final int maxOffset = 16000;
-		final int range = 2 * maxOffset;
+		final int range = 580;
 		int x = code / (range + 1);
 		int y = code % (range + 1);
-		return new MapLocation(x - maxOffset, y - maxOffset);
+		return new MapLocation(x, y);
 	}
 	
 	/**
@@ -36,7 +34,23 @@ public class Encoding {
 	 */
 	public static MapLocation decodeLocationID(int code) {
 		final int maxRobotID = 	32000;
-		return decodeLocation(code - (maxRobotID + 1));
+		final int offset = maxRobotID + 1;
+		return decodeLocation(code - offset);
 	}
-
+	
+	/**
+	 * Encodes a border ID for a given map location on a border.
+	 * 
+	 * @param lc
+	 * @return
+	 */
+	public static int encodeBorderID(MapLocation lc){
+		final int offset = encodeLocationID(new MapLocation(580, 580)) + 1;
+		return offset + encodeLocationID(lc);
+	}
+	
+	public static MapLocation decodeBorderID(int code){
+		final int offset = encodeLocationID(new MapLocation(580, 580)) + 1;
+		return decodeLocationID(code - offset);
+	}
 }
