@@ -79,7 +79,7 @@ public class Battle {
 		}
 	}
 
-	public static boolean addScaryParticles(List<RobotInfo> scaryArray,
+	public static boolean addScaryParticles(RobotInfo[] scaryArray,
 			PotentialField field, int lifetime) {
 		boolean added = false;
 		for (RobotInfo s : scaryArray) {

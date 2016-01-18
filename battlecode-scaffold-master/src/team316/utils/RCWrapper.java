@@ -25,11 +25,11 @@ import team316.SoldierPF;
  */
 public class RCWrapper {
 	private RobotController rc;
-	private List<RobotInfo> robotsNearby = null;
-	private List<RobotInfo> hostileNearby = null;
-	private List<RobotInfo> enemyTeamNearby = null;
-	private List<RobotInfo> attackableHostile = null;
-	private List<RobotInfo> attackableEnemyTeam = null;
+	private RobotInfo[] robotsNearby = null;
+	private RobotInfo[] hostileNearby = null;
+	private RobotInfo[] enemyTeamNearby = null;
+	private RobotInfo[] attackableHostile = null;
+	private RobotInfo[] attackableEnemyTeam = null;
 	private Map<Direction, Integer> maxCoordinate = new HashMap<>();
 	private Integer senseRadius = null;
 	public RobotInfo archonNearby = null;
@@ -38,6 +38,7 @@ public class RCWrapper {
 	private double currentHealth;
 	private MapLocation currentLocation;
 	private RobotType type;
+
 	/**
 	 * Creates a new instance of RobotController wrapper class with given robot
 	 * controller.
@@ -71,9 +72,10 @@ public class RCWrapper {
 		this.currentHealth = rc.getHealth();
 		this.currentLocation = null;
 	}
-	
+
 	/**
 	 * Returns the senseRadius (not squared) of the robot.
+	 * 
 	 * @return
 	 */
 	public Integer getSenseRaidus() {
@@ -93,6 +95,7 @@ public class RCWrapper {
 		}
 		return this.currentLocation;
 	}
+
 	/**
 	 * @return Whether current robot is under attack (with reference to previous
 	 *         turn).
@@ -102,62 +105,18 @@ public class RCWrapper {
 	}
 
 	/**
-	 * Calls RobotController to get all robots nearby.
-	 */
-	private void getRobotsNearby() {
-		assert robotsNearby == null;
-
-		RobotInfo[] robots = rc.senseNearbyRobots();
-		// look for adjacent enemies to attack
-		Arrays.sort(robots, (a, b) -> {
-			/*
-			 * int priorityDiff = SoldierPF.getAttakTypePriority(b.type) -
-			 * SoldierPF.getAttakTypePriority(a.type); if (priorityDiff != 0) {
-			 * return priorityDiff; }
-			 */
-
-			double weaknessDiff = Battle.weakness(a) - Battle.weakness(b);
-			if (weaknessDiff != 0.0) {
-				return weaknessDiff < 0 ? 1 : weaknessDiff > 0 ? -1 : 0;
-			}
-			return a.ID - b.ID;
-		});
-		robotsNearby = Collections.unmodifiableList(Arrays.asList(robots));
-
-		// Get closest archon.
-		for (RobotInfo r : robots) {
-			if (r.type.equals(RobotType.ARCHON)
-					&& r.team.equals(rc.getTeam())) {
-				if (archonNearby == null || archonNearby.location
-						.distanceSquaredTo(getCurrentLocation()) > r.location
-								.distanceSquaredTo(getCurrentLocation())) {
-					archonNearby = r;
-				}
-			}
-		}
-	}
-
-	/**
 	 * @return Hostile robots nearby sorted by attack priority (first has
 	 *         highest priority). Caches results to avoid overhead.
 	 */
-	public List<RobotInfo> hostileRobotsNearby() {
-		if (robotsNearby == null) {
-			getRobotsNearby();
-		}
-
+	public RobotInfo[] hostileRobotsNearby() {
 		if (hostileNearby != null) {
 			return hostileNearby;
 		}
 
 		// Get the actual hostile robots.
-		hostileNearby = new ArrayList<>();
-		for (RobotInfo r : robotsNearby) {
-			if (r.team.equals(enemyTeam) || r.team.equals(Team.ZOMBIE)) {
-				hostileNearby.add(r);
-			}
-		}
-		hostileNearby = Collections.unmodifiableList(hostileNearby);
+		hostileNearby = rc.senseHostileRobots(rc.getLocation(),
+				rc.getType().sensorRadiusSquared);
+		putWeakestInFront(hostileNearby);
 		return hostileNearby;
 	}
 
@@ -165,23 +124,15 @@ public class RCWrapper {
 	 * @return Enemy team's robots nearby sorted by attack priority (first has
 	 *         highest priority). Caches results to avoid overhead.
 	 */
-	public List<RobotInfo> enemyTeamRobotsNearby() {
-		if (robotsNearby == null) {
-			getRobotsNearby();
-		}
-
+	public RobotInfo[] enemyTeamRobotsNearby() {
 		if (enemyTeamNearby != null) {
 			return enemyTeamNearby;
 		}
 
 		// Get the enemy team robots.
-		enemyTeamNearby = new ArrayList<>();
-		for (RobotInfo r : robotsNearby) {
-			if (r.team.equals(enemyTeam)) {
-				enemyTeamNearby.add(r);
-			}
-		}
-		enemyTeamNearby = Collections.unmodifiableList(enemyTeamNearby);
+		enemyTeamNearby = rc.senseNearbyRobots(rc.getType().sensorRadiusSquared,
+				enemyTeam);
+		putWeakestInFront(enemyTeamNearby);
 		return enemyTeamNearby;
 	}
 
@@ -189,29 +140,54 @@ public class RCWrapper {
 	 * @return Hostile robots nearby sorted by attack priority (first has
 	 *         highest priority). Caches results to avoid overhead.
 	 */
-	public List<RobotInfo> attackableHostileRobots() {
-		if (robotsNearby == null) {
-			getRobotsNearby();
-		}
-
+	public RobotInfo[] attackableHostileRobots() {
 		if (attackableHostile != null) {
 			return attackableHostile;
 		}
 
-		if (hostileNearby == null) {
-			hostileRobotsNearby();
-		}
-
 		// Get the actual hostile robots.
-		attackableHostile = new ArrayList<>();
-		for (RobotInfo r : hostileNearby) {
-			if (rc.canAttackLocation(r.location)) {
-				attackableHostile.add(r);
-			}
-		}
-		attackableHostile = Collections.unmodifiableList(attackableHostile);
+		attackableHostile = rc.senseHostileRobots(rc.getLocation(),
+				rc.getType().attackRadiusSquared);
+		putWeakestInFront(attackableHostile);
 		return attackableHostile;
 	}
+
+	/**
+	 * @return Enemy team's robots nearby sorted by attack priority (first has
+	 *         highest priority). Caches results to avoid overhead.
+	 */
+	public RobotInfo[] attackableEnemyTeamRobots() {
+		if (attackableEnemyTeam != null) {
+			return attackableEnemyTeam;
+		}
+
+		// Get the enemy team robots.
+		attackableEnemyTeam = rc
+				.senseNearbyRobots(rc.getType().attackRadiusSquared, enemyTeam);
+		putWeakestInFront(attackableEnemyTeam);
+		return attackableEnemyTeam;
+	}
+
+	public static void putWeakestInFront(RobotInfo[] robots) {
+		if (robots.length == 0) {
+			return;
+		}
+		
+		int weakestId = 0;
+		for (int i = 1; i < robots.length; ++i) {
+			double weaknessCur = Battle.weakness(robots[i]);
+			double weaknessBest = Battle.weakness(robots[weakestId]);
+			if (weaknessCur > weaknessBest || (weaknessCur == weaknessBest
+					&& robots[i].ID < robots[weakestId].ID)) {
+				weakestId = i;
+			}
+		}
+
+		RobotInfo tmp = robots[weakestId];
+		robots[weakestId] = robots[0];
+		robots[0] = tmp;
+	}
+
 	/**
 	 * Gets the max coordinate in a certain direction.
 	 * 
@@ -243,6 +219,7 @@ public class RCWrapper {
 		return this.maxCoordinate.get(direction);
 
 	}
+
 	public MapLocation getLastTile(Direction direction)
 			throws GameActionException {
 		if (rc.onTheMap(
@@ -257,32 +234,5 @@ public class RCWrapper {
 			}
 		}
 		return this.currentLocation;
-	}
-	/**
-	 * @return Enemy team's robots nearby sorted by attack priority (first has
-	 *         highest priority). Caches results to avoid overhead.
-	 */
-	public List<RobotInfo> attackableEnemyTeamRobots() {
-		if (robotsNearby == null) {
-			getRobotsNearby();
-		}
-
-		if (attackableEnemyTeam != null) {
-			return attackableEnemyTeam;
-		}
-
-		if (enemyTeamNearby == null) {
-			enemyTeamRobotsNearby();
-		}
-
-		// Get the enemy team robots.
-		attackableEnemyTeam = new ArrayList<>();
-		for (RobotInfo r : enemyTeamNearby) {
-			if (rc.canAttackLocation(r.location)) {
-				attackableEnemyTeam.add(r);
-			}
-		}
-		attackableEnemyTeam = Collections.unmodifiableList(attackableEnemyTeam);
-		return attackableEnemyTeam;
 	}
 }

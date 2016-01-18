@@ -2,13 +2,13 @@ package team316;
 
 import java.util.ArrayList;
 
+import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
-import battlecode.common.Team;
 import team316.navigation.ChargedParticle;
 import team316.navigation.EnemyLocationModel;
 import team316.navigation.ParticleType;
@@ -23,12 +23,18 @@ public class SoldierPF implements Player {
 	private final PotentialField field;
 	private final MotionController mc;
 	private int lastBroadcastTurn = -100;
-	private int lastReceived = -100;
+	private int lastTimeEnemySeen = -100;
 	private int maxParticlesSoFar = 0;
 	private static final int MESSAGE_DELAY_TURNS = 50;
 	private static final int BROADCAST_RADIUSSQR = 200;
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
+	private int startByteCodes;
+	private int maxPartAByteCodes = 0;
+	private int maxPartBByteCodes = 0;
+	private int maxPartCByteCodes = 0;
+	private int maxPartDByteCodes = 0;
+	private int maxPartEByteCodes = 0;
 
 	public SoldierPF(MapLocation archonLoc, PotentialField field,
 			MotionController mc, RobotController rc) {
@@ -101,7 +107,7 @@ public class SoldierPF implements Player {
 		// rc.setIndicatorString(0, "Current enemy base prediction: "
 		// + elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
 		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS
-				&& lastReceived > lastBroadcastTurn) {
+				&& lastTimeEnemySeen > lastBroadcastTurn) {
 			rc.broadcastSignal(BROADCAST_RADIUSSQR);
 			lastBroadcastTurn = Turn.currentTurn();
 			rc.setIndicatorString(1,
@@ -182,38 +188,41 @@ public class SoldierPF implements Player {
 		// shoot).
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
+		startByteCodes = Clock.getBytecodeNum();
 		Battle.addUniqueEnemyParticles(rcWrapper.hostileRobotsNearby(), field,
 				3);
 		boolean somethingIsScary = Battle
 				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 
-		lastReceived = Turn.currentTurn();
+		lastTimeEnemySeen = Turn.currentTurn();
 
-		if (rcWrapper.attackableHostileRobots().isEmpty()) {
+		maxPartAByteCodes = Math.max(maxPartAByteCodes,
+				Clock.getBytecodeNum() - startByteCodes); // TODO
+		startByteCodes = Clock.getBytecodeNum();
+
+		if (rcWrapper.attackableHostileRobots().length == 0) {
 			mc.tryToMove(rc);
 			return;
 		}
+
+		maxPartBByteCodes = Math.max(maxPartBByteCodes,
+				Clock.getBytecodeNum() - startByteCodes); // TODO
+		startByteCodes = Clock.getBytecodeNum();
 
 		if (somethingIsScary && rc.isCoreReady()) {
 			mc.tryToMove(rc);
 			return;
 		}
 
+		maxPartCByteCodes = Math.max(maxPartCByteCodes,
+				Clock.getBytecodeNum() - startByteCodes); // TODO
+
 		if (rc.isWeaponReady()) {
-			for (RobotInfo oneEnemy : rcWrapper.attackableHostileRobots()) {
-				if (rc.canAttackLocation(oneEnemy.location)) {
-					rc.attackLocation(oneEnemy.location);
-					/*
-					 * if (oneEnemy.team.equals(rcWrapper.enemyTeam)) {
-					 * elm.enemyAtLocation(oneEnemy.location, rc); } else if
-					 * (oneEnemy.team.equals(Team.ZOMBIE)) {
-					 * elm.zombieAtLocation(oneEnemy.location, rc); }
-					 */
-					break;
-				}
-			}
+			rc.attackLocation(rcWrapper.attackableHostileRobots()[0].location);
 		}
 
+		maxPartDByteCodes = Math.max(maxPartDByteCodes,
+				Clock.getBytecodeNum() - startByteCodes); // TODO
 		/*
 		 * // could not find any enemies adjacent to attack // try to move
 		 * toward them if (rc.isCoreReady()) { mc.tryToMove(rc); }
@@ -233,15 +242,28 @@ public class SoldierPF implements Player {
 			maxParticlesSoFar = Math.max(field.particles().size(),
 					maxParticlesSoFar);
 			statusString = "Currently have " + field.particles().size()
-					+ " particles in store. Max so far: " + maxParticlesSoFar;
+					+ " particles in store. Max so far: " + maxParticlesSoFar
+					+ " maxA(" + maxPartAByteCodes + ") maxB("
+					+ maxPartBByteCodes + ") maxC(" + maxPartCByteCodes
+					+ ") maxD(" + maxPartDByteCodes + ") maxE("
+					+ maxPartEByteCodes + ")";
 		}
 
+		startByteCodes = Clock.getBytecodeNum();
+
 		// Decide on mode: Walking vs. Fighting.
-		if (rcWrapper.hostileRobotsNearby().isEmpty()) { // Walking.
+		if (rcWrapper.hostileRobotsNearby().length == 0) { // Walking.
 			rc.setIndicatorString(0, statusString + " MODE: WALKING");
+
+			maxPartEByteCodes = Math.max(maxPartEByteCodes,
+					Clock.getBytecodeNum() - startByteCodes); // TODO
+
 			walkingModeCode(rc);
 		} else { // Fighting.
 			rc.setIndicatorString(0, statusString + " MODE: FIGHTING.");
+
+			maxPartEByteCodes = Math.max(maxPartEByteCodes,
+					Clock.getBytecodeNum() - startByteCodes); // TODO
 			fightingModeCode(rc);
 		}
 	}
