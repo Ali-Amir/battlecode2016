@@ -97,8 +97,9 @@ public class SoldierPF implements Player {
 	public void receiveIncomingSignals(RobotController rc)
 			throws GameActionException {
 		// Do message signaling stuff.
-		rc.setIndicatorString(0, "Current enemy base prediction: "
-				+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
+		//rc.setIndicatorString(0, "Current enemy base prediction: "
+		//		+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
+		rc.setIndicatorString(0, field.particles()+"");
 		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS
 				&& lastReceived > lastBroadcastTurn) {
 			rc.broadcastSignal(BROADCAST_RADIUSSQR);
@@ -115,16 +116,17 @@ public class SoldierPF implements Player {
 						signal.getLocation(), 4);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
-			} else {
+			}
+			/*else {
 				field.addParticle(ParticleType.OPPOSITE_GUARD,
 						signal.getLocation(), 10);
-			}
+			}*/
 		}
 	}
 
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		// Attract towards closest enemy base location prediction.
-		field.addParticle(elm.predictEnemyBase(rc));
+		//field.addParticle(elm.predictEnemyBase(rc));
 
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
@@ -195,7 +197,7 @@ public class SoldierPF implements Player {
 					if (oneEnemy.team.equals(rcWrapper.enemyTeam)) {
 						elm.enemyAtLocation(oneEnemy.location, rc);
 					} else if (oneEnemy.team.equals(Team.ZOMBIE)) {
-						// elm.zombieAtLocation(oneEnemy.location, rc);
+						elm.zombieAtLocation(oneEnemy.location, rc);
 					}
 					break;
 				}
