@@ -184,27 +184,11 @@ public class PotentialField {
 		}
 		return sortedDirections;
 	}
-
-	private void oldImplementationdiscardDeadParticles(){
-		for (int i = 0; i < particles.size(); ++i) {
-			int id = particles.get(i).getID();
-			if (!particles.get(i).isAlive() || removeIDWaitlist.contains(id)) {
-				particles.remove(i);
-				if (queuedParticles.containsKey(id)) {
-					particles.add(queuedParticles.get(id));
-				}else{
-					currentIDs.remove(id);
-				}
-				--i;
-			}
-		}		
-	}
 	
 	/**
 	 * Discards particles that are not alive.
 	 */
 	private void discardDeadParticles() {
-		//oldImplementationdiscardDeadParticles();
 		List<ChargedParticle> newParticles = new ArrayList<>();
 		for (int i = 0; i < particles.size(); ++i) {
 			ChargedParticle particle = particles.get(i);
