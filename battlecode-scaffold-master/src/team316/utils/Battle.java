@@ -85,20 +85,23 @@ public class Battle {
 		for (RobotInfo s : scaryArray) {
 			switch (s.type) {
 				case SOLDIER :
-					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
-						break;
-					}
-					added = true;
-					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
 					break;
-				case RANGEDZOMBIE :
+					/*
 					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
 						break;
 					}
 					added = true;
 					field.addParticle(
 							new ChargedParticle(-100.0, s.location, lifetime));
+					break;*/
+				case RANGEDZOMBIE :
+					/*
+					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
+						break;
+					}
+					added = true;
+					field.addParticle(
+							new ChargedParticle(-100.0, s.location, lifetime));*/
 					break;
 				case ARCHON :
 					break;

@@ -69,7 +69,7 @@ public class ChargedParticle {
 	 * @return Force exerted by this.
 	 */
 	public Vector force(MapLocation to) {
-		double distanceSquared = to.distanceSquaredTo(location);
+		int distanceSquared = to.distanceSquaredTo(location);
 		if (Turn.currentTurn() >= expiryTurn || distanceSquared == 0) {
 			return new Vector(0.0, 0.0);
 		}

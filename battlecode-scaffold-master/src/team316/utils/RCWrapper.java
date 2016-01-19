@@ -1,10 +1,6 @@
 package team316.utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import battlecode.common.Direction;
@@ -14,7 +10,6 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
-import team316.SoldierPF;
 
 /**
  * Convenience class for getting things from RobotController without extra

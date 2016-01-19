@@ -115,7 +115,6 @@ public class PotentialField {
 	public void addParticle(ParticleType type, MapLocation location,
 			int lifetime) {
 		if (numParticles + 1 == PARTICLE_LIMIT) {
-			System.out.println("Compresssing!");
 			compressParticles();
 		}
 
@@ -140,7 +139,6 @@ public class PotentialField {
 			int lifetime) {
 		if (!currentIDs.contains(id)) {
 			if (numParticles + 1 == PARTICLE_LIMIT) {
-				System.out.println("Compresssing!");
 				compressParticles();
 			}
 
@@ -236,6 +234,8 @@ public class PotentialField {
 	 * Compresses neighboring particles into one.
 	 */
 	private void compressParticles() {
+		discardDeadParticles();
+		
 		final int curTurn = Turn.currentTurn();
 		for (int i = 0; i < numParticles; ++i) {
 			double x = particles[i].location.y, y = particles[i].location.y;
