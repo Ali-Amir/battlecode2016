@@ -72,7 +72,7 @@ public class RobotPlayer {
 				case SCOUT :
 					field = PotentialField.scout();
 					mc = new MotionController(field);
-					player = new Scout(archonLoc, field, mc);
+					player = new Scout(archonLoc, field, mc, rcIn);
 					break;
 				case VIPER :
 					field = PotentialField.viper();

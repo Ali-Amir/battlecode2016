@@ -415,5 +415,23 @@ public class Battle {
 		}
 		
 	}
+	
+	public static RobotInfo[] robotsWhoCanAttackLocation(MapLocation loc, RobotInfo[] robots) {
+		int count = 0;
+		for (RobotInfo r : robots) {
+			if (r.location.distanceSquaredTo(loc) <= r.type.attackRadiusSquared) {
+				++count;
+			}
+		}
+
+		RobotInfo[] attackers = new RobotInfo[count];
+		int index = 0;
+		for (RobotInfo r : robots) {
+			if (r.location.distanceSquaredTo(loc) <= r.type.attackRadiusSquared) {
+				attackers[index++] = r;
+			}
+		}
+		return attackers;
+	}
 
 }

@@ -19,17 +19,19 @@ import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
 public class Soldier implements Player {
+	
+	private static final int MESSAGE_DELAY_TURNS = 50;
+	private static final int BROADCAST_RADIUSSQR = 200;
 
 	private final PotentialField field;
 	private final MotionController mc;
-	private int lastBroadcastTurn = -100;
-	private int lastTimeEnemySeen = -100;
-	private int birthday;
-	private int maxParticlesSoFar = 0;
-	private static final int MESSAGE_DELAY_TURNS = 50;
-	private static final int BROADCAST_RADIUSSQR = 200;
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
+	private final int birthday;
+	
+	private int lastBroadcastTurn = -100;
+	private int lastTimeEnemySeen = -100;
+	private int maxParticlesSoFar = 0;
 	private int startByteCodes;
 	private int maxPartAByteCodes = 0;
 	private int maxPartBByteCodes = 0;
@@ -43,8 +45,7 @@ public class Soldier implements Player {
 		this.mc = mc;
 		this.rcWrapper = new RCWrapper(rc);
 		RobotPlayer.rcWrapper = rcWrapper;
-		this.elm = new EnemyLocationModel(archonLoc);
-		this.elm.enemyBaseAt(rc.getInitialArchonLocations(rcWrapper.enemyTeam));
+		this.elm = new EnemyLocationModel();
 		this.birthday = Turn.currentTurn();
 	}
 

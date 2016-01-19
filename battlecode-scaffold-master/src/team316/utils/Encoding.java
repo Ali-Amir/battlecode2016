@@ -1,9 +1,7 @@
 package team316.utils;
 
 
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
-import battlecode.common.Direction;
 
 public class Encoding {
 

@@ -209,7 +209,7 @@ public class Archon implements Player {
 			buildDistribution.clear();
 			// buildDistribution.put(RobotType.GUARD, 5.0);
 			buildDistribution.put(RobotType.SOLDIER, 100.0);
-			// buildDistribution.put(RobotType.TURRET, 5.0);
+			buildDistribution.put(RobotType.SCOUT, 5.0);
 		}
 	}
 
