@@ -371,7 +371,6 @@ public class Battle {
 			if(c == null){
 				continue;
 			}
-			System.out.println("Direction:" + directions + "c = " + c);
 			MapLocation location;
 			int charge = -1000;
 			if(direction.equals(Direction.NORTH) || direction.equals(Direction.SOUTH)){

@@ -12,10 +12,10 @@ public class Probability <T>{
 	 * Returns a random unit to build according to buildDistribution.  
 	 */
 	public T getRandomSample(Map<T,Double> distribution){
-		List<T> options = new ArrayList<>();
+		T lastOption = null;
 		double sum = 0;
 		for(T option: distribution.keySet()){
-			options.add(option);
+			lastOption = option;
 			sum += distribution.getOrDefault(option, 0.0);
 		}
 		double acc = 0;
@@ -26,7 +26,7 @@ public class Probability <T>{
 				return option;
 			}
 		}
-		return options.get(options.size()-1);
+		return lastOption;
 	}
 	
 	public static boolean acceptWithProbability(double acceptProbability){
