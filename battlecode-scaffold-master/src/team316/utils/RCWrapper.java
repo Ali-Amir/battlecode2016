@@ -202,6 +202,7 @@ public class RCWrapper {
 		}
 		if (direction.equals(Direction.WEST)
 				|| direction.equals(Direction.EAST)) {
+			System.out.println("Direction: " + direction + "coordinate" + lastTile.x);
 			maxCoordinate.put(direction, lastTile.x);
 		} else {
 			if (direction.equals(Direction.NORTH)
@@ -221,13 +222,16 @@ public class RCWrapper {
 				getCurrentLocation().add(direction, getSenseRaidus()))) {
 			return null;
 		}
+		System.out.println(this.getCurrentLocation());
 		for (int d = getSenseRaidus() - 1; d > 0; d--) {
 			MapLocation proposedLocation = getCurrentLocation().add(direction,
-					-d);
+					d);
 			if (rc.onTheMap(proposedLocation)) {
+				System.out.println("Direction:" + direction + "Location: " + proposedLocation);
 				return proposedLocation;
 			}
 		}
-		return this.currentLocation;
+		System.out.println("Direction:" + direction + "Location: " + this.getCurrentLocation());
+		return this.getCurrentLocation();
 	}
 }

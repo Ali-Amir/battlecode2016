@@ -411,11 +411,10 @@ public class Archon implements Player {
 		figureOutDistribution();
 
 		attemptActivateRobots(rc);
-		if (!inDanger) {
+		if (!inDanger && Turn.currentTurn() < 200) {
 			rc.setIndicatorString(1, "at least into attempBuild function.");
 			attemptBuild(rc);
 		}
-
 		attemptRepairingWeakest(rc);
 
 		adjustBattle(rc);
@@ -449,8 +448,9 @@ public class Archon implements Player {
 			}
 			consideredPartsBeforeFrom.add(myCurrentLocation);
 		}
+		Battle.addUniqueBorderParticles(rcWrapper, field);
 		if(inDanger){
-			Battle.addUniqueBorderParticles(rcWrapper, field);
+			
 		}
 
 	}
