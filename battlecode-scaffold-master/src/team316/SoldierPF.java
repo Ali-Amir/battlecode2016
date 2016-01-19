@@ -122,15 +122,16 @@ public class SoldierPF implements Player {
 			if (signal.getMessage() == null
 					&& signal.getTeam().equals(rc.getTeam())
 					&& lastBroadcastTurn + MESSAGE_DELAY_TURNS < Turn
-							.currentTurn()) {
+							.currentTurn()
+					&& rcWrapper.attackableHostileRobots().length == 0) {
 				field.addParticle(ParticleType.FIGHTING_ALLY,
-						signal.getLocation(), 3);
+						signal.getLocation(), 2);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
 			} else if (signal.getTeam().equals(rc.getTeam())
 					&& signal.getMessage() != null) {
 				field.addParticle(ParticleType.FIGHTING_ALLY,
-						signal.getLocation(), 6);
+						signal.getLocation(), 5);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
 			}

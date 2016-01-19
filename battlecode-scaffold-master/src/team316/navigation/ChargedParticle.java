@@ -13,13 +13,13 @@ import team316.utils.Vector;
  */
 public class ChargedParticle {
 	// Charge value.
-	private final double charge;
+	public double charge;
 	// Charge location.
-	private final MapLocation location;
+	public MapLocation location;
 	// Turn at which the particle expires.
-	private final int expiryTurn;
+	public int expiryTurn;
 
-	private final int id;
+	public final int id;
 
 	/**
 	 * Creates a new charge.

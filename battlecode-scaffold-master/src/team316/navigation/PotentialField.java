@@ -1,9 +1,7 @@
 package team316.navigation;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,12 +17,13 @@ import team316.navigation.configurations.ScoutConfigurator;
 import team316.navigation.configurations.SoldierConfigurator;
 import team316.navigation.configurations.TurretConfigurator;
 import team316.navigation.configurations.ViperConfigurator;
-import team316.utils.FastArrays;
-import team316.utils.PairIntDouble;
+import team316.utils.Turn;
 import team316.utils.Vector;
 
 public class PotentialField {
-	private final static int PARTICLE_LIMIT = 200;
+	private final static int PARTICLE_LIMIT = 20;
+	private final static int COMPRESSION_DISTANCE = 20;
+
 	private final static double SQRT2 = Math.sqrt(2.0);
 	// Configuration object that gives correct charged particles for each
 	// observation.
@@ -95,7 +94,9 @@ public class PotentialField {
 	 *            New particle.
 	 */
 	public void addParticle(ChargedParticle particle) {
-		assert numParticles < PARTICLE_LIMIT : "Too many particles!!!";
+		if (numParticles + 1 == PARTICLE_LIMIT) {
+			compressParticles();
+		}
 
 		particles[numParticles] = particle;
 		++numParticles;
@@ -113,7 +114,10 @@ public class PotentialField {
 	 */
 	public void addParticle(ParticleType type, MapLocation location,
 			int lifetime) {
-		assert numParticles < PARTICLE_LIMIT : "Too many particles!!!";
+		if (numParticles + 1 == PARTICLE_LIMIT) {
+			System.out.println("Compresssing!");
+			compressParticles();
+		}
 
 		particles[numParticles] = config.particle(type, location, lifetime);
 		++numParticles;
@@ -135,7 +139,10 @@ public class PotentialField {
 	public void addParticle(int id, ParticleType type, MapLocation location,
 			int lifetime) {
 		if (!currentIDs.contains(id)) {
-			assert numParticles < PARTICLE_LIMIT : "Too many particles!!!";
+			if (numParticles + 1 == PARTICLE_LIMIT) {
+				System.out.println("Compresssing!");
+				compressParticles();
+			}
 
 			particles[numParticles] = config.particle(type, location, lifetime);
 			++numParticles;
@@ -184,25 +191,28 @@ public class PotentialField {
 				Direction.NORTH_WEST.ordinal()};
 		final int[] dx = {0, 1, 1, 1, 0, -1, -1, -1};
 		final int[] dy = {-1, -1, 0, 1, 1, 1, 0, -1};
-		
+
 		double strongestAttraction = -(1e9);
 		int strongestDir = -1;
 		for (int i = 0; i < directions.length; ++i) {
-			double currentAttraction = (dx[i] * totalForce.x() + dy[i] * totalForce.y());
+			double currentAttraction = (dx[i] * totalForce.x()
+					+ dy[i] * totalForce.y());
 			if (i % 2 == 1) {
 				currentAttraction /= SQRT2;
 			}
-			
+
 			if (currentAttraction > strongestAttraction) {
 				strongestAttraction = currentAttraction;
 				strongestDir = i;
 			}
 		}
-		
+
 		int[] sortedDirections = new int[directions.length];
 		sortedDirections[0] = directions[strongestDir];
-		for (int dir = RobotPlayer.rnd.nextBoolean() == true ? 1 : -1, i = 1; i < 8; ++i, dir = -dir) {
-			int curDir = (strongestDir + ((i+1)/2)*dir + 8) % 8;
+		for (int dir = RobotPlayer.rnd.nextBoolean() == true
+				? 1
+				: -1, i = 1; i < 8; ++i, dir = -dir) {
+			int curDir = (strongestDir + ((i + 1) / 2) * dir + 8) % 8;
 			sortedDirections[i] = directions[curDir];
 		}
 		return sortedDirections;
@@ -219,6 +229,39 @@ public class PotentialField {
 				--numParticles;
 				--i;
 			}
+		}
+	}
+
+	/**
+	 * Compresses neighboring particles into one.
+	 */
+	private void compressParticles() {
+		final int curTurn = Turn.currentTurn();
+		for (int i = 0; i < numParticles; ++i) {
+			double x = particles[i].location.y, y = particles[i].location.y;
+			int total = 1;
+			double totalCharge = particles[i].charge;
+			int maxEndTurn = particles[i].expiryTurn;
+			for (int j = i + 1; j < numParticles; ++j) {
+				if (particles[i].location.distanceSquaredTo(
+						particles[j].location) < COMPRESSION_DISTANCE) {
+					total += 1;
+					totalCharge += (particles[j].expiryTurn - curTurn)
+							* particles[j].charge;
+					if (maxEndTurn < particles[j].expiryTurn) {
+						maxEndTurn = particles[j].expiryTurn;
+					}
+					x += particles[i].location.x;
+					y += particles[i].location.y;
+
+					particles[j] = particles[--numParticles];
+					--j;
+				}
+			}
+			particles[i].location = new MapLocation((int) (x / total),
+					(int) (y / total));
+			particles[i].charge = totalCharge / total / (maxEndTurn - curTurn);
+			particles[i].expiryTurn = maxEndTurn;
 		}
 	}
 
