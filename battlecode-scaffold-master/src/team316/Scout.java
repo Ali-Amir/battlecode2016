@@ -17,6 +17,8 @@ import team316.utils.Turn;
 
 public class Scout implements Player {
 
+	private static final int BROADCAST_RADIUS = 80 * 80 * 2;
+
 	private final PotentialField field;
 	private final MotionController mc;
 	private final EnemyLocationModel elm;
@@ -69,12 +71,21 @@ public class Scout implements Player {
 				roamAround(rc);
 				break;
 			case NEED_TO_BROADCAST :
-				// publish_data(); TODO
+				publishData(rc);
+				roamAround(rc);
 				break;
 
 			default :
 				assert (0 == 1) : "One state case was missed!";
 		}
+	}
+
+	public void publishData(RobotController rc) throws GameActionException {
+		int messageA = elm.notificationsPending.poll();
+		int messageB = elm.notificationsPending.isEmpty()
+				? 0
+				: elm.notificationsPending.poll();
+		rc.broadcastMessageSignal(messageA, messageB, BROADCAST_RADIUS);
 	}
 
 	public void roamAround(RobotController rc) throws GameActionException {
@@ -106,7 +117,7 @@ public class Scout implements Player {
 		for (RobotInfo r : robotsWhoCanAttackMe) {
 			field.addParticle(new ChargedParticle(-1.0, r.location, 1));
 		}
-		
+
 		if (rc.isCoreReady()) {
 			mc.tryToMove(rc);
 		}
@@ -114,25 +125,25 @@ public class Scout implements Player {
 
 	public ScoutState assessSituation(RobotController rc) {
 		inspectEnemiesWithinSightRange();
-		
+
 		RobotInfo[] robotsWhoCanAttackMe = Battle.robotsWhoCanAttackLocation(
 				rc.getLocation(), rcWrapper.enemyTeamRobotsNearby());
 		if (robotsWhoCanAttackMe.length > 0) {
 			return ScoutState.RUNAWAY;
 		} else {
-			// if (elm.notificationsPending.length > 0) {
-			// return ScoutState.NEED_TO_BROADCAST;
-			// } else {
-			return ScoutState.ROAM_AROUND;
-			// }
+			if (elm.notificationsPending.size() > 0) {
+				return ScoutState.NEED_TO_BROADCAST;
+			} else {
+				return ScoutState.ROAM_AROUND;
+			}
 		}
 	}
-	
+
 	public void inspectEnemiesWithinSightRange() {
 		RobotInfo[] robotsISee = rcWrapper.hostileRobotsNearby();
 		for (RobotInfo r : robotsISee) {
 			if (r.type.equals(RobotType.ZOMBIEDEN)) {
-				elm.addZombieDen(r);
+				elm.addZombieDenLocation(r);
 			}
 		}
 	}

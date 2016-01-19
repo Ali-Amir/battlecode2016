@@ -12,7 +12,7 @@ import team316.utils.EncodedMessage;
 public class EnemyLocationModel {
 
 	final Set<MapLocation> knownZombieDens;
-	final Queue<Integer> notificationsPending;
+	public final Queue<Integer> notificationsPending;
 
 	public EnemyLocationModel() {
 		knownZombieDens = new HashSet<>();
