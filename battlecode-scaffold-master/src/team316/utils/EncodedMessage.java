@@ -6,7 +6,27 @@ public class EncodedMessage {
 
 	// Please, append new types to the end.
 	public enum MessageType {
-		EMPTY_MESSAGE, ZOMBIE_DEN_LOCATION
+		EMPTY_MESSAGE, ZOMBIE_DEN_LOCATION, ENEMY_ARCHON_LOCATION, NEUTRAL_ARCHON_LOCATION, MESSAGE_HELLO_ARCHON, MESSAGE_WELCOME_ACTIVATED_ARCHON,
+		MESSAGE_HELP_ARCHON
+	}
+	/**
+	 * Gets message type.
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public static MessageType getMessageType(int message) {
+		return MessageType.values()[(message & 15)];
+	}
+	/**
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public static MapLocation getMessageLocation(int message) {
+		final int twentyones = (1 << 20) - 1;
+		final int location20bits = (message >> 4) & twentyones;
+		return decodeLocation20bits(location20bits);
 	}
 
 	/**
@@ -19,10 +39,19 @@ public class EncodedMessage {
 				+ (encodeLocation20bits(loc) << 4);
 	}
 
+	public static int makeMessage(MessageType messageType, MapLocation loc) {
+		return messageType.ordinal() + (encodeLocation20bits(loc) << 4);
+	}
+
 	public static int encodeLocation20bits(MapLocation loc) {
 		// To get x back do: (encoding >> 10).
 		// To get y back do: (encoding & 1023).
 		int encoding = (loc.x << 10) + loc.y;
 		return encoding;
 	}
+
+	public static MapLocation decodeLocation20bits(int encoding) {
+		return new MapLocation(encoding >> 10, encoding & 1023);
+	}
+
 }

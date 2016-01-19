@@ -15,6 +15,8 @@ import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
+import team316.utils.EncodedMessage;
+import team316.utils.EncodedMessage.MessageType;
 import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
@@ -103,7 +105,23 @@ public class Soldier implements Player {
 		}
 		return bestTarget;
 	}
-
+	public boolean processMessage(int message, RobotController rc){
+		switch(EncodedMessage.getMessageType(message)){
+			case EMPTY_MESSAGE:
+				return false;
+			case ZOMBIE_DEN_LOCATION:
+				MapLocation denLocation = EncodedMessage.getMessageLocation(message);
+				//field.addParticle(new ChargedParticle(100,particleLocation, 10);
+				field.addParticle(ParticleType.DEN, denLocation, 30);
+				rc.setIndicatorString(2, "It's at:" + denLocation);
+			case MESSAGE_HELP_ARCHON:
+				MapLocation archonLocation = EncodedMessage.getMessageLocation(message);
+				field.addParticle(ParticleType.FIGHTING_ALLY,
+						archonLocation, 5);
+			default :
+				return false;
+		}
+	}
 	public void receiveIncomingSignals(RobotController rc)
 			throws GameActionException {
 		// Do message signaling stuff.
@@ -121,7 +139,7 @@ public class Soldier implements Player {
 		for (Signal signal : signals) {
 			// If ally. Then ally is reporting enemies.
 			if (signal.getMessage() == null
-					&& signal.getTeam().equals(rc.getTeam())
+					&& signal.getTeam().equals(rcWrapper.myTeam)
 					&& lastBroadcastTurn + MESSAGE_DELAY_TURNS < Turn
 							.currentTurn()
 					&& rcWrapper.attackableHostileRobots().length == 0) {
@@ -129,10 +147,12 @@ public class Soldier implements Player {
 						signal.getLocation(), 2);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
-			} else if (signal.getTeam().equals(rc.getTeam())
+			} else if (signal.getTeam().equals(rcWrapper.myTeam)
 					&& signal.getMessage() != null) {
-				field.addParticle(ParticleType.FIGHTING_ALLY,
-						signal.getLocation(), 5);
+				if(!processMessage(signal.getMessage()[0],rc) && !processMessage(signal.getMessage()[1],rc)){
+					field.addParticle(ParticleType.FIGHTING_ALLY,
+							signal.getLocation(), 5);					
+				}
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);
 				// lastReceived = Turn.currentTurn();
 			}
@@ -176,7 +196,7 @@ public class Soldier implements Player {
 		// check to see if we are in the way of friends
 		// we are obstructing them
 		if (rc.isCoreReady()) {
-			RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rc.getTeam());
+			RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rcWrapper.myTeam);
 			Battle.addUniqueAllyParticles(nearbyFriends, field, 2);
 			if (field.particles().size() == 0 || nearbyFriends.length > 2) {
 				mc.tryToMoveRandom(rc);

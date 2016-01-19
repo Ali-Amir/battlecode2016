@@ -145,6 +145,7 @@ public class PotentialField {
 			particles[numParticles] = config.particle(type, location, lifetime);
 			++numParticles;
 		} else {
+			removeIDWaitlist.add(id);
 			queuedParticles.put(id,
 					config.particle(id, type, location, lifetime));
 		}

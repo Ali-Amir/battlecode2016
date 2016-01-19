@@ -28,6 +28,7 @@ public class RCWrapper {
 	private Map<Direction, Integer> maxCoordinate = new HashMap<>();
 	private Integer senseRadius = null;
 	public RobotInfo archonNearby = null;
+	public final Team myTeam;
 	public final Team enemyTeam;
 	private double previousHealth;
 	private double currentHealth;
@@ -44,8 +45,10 @@ public class RCWrapper {
 	public RCWrapper(RobotController rc) {
 		this.rc = rc;
 		if (rc.getTeam().equals(Team.A)) {
+			myTeam = Team.A;
 			enemyTeam = Team.B;
 		} else {
+			myTeam = Team.B;
 			enemyTeam = Team.A;
 		}
 		this.currentHealth = rc.getHealth();

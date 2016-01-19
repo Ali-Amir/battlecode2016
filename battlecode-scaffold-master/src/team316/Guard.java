@@ -31,16 +31,16 @@ public class Guard implements Player {
 		this.archonLoc = archonLoc;
 		this.field = field;
 		this.mc = mc;
-		this.elm = new EnemyLocationModel(archonLoc);
+		this.elm = new EnemyLocationModel();
 	}
 
 	@Override
 	public void play(RobotController rc) throws GameActionException {
-		field.addParticle(elm.predictEnemyBase(rc));
+		//field.addParticle(elm.predictEnemyBase(rc));
 
 		// Do message signaling stuff.
-		rc.setIndicatorString(0, "Current enemy base prediction: "
-				+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
+		//rc.setIndicatorString(0, "Current enemy base prediction: "
+		//		+ elm.predictEnemyBase(rc) + " turn: " + Turn.currentTurn());
 		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS
 				&& lastReceived > MESSAGE_DELAY_TURNS + lastBroadcastTurn) {
 			rc.broadcastSignal(BROADCAST_RADIUSSQR);
@@ -95,7 +95,7 @@ public class Guard implements Player {
 						if (!oneEnemy.team.equals(rc.getTeam())
 								&& !oneEnemy.team.equals(Team.NEUTRAL)
 								&& !oneEnemy.team.equals(Team.ZOMBIE)) {
-							elm.enemyAtLocation(oneEnemy.location, rc);
+							//elm.enemyAtLocation(oneEnemy.location, rc);
 						}
 						break;
 					}

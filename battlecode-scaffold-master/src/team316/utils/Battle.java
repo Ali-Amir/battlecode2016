@@ -86,22 +86,17 @@ public class Battle {
 			switch (s.type) {
 				case SOLDIER :
 					break;
-					/*
-					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
-						break;
-					}
-					added = true;
-					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
-					break;*/
+				/*
+				 * if (!RobotPlayer.rcWrapper.isUnderAttack()) { break; } added
+				 * = true; field.addParticle( new ChargedParticle(-100.0,
+				 * s.location, lifetime)); break;
+				 */
 				case RANGEDZOMBIE :
 					/*
-					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
-						break;
-					}
-					added = true;
-					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));*/
+					 * if (!RobotPlayer.rcWrapper.isUnderAttack()) { break; }
+					 * added = true; field.addParticle( new
+					 * ChargedParticle(-100.0, s.location, lifetime));
+					 */
 					break;
 				case ARCHON :
 					break;
@@ -159,16 +154,16 @@ public class Battle {
 						break;
 					}
 					added = true;
-					field.addParticle(
-							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					field.addParticle(new ChargedParticle(s.ID, -100.0,
+							s.location, lifetime));
 					break;
 				case RANGEDZOMBIE :
 					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
 						break;
 					}
 					added = true;
-					field.addParticle(
-							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					field.addParticle(new ChargedParticle(s.ID, -100.0,
+							s.location, lifetime));
 					break;
 				case ARCHON :
 					break;
@@ -184,8 +179,8 @@ public class Battle {
 						break;
 					}
 					added = true;
-					field.addParticle(
-							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					field.addParticle(new ChargedParticle(s.ID, -100.0,
+							s.location, lifetime));
 					break;
 				case BIGZOMBIE :
 					if (s.location.distanceSquaredTo(
@@ -193,8 +188,8 @@ public class Battle {
 						break;
 					}
 					added = true;
-					field.addParticle(
-							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					field.addParticle(new ChargedParticle(s.ID, -100.0,
+							s.location, lifetime));
 					break;
 				case STANDARDZOMBIE :
 					if (s.location.distanceSquaredTo(
@@ -202,13 +197,13 @@ public class Battle {
 						break;
 					}
 					added = true;
-					field.addParticle(
-							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					field.addParticle(new ChargedParticle(s.ID, -100.0,
+							s.location, lifetime));
 					break;
 				default :
 					added = true;
-					field.addParticle(
-							new ChargedParticle(s.ID, -100.0, s.location, lifetime));
+					field.addParticle(new ChargedParticle(s.ID, -100.0,
+							s.location, lifetime));
 			}
 		}
 		return added;
@@ -351,7 +346,7 @@ public class Battle {
 
 	public static void lookForNeutrals(RobotController rc, PotentialField field)
 			throws GameActionException {
-		return;		
+		return;
 		// // Do sensing.
 		// RobotInfo[] neutralArray = rc.senseNearbyRobots(
 		// rc.getType().attackRadiusSquared, Team.NEUTRAL);
@@ -367,59 +362,56 @@ public class Battle {
 		// }
 		// }
 	}
-	public static void addUniqueBorderParticles(RCWrapper rcWrapper, PotentialField field) throws GameActionException{
-		Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+	public static void addUniqueBorderParticles(RCWrapper rcWrapper,
+			PotentialField field) throws GameActionException {
+		Direction[] directions = {Direction.NORTH, Direction.SOUTH,
+				Direction.EAST, Direction.WEST};
 		final int fromDistance = 2;
-		for(Direction direction: directions){
+		final int width = 3;
+		int x = rcWrapper.getCurrentLocation().x;
+		int y = rcWrapper.getCurrentLocation().y;
+		for (Direction direction : directions) {
 			Integer c = rcWrapper.getMaxCoordinate(direction);
-			if(c == null){
+			if (c == null) {
 				continue;
 			}
-			//System.out.println("Direction" + direction + ", c = " + c);
-			int x = rcWrapper.getCurrentLocation().x;			
-			int y = rcWrapper.getCurrentLocation().y;
+			// System.out.println("Direction" + direction + ", c = " + c);
 			MapLocation location;
-			int charge = -1000;
-			if(direction.equals(Direction.NORTH) || direction.equals(Direction.SOUTH)){
-				if(c - y <= fromDistance && y - c <= fromDistance){
-					location = new MapLocation(x, c);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					/*
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.EAST, 1);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.EAST, 2);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.WEST, 1);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.WEST, 2);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));					
-					*/
-				}
-			}else{
-				if(c - x <= fromDistance && x -c <= fromDistance){
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					/*
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.NORTH, 1);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.NORTH, 2);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.SOUTH, 1);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.SOUTH, 2);
-					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-					*/
-				}
+			int charge = -1000, id;
+			// number of charges we add; must be odd.
+			boolean bordersAreClose = false;
+			if (direction.equals(Direction.NORTH)
+					|| direction.equals(Direction.SOUTH)) {
+				bordersAreClose = (c - y <= fromDistance)
+						&& (y - c <= fromDistance);
+			} else {
+				bordersAreClose = (c - x <= fromDistance)
+						&& (x - c <= fromDistance);
 			}
-			
+			if(!bordersAreClose){
+				return;
+			}
+			for (int i = -width / 2; i <= width / 2; i++) {
+				if (direction.equals(Direction.NORTH)
+						|| direction.equals(Direction.SOUTH)) {
+					location = new MapLocation(x + i, c);
+				} else {
+					location = new MapLocation(c, y + i);
+				}
+				id = Encoding.encodeBorderID(location);
+				field.addParticle(new ChargedParticle(id, charge, location, 1));
+			}
+
 		}
-		
+
 	}
-	
-	public static RobotInfo[] robotsWhoCanAttackLocation(MapLocation loc, RobotInfo[] robots) {
+
+	public static RobotInfo[] robotsWhoCanAttackLocation(MapLocation loc,
+			RobotInfo[] robots) {
 		int count = 0;
 		for (RobotInfo r : robots) {
-			if (r.location.distanceSquaredTo(loc) <= r.type.attackRadiusSquared) {
+			if (r.location
+					.distanceSquaredTo(loc) <= r.type.attackRadiusSquared) {
 				++count;
 			}
 		}
@@ -427,7 +419,8 @@ public class Battle {
 		RobotInfo[] attackers = new RobotInfo[count];
 		int index = 0;
 		for (RobotInfo r : robots) {
-			if (r.location.distanceSquaredTo(loc) <= r.type.attackRadiusSquared) {
+			if (r.location
+					.distanceSquaredTo(loc) <= r.type.attackRadiusSquared) {
 				attackers[index++] = r;
 			}
 		}

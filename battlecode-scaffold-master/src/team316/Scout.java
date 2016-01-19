@@ -7,11 +7,15 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import battlecode.common.Team;
+import javafx.scene.shape.ArcType;
 import team316.navigation.ChargedParticle;
 import team316.navigation.EnemyLocationModel;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
+import team316.utils.EncodedMessage;
+import team316.utils.EncodedMessage.MessageType;
 import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
@@ -138,7 +142,7 @@ public class Scout implements Player {
 			}
 		}
 	}
-
+	
 	public void inspectEnemiesWithinSightRange() {
 		RobotInfo[] robotsISee = rcWrapper.hostileRobotsNearby();
 		for (RobotInfo r : robotsISee) {
@@ -147,5 +151,13 @@ public class Scout implements Player {
 			}
 		}
 	}
-
+	public void inspectNeutralRobotswithinSightRange(RobotController rc){
+		RobotInfo[] neutralIsee = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
+		for (RobotInfo r : neutralIsee) {
+			if (r.type.equals(RobotType.ARCHON)) {
+				EncodedMessage.makeMessage(MessageType.NEUTRAL_ARCHON_LOCATION, r.location);
+			}
+		}
+		
+	}
 }
