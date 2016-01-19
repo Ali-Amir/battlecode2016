@@ -6,6 +6,7 @@ import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
 import team316.navigation.ChargedParticle;
 import team316.navigation.EnemyLocationModel;
 import team316.navigation.PotentialField;
@@ -112,6 +113,8 @@ public class Scout implements Player {
 	}
 
 	public ScoutState assessSituation(RobotController rc) {
+		inspectEnemiesWithinSightRange();
+		
 		RobotInfo[] robotsWhoCanAttackMe = Battle.robotsWhoCanAttackLocation(
 				rc.getLocation(), rcWrapper.enemyTeamRobotsNearby());
 		if (robotsWhoCanAttackMe.length > 0) {
@@ -122,6 +125,15 @@ public class Scout implements Player {
 			// } else {
 			return ScoutState.ROAM_AROUND;
 			// }
+		}
+	}
+	
+	public void inspectEnemiesWithinSightRange() {
+		RobotInfo[] robotsISee = rcWrapper.hostileRobotsNearby();
+		for (RobotInfo r : robotsISee) {
+			if (r.type.equals(RobotType.ZOMBIEDEN)) {
+				elm.addZombieDen(r);
+			}
 		}
 	}
 
