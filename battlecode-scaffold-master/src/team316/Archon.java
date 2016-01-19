@@ -447,7 +447,7 @@ public class Archon implements Player {
 			consideredPartsBeforeFrom.add(myCurrentLocation);
 		}
 		if(inDanger){
-			//Battle.addUniqueBorderParticles(rcWrapper, field);
+			Battle.addUniqueBorderParticles(rcWrapper, field);
 		}
 
 	}
