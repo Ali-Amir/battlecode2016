@@ -366,35 +366,47 @@ public class Battle {
 	}
 	public static void addUniqueBorderParticles(RCWrapper rcWrapper, PotentialField field) throws GameActionException{
 		Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+		final int fromDistance = 2;
 		for(Direction direction: directions){
 			Integer c = rcWrapper.getMaxCoordinate(direction);
 			if(c == null){
 				continue;
 			}
+			//System.out.println("Direction" + direction + ", c = " + c);
+			int x = rcWrapper.getCurrentLocation().x;			
+			int y = rcWrapper.getCurrentLocation().y;
 			MapLocation location;
 			int charge = -1000;
 			if(direction.equals(Direction.NORTH) || direction.equals(Direction.SOUTH)){
-				location = new MapLocation(rcWrapper.getCurrentLocation().x, c);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.EAST, 1);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.EAST, 2);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.WEST, 1);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.WEST, 2);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				if(c - y <= fromDistance && y - c <= fromDistance){
+					location = new MapLocation(x, c);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					/*
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.EAST, 1);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.EAST, 2);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.WEST, 1);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.WEST, 2);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));					
+					*/
+				}
 			}else{
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.NORTH, 1);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.NORTH, 2);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.SOUTH, 1);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
-				location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.SOUTH, 2);
-				field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+				if(c - x <= fromDistance && x -c <= fromDistance){
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					/*
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.NORTH, 1);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.NORTH, 2);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.SOUTH, 1);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					location = new MapLocation(c, rcWrapper.getCurrentLocation().y).add(Direction.SOUTH, 2);
+					field.addParticle(new ChargedParticle(Encoding.encodeBorderID(location), charge, location, 1));
+					*/
+				}
 			}
 			
 		}
