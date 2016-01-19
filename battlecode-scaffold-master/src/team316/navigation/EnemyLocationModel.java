@@ -7,6 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
+import team316.utils.EncodedMessage;
 
 public class EnemyLocationModel {
 
@@ -21,7 +22,8 @@ public class EnemyLocationModel {
 	public void addZombieDenLocation(RobotInfo r) {
 		if (!knownZombieDens.contains(r.location)) {
 			knownZombieDens.add(r.location);
-			notificationsPending.append(EncodedMessage.zombieDenLocation(r.location));
+			notificationsPending
+					.add(EncodedMessage.zombieDenLocation(r.location));
 		}
 	}
 

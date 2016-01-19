@@ -20,9 +20,9 @@ public class EncodedMessage {
 	}
 
 	public static int encodeLocation20bits(MapLocation loc) {
-		int encoding = (loc.x << 10) + loc.y;
 		// To get x back do: (encoding >> 10).
 		// To get y back do: (encoding & 1023).
+		int encoding = (loc.x << 10) + loc.y;
 		return encoding;
 	}
 }
