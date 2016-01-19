@@ -120,9 +120,9 @@ public class SoldierPF implements Player {
 		for (Signal signal : signals) {
 			// If ally. Then ally is reporting enemies.
 			if (signal.getMessage() == null
-					|| signal.getTeam().equals(rc.getTeam())
-							&& lastBroadcastTurn + MESSAGE_DELAY_TURNS < Turn
-									.currentTurn()) {
+					&& signal.getTeam().equals(rc.getTeam())
+					&& lastBroadcastTurn + MESSAGE_DELAY_TURNS < Turn
+							.currentTurn()) {
 				field.addParticle(ParticleType.FIGHTING_ALLY,
 						signal.getLocation(), 3);
 				// elm.enemyAlertFromLocation(signal.getLocation(), rc);

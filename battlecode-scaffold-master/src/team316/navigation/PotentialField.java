@@ -25,6 +25,7 @@ import team316.utils.Vector;
 
 public class PotentialField {
 	private final static int PARTICLE_LIMIT = 200;
+	private final static double SQRT2 = Math.sqrt(2.0);
 	// Configuration object that gives correct charged particles for each
 	// observation.
 	private final RobotPotentialConfigurator config;
@@ -184,18 +185,25 @@ public class PotentialField {
 		final int[] dx = {0, 1, 1, 1, 0, -1, -1, -1};
 		final int[] dy = {-1, -1, 0, 1, 1, 1, 0, -1};
 		
-		PairIntDouble[] p = new PairIntDouble[8];
-		for (int i = 0; i < p.length; ++i) {
-			p[i] = new PairIntDouble(i,
-					-(dx[i] * totalForce.x() + dy[i] * totalForce.y())
-							/ Math.sqrt(dx[i] * dx[i] + dy[i] * dy[i]));
+		double strongestAttraction = -(1e9);
+		int strongestDir = -1;
+		for (int i = 0; i < directions.length; ++i) {
+			double currentAttraction = (dx[i] * totalForce.x() + dy[i] * totalForce.y());
+			if (i % 2 == 1) {
+				currentAttraction /= SQRT2;
+			}
+			
+			if (currentAttraction > strongestAttraction) {
+				strongestAttraction = currentAttraction;
+				strongestDir = i;
+			}
 		}
-		FastArrays.shuffle(p);
-		FastArrays.quickSort(p);
-
-		int[] sortedDirections = new int[p.length];
-		for (int i = 0; i < p.length; ++i) {
-			sortedDirections[i] = directions[p[i].x];
+		
+		int[] sortedDirections = new int[directions.length];
+		sortedDirections[0] = directions[strongestDir];
+		for (int dir = RobotPlayer.rnd.nextBoolean() == true ? 1 : -1, i = 1; i < 8; ++i, dir = -dir) {
+			int curDir = (strongestDir + ((i+1)/2)*dir + 8) % 8;
+			sortedDirections[i] = directions[curDir];
 		}
 		return sortedDirections;
 	}
