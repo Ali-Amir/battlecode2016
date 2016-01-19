@@ -67,7 +67,7 @@ public class RobotPlayer {
 				case SOLDIER :
 					field = PotentialField.soldier();
 					mc = new MotionController(field);
-					player = new SoldierPF(archonLoc, field, mc, rcIn);
+					player = new Soldier(archonLoc, field, mc, rcIn);
 					break;
 				case SCOUT :
 					field = PotentialField.scout();

@@ -180,7 +180,7 @@ public class PotentialField {
 			totalForce = new Vector(
 					totalForce.x() + newForce.x() + randomXAdjustment,
 					totalForce.y() + newForce.y() + randomYAdjustment);
-		}
+		} 
 
 		final int[] directions = new int[]{Direction.NORTH.ordinal(),
 				Direction.NORTH_EAST.ordinal(), Direction.EAST.ordinal(),
