@@ -86,6 +86,9 @@ public class Archon implements Player {
 			if (toBuild == null) {
 				toBuild = (new Probability<RobotType>())
 						.getRandomSample(buildDistribution);
+				if(toBuild == null){
+					return false;
+				}
 			}
 			if (rc.hasBuildRequirements(toBuild)) {
 				Direction proposedBuildDirection;
@@ -202,7 +205,7 @@ public class Archon implements Player {
 	}
 
 	public void figureOutDistribution() {
-		if (Turn.currentTurn() == 0) {
+		if (Turn.currentTurn() == 1) {
 			buildDistribution.clear();
 			// buildDistribution.put(RobotType.GUARD, 5.0);
 			buildDistribution.put(RobotType.SOLDIER, 100.0);
