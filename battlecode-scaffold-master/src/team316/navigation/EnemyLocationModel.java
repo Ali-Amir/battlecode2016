@@ -14,12 +14,12 @@ import team316.utils.EncodedMessage.MessageType;
 public class EnemyLocationModel {
 
 	final Set<MapLocation> knownZombieDens;
-	final Set<MapLocation> knownNeutralArchons;
+	final Set<MapLocation> knownNeutrals;
 	public Queue<Integer> notificationsPending;
 
 	public EnemyLocationModel() {
 		knownZombieDens = new HashSet<>();
-		knownNeutralArchons = new HashSet<>();
+		knownNeutrals = new HashSet<>();
 		notificationsPending = new LinkedList<>();// new
 													// LinkedBlockingQueue<Integer>();
 	}
@@ -32,10 +32,17 @@ public class EnemyLocationModel {
 		}
 	}
 	public void addNeutralArchon(MapLocation loc) {
-		if (!knownNeutralArchons.contains(loc)) {
-			knownNeutralArchons.add(loc);
+		if (!knownNeutrals.contains(loc)) {
+			knownNeutrals.add(loc);
 			notificationsPending.add(EncodedMessage
 					.makeMessage(MessageType.NEUTRAL_ARCHON_LOCATION, loc));
+		}
+	}
+	public void addNeutralNonArchon(MapLocation loc) {
+		if (!knownNeutrals.contains(loc)) {
+			knownNeutrals.add(loc);
+			notificationsPending.add(EncodedMessage
+					.makeMessage(MessageType.NEUTRAL_NON_ARCHON_LOCATION, loc));
 		}
 	}
 

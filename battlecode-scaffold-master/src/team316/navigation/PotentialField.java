@@ -32,12 +32,12 @@ public class PotentialField {
 	private final ChargedParticle[] particles;
 	public int numParticles;
 	// List of IDs currently in particles.
-	private final Set<Integer> currentIDs = new HashSet<>();
+	//private final Set<Integer> currentIDs = new HashSet<>();
 	// List of IDs to be removed in the next time directionsByAttraction is
 	// called.
-	private final Set<Integer> removeIDWaitlist = new HashSet<>();
+	//private final Set<Integer> removeIDWaitlist = new HashSet<>();
 
-	private final Map<Integer, ChargedParticle> queuedParticles = new HashMap<>();
+	//private final Map<Integer, ChargedParticle> queuedParticles = new HashMap<>();
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
 
@@ -137,6 +137,8 @@ public class PotentialField {
 	 */
 	public void addParticle(int id, ParticleType type, MapLocation location,
 			int lifetime) {
+		addParticle(type, location, lifetime);
+		/*
 		if (!currentIDs.contains(id)) {
 			if (numParticles + 1 == PARTICLE_LIMIT) {
 				compressParticles();
@@ -149,15 +151,17 @@ public class PotentialField {
 			queuedParticles.put(id,
 					config.particle(id, type, location, lifetime));
 		}
+		*/
 	}
-
+	/*
 	public void removeParticleByID(int id) {
 		if (currentIDs.contains(id)) {
 			removeIDWaitlist.add(id);
 			queuedParticles.remove(id);
 		}
 	}
-
+	 */
+	
 	/**
 	 * @return Directions with most attraction.
 	 */

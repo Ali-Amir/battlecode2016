@@ -129,7 +129,7 @@ public class Scout implements Player {
 
 	public ScoutState assessSituation(RobotController rc) {
 		inspectEnemiesWithinSightRange();
-
+		//inspectNeutralRobotswithinSightRange(rc);
 		RobotInfo[] robotsWhoCanAttackMe = Battle.robotsWhoCanAttackLocation(
 				rc.getLocation(), rcWrapper.enemyTeamRobotsNearby());
 		if (robotsWhoCanAttackMe.length > 0) {
@@ -155,7 +155,10 @@ public class Scout implements Player {
 		RobotInfo[] neutralIsee = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
 		for (RobotInfo r : neutralIsee) {
 			if (r.type.equals(RobotType.ARCHON)) {
-				EncodedMessage.makeMessage(MessageType.NEUTRAL_ARCHON_LOCATION, r.location);
+				elm.addNeutralArchon(r.location);
+			} else{
+				//elm.addNeutralArchon(r.location);
+				elm.addNeutralNonArchon(r.location);
 			}
 		}
 		

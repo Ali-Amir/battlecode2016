@@ -57,7 +57,7 @@ public abstract class RobotPotentialConfigurator {
 			result = new ChargedParticle(denCharge(), location, lifetime);
 			break;
 		case ARCHON_ATTACKED:
-			result = new ChargedParticle(6, location, lifetime);
+			result = new ChargedParticle(10, location, lifetime);
 			break;
 		case PARTS:
 			result = new ChargedParticle(1, location, lifetime);

@@ -55,6 +55,7 @@ public class ChargedParticle {
 	 */
 	public ChargedParticle(int id, double charge, MapLocation location,
 			int lifetime) {
+		
 		this.id = id;
 		this.charge = charge;
 		this.location = location;

@@ -116,8 +116,16 @@ public class Soldier implements Player {
 				rc.setIndicatorString(2, "It's at:" + denLocation);
 			case MESSAGE_HELP_ARCHON:
 				MapLocation archonLocation = EncodedMessage.getMessageLocation(message);
-				field.addParticle(ParticleType.FIGHTING_ALLY,
+				field.addParticle(ParticleType.ARCHON_ATTACKED,
 						archonLocation, 5);
+			case NEUTRAL_ARCHON_LOCATION:
+				MapLocation neutralArchonLocation = EncodedMessage.getMessageLocation(message);
+				field.addParticle(new ChargedParticle(50,
+						neutralArchonLocation, 500) );
+			case NEUTRAL_NON_ARCHON_LOCATION:
+				MapLocation neutralNonArchonLocation = EncodedMessage.getMessageLocation(message);
+				field.addParticle(new ChargedParticle(1,
+						neutralNonArchonLocation, 500));
 			default :
 				return false;
 		}
