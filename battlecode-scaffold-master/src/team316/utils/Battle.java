@@ -45,40 +45,6 @@ public class Battle {
 		}
 	}
 
-	public static void addUniqueAllyParticles(RobotInfo[] allyArray,
-			PotentialField field, int lifetime) {
-		for (RobotInfo e : allyArray) {
-			switch (e.type) {
-				case ARCHON :
-					field.addParticle(e.ID, ParticleType.ALLY_ARCHON,
-							e.location, lifetime);
-					break;
-				case TTM :
-					field.addParticle(e.ID, ParticleType.ALLY_TURRET,
-							e.location, lifetime);
-					break;
-				case TURRET :
-					field.addParticle(e.ID, ParticleType.ALLY_TURRET,
-							e.location, lifetime);
-					break;
-				case GUARD :
-					field.addParticle(e.ID, ParticleType.ALLY_DEFAULT,
-							e.location, lifetime);
-					break;
-				case SCOUT :
-					break;
-				case SOLDIER :
-					break;
-				case VIPER :
-					// field.addParticle(ParticleType.ALLY_DEFAULT, e.location,
-					// lifetime);
-					break;
-				default :
-					throw new RuntimeException("Unknown type!");
-			}
-		}
-	}
-
 	public static boolean addScaryParticles(RobotInfo[] scaryArray,
 			PotentialField field, int lifetime) {
 		boolean added = false;
@@ -144,71 +110,6 @@ public class Battle {
 		return added;
 	}
 
-	public static boolean addUniqueScaryParticles(List<RobotInfo> scaryArray,
-			PotentialField field, int lifetime) {
-		boolean added = false;
-		for (RobotInfo s : scaryArray) {
-			switch (s.type) {
-				case SOLDIER :
-					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
-						break;
-					}
-					added = true;
-					field.addParticle(new ChargedParticle(s.ID, -100.0,
-							s.location, lifetime));
-					break;
-				case RANGEDZOMBIE :
-					if (!RobotPlayer.rcWrapper.isUnderAttack()) {
-						break;
-					}
-					added = true;
-					field.addParticle(new ChargedParticle(s.ID, -100.0,
-							s.location, lifetime));
-					break;
-				case ARCHON :
-					break;
-				case ZOMBIEDEN :
-					break;
-				case TURRET :
-					break;
-				case TTM :
-					break;
-				case GUARD :
-					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 6) {
-						break;
-					}
-					added = true;
-					field.addParticle(new ChargedParticle(s.ID, -100.0,
-							s.location, lifetime));
-					break;
-				case BIGZOMBIE :
-					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 6) {
-						break;
-					}
-					added = true;
-					field.addParticle(new ChargedParticle(s.ID, -100.0,
-							s.location, lifetime));
-					break;
-				case STANDARDZOMBIE :
-					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 6) {
-						break;
-					}
-					added = true;
-					field.addParticle(new ChargedParticle(s.ID, -100.0,
-							s.location, lifetime));
-					break;
-				default :
-					added = true;
-					field.addParticle(new ChargedParticle(s.ID, -100.0,
-							s.location, lifetime));
-			}
-		}
-		return added;
-	}
-
 	public static void addEnemyParticles(List<RobotInfo> enemyArray,
 			PotentialField field, int lifetime) {
 		for (RobotInfo e : enemyArray) {
@@ -220,74 +121,6 @@ public class Battle {
 			PotentialField field, int lifetime) {
 		for (RobotInfo e : enemyArray) {
 			addEnemyParticle(e, field, lifetime);
-		}
-	}
-
-	public static void addUniqueEnemyParticles(List<RobotInfo> enemyArray,
-			PotentialField field, int lifetime) {
-		for (RobotInfo e : enemyArray) {
-			addUniqueEnemyParticle(e, field, lifetime);
-		}
-	}
-
-	public static void addUniqueEnemyParticles(RobotInfo[] enemyArray,
-			PotentialField field, int lifetime) {
-		for (RobotInfo e : enemyArray) {
-			addUniqueEnemyParticle(e, field, lifetime);
-		}
-	}
-	public static void addUniqueEnemyParticle(RobotInfo e, PotentialField field,
-			int lifetime) {
-		switch (e.type) {
-			case ARCHON :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_ARCHON,
-						e.location, lifetime);
-				break;
-			case GUARD :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_GUARD, e.location,
-						lifetime);
-				break;
-			case SCOUT :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_SCOUT, e.location,
-						lifetime);
-				break;
-			case TTM :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_TURRET,
-						e.location, lifetime);
-				break;
-			case TURRET :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_TURRET,
-						e.location, lifetime);
-				break;
-			case SOLDIER :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_SOLDIER,
-						e.location, lifetime);
-				break;
-			case VIPER :
-				field.addParticle(e.ID, ParticleType.OPPOSITE_VIPER, e.location,
-						lifetime);
-				break;
-			case BIGZOMBIE :
-				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location,
-						lifetime);
-				break;
-			case FASTZOMBIE :
-				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location,
-						lifetime);
-				break;
-			case RANGEDZOMBIE :
-				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location,
-						lifetime);
-				break;
-			case STANDARDZOMBIE :
-				field.addParticle(e.ID, ParticleType.ZOMBIE, e.location,
-						lifetime);
-				break;
-			case ZOMBIEDEN :
-				field.addParticle(e.ID, ParticleType.DEN, e.location, lifetime);
-				break;
-			default :
-				throw new RuntimeException("Unknown type!");
 		}
 	}
 
@@ -347,22 +180,9 @@ public class Battle {
 	public static void lookForNeutrals(RobotController rc, PotentialField field)
 			throws GameActionException {
 		return;
-		// // Do sensing.
-		// RobotInfo[] neutralArray = rc.senseNearbyRobots(
-		// rc.getType().attackRadiusSquared, Team.NEUTRAL);
-		// for (RobotInfo oneNeutral : neutralArray) {
-		// field.addParticle(new ChargedParticle(1.0, oneNeutral.location, 2));
-		// }
-		// for (RobotInfo oneNeutral : neutralArray) {
-		// if (!rc.isCoreReady()) {
-		// break;
-		// }
-		// if (rc.getLocation().distanceSquaredTo(oneNeutral.location) <= 2) {
-		// rc.activate(oneNeutral.location);
-		// }
-		// }
 	}
-	public static void addUniqueBorderParticles(RCWrapper rcWrapper,
+
+	public static void addBorderParticles(RCWrapper rcWrapper,
 			PotentialField field) throws GameActionException {
 		Direction[] directions = {Direction.NORTH, Direction.SOUTH,
 				Direction.EAST, Direction.WEST};
@@ -375,31 +195,30 @@ public class Battle {
 			if (c == null) {
 				continue;
 			}
-			// System.out.println("Direction" + direction + ", c = " + c);
 			MapLocation location;
 			int charge = -1000, id;
 			// number of charges we add; must be odd.
 			boolean bordersAreClose = false;
-			if (direction.equals(Direction.NORTH)
-					|| direction.equals(Direction.SOUTH)) {
+			boolean isVertical = (direction.equals(Direction.NORTH)
+					|| direction.equals(Direction.SOUTH));
+			if (isVertical) {
 				bordersAreClose = (c - y <= fromDistance)
 						&& (y - c <= fromDistance);
 			} else {
 				bordersAreClose = (c - x <= fromDistance)
 						&& (x - c <= fromDistance);
 			}
-			if(!bordersAreClose){
+			if (!bordersAreClose) {
 				return;
 			}
 			for (int i = -width / 2; i <= width / 2; i++) {
-				if (direction.equals(Direction.NORTH)
-						|| direction.equals(Direction.SOUTH)) {
+				if (isVertical) {
 					location = new MapLocation(x + i, c);
 				} else {
 					location = new MapLocation(c, y + i);
 				}
-				id = Encoding.encodeBorderID(location);
-				field.addParticle(new ChargedParticle(id, charge, location, 1));
+				location = location.add(direction);
+				field.addParticle(new ChargedParticle(charge, location, 1));
 			}
 
 		}

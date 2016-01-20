@@ -36,7 +36,6 @@ public class Archon implements Player {
 	private RobotType toBuild = null;
 	private boolean backupTurret = false;
 	private RobotInfo chosenTurret = null;
-	private int lastHealth = 1000;
 	private int healthyArchonCount = 0;
 	private final int ARCHON_UNHEALTHY_HP_THRESHOLD = 100;
 	private int leaderID;
@@ -85,9 +84,12 @@ public class Archon implements Player {
 				}
 			}
 			if (toBuild == null) {
+				if(Turn.currentTurn() > 100 && Turn.currentTurn() < 120){
+					toBuild = RobotType.SCOUT;
+				}
 				toBuild = (new Probability<RobotType>())
 						.getRandomSample(buildDistribution);
-				if(toBuild == null){
+				if (toBuild == null) {
 					return false;
 				}
 			}
@@ -105,9 +107,10 @@ public class Archon implements Player {
 
 				final double acceptProbability = 1.0
 						/ (healthyArchonCount - archonRank + 1);
-
-				rc.setIndicatorString(1,
-						"Trying to build with prob:" + acceptProbability);
+				// will equal to 1.0 if healthyArchonCount = 0 and archonRank =
+				// 0 (not assigned).
+				//rc.setIndicatorString(1,
+					//	"Trying to build with prob:" + acceptProbability);
 				if (buildDirection != null
 						&& rc.canBuild(buildDirection, toBuild)) {
 					buildAttempts++;
@@ -190,7 +193,9 @@ public class Archon implements Player {
 		if (isAttacked || canBeAttacked) {
 			inDanger = true;
 			if (helpMessageDelay == 0 && rc.getRobotCount() > 1) {
-				int message = EncodedMessage.makeMessage(MessageType.MESSAGE_HELP_ARCHON, rcWrapper.getCurrentLocation());
+				int message = EncodedMessage.makeMessage(
+						MessageType.MESSAGE_HELP_ARCHON,
+						rcWrapper.getCurrentLocation());
 				rc.broadcastMessageSignal(message, 0, 1000);
 				rc.setIndicatorString(1, "Seeking Help!");
 				helpMessageDelay = 15;
@@ -209,8 +214,8 @@ public class Archon implements Player {
 		if (Turn.currentTurn() == 1) {
 			buildDistribution.clear();
 			// buildDistribution.put(RobotType.GUARD, 5.0);
-			buildDistribution.put(RobotType.SOLDIER, 90.0);
 			buildDistribution.put(RobotType.SCOUT, 10.0);
+			buildDistribution.put(RobotType.SOLDIER, 90.0);
 		}
 	}
 
@@ -263,7 +268,8 @@ public class Archon implements Player {
 	private void figureOutRank(RobotController rc) throws GameActionException {
 		// Get all incoming archon signals who were initialized before me.
 		for (Signal s : IncomingSignals) {
-			if (s.getTeam().equals(rcWrapper.myTeam) && s.getMessage() != null) {
+			if (s.getTeam().equals(rcWrapper.myTeam)
+					&& s.getMessage() != null) {
 				if (s.getMessage()[0] == RobotPlayer.MESSAGE_HELLO_ARCHON) {
 					archonRank++;
 					if (archonRank == 1) {
@@ -275,7 +281,8 @@ public class Archon implements Player {
 		archonRank++;
 
 		// Find farthest archon from me and broadcast that I'm initialized.
-		MapLocation[] archonLocations = rc.getInitialArchonLocations(rcWrapper.myTeam);
+		MapLocation[] archonLocations = rc
+				.getInitialArchonLocations(rcWrapper.myTeam);
 		int furthestArchonDistance = 0;
 		for (MapLocation location : archonLocations) {
 			int distance = myCurrentLocation.distanceSquaredTo(location);
@@ -293,41 +300,50 @@ public class Archon implements Player {
 		}
 	}
 
-	private boolean processMessage(int message){
-		switch(EncodedMessage.getMessageType(message)){
-			case EMPTY_MESSAGE:
-				return false;
-			case ZOMBIE_DEN_LOCATION:
-				MapLocation denLocation = EncodedMessage.getMessageLocation(message);
-				//field.addParticle(new ChargedParticle(100,particleLocation, 10);
-				field.addParticle(ParticleType.DEN, denLocation, 100);
-			case MESSAGE_HELP_ARCHON:
-				MapLocation archonLocation = EncodedMessage.getMessageLocation(message);
-				field.addParticle(ParticleType.ARCHON_ATTACKED,
-						archonLocation, 5);
-			case NEUTRAL_ARCHON_LOCATION:
-				MapLocation neutralArchonLocation = EncodedMessage.getMessageLocation(message);
-				//field.addParticle(ChargedParticle(1000,
-				//		neutralArchonLocation, 500));
-			case NEUTRAL_NON_ARCHON_LOCATION:
-				MapLocation neutralNonArchonLocation = EncodedMessage.getMessageLocation(message);
-				//field.addParticle(ChargedParticle(9,
-				//		neutralNonArchonLocation, 500));
+	private boolean processMessage(int message) throws GameActionException {
+		MapLocation location = EncodedMessage.getMessageLocation(message);
+		boolean success = false;
+		switch (EncodedMessage.getMessageType(message)) {
+			case EMPTY_MESSAGE :
+				break;
+			case ZOMBIE_DEN_LOCATION :
+				field.addParticle(ParticleType.DEN, location, 100);
+				break;
+			case MESSAGE_HELP_ARCHON :
+				field.addParticle(ParticleType.ARCHON_ATTACKED, location, 5);
+				break;
+				
+			case NEUTRAL_ARCHON_LOCATION :
+				field.addParticle(new ChargedParticle(1000, location, 500));
+				break;
+				
+			case NEUTRAL_NON_ARCHON_LOCATION :
+				field.addParticle(new ChargedParticle(9, location, 100));
+				break;
+			case Y_BORDER:
+				int minCoordinateY = location.x;
+				int maxCoordinateY = location.y;
+				rcWrapper.setMaxCoordinate(Direction.NORTH, minCoordinateY);
+				rcWrapper.setMaxCoordinate(Direction.SOUTH, maxCoordinateY);
+				break;
+			case X_BORDER:
+				int minCoordinateX = location.x;
+				int maxCoordinateX = location.y;
+				rcWrapper.setMaxCoordinate(Direction.WEST, minCoordinateX);
+				rcWrapper.setMaxCoordinate(Direction.EAST, maxCoordinateX);
+				break;
 			default :
-				return false;
+				success = false;
+				break;
 		}
-	}
-	
-	private ChargedParticle ChargedParticle(int i, MapLocation archonLocation,
-			int j) {
-		// TODO Auto-generated method stub
-		return null;
+		return success;
 	}
 
 	private void checkInbox(RobotController rc) throws GameActionException {
 		for (Signal s : IncomingSignals) {
 			if (s.getTeam() == rcWrapper.myTeam && s.getMessage() != null) {
-				if(!processMessage(s.getMessage()[0]) && processMessage(s.getMessage()[1])){
+				if (!processMessage(s.getMessage()[0])
+						&& processMessage(s.getMessage()[1])) {
 					///
 					switch (s.getMessage()[0]) {
 						case RobotPlayer.MESSAGE_BYE_ARCHON :
@@ -335,8 +351,8 @@ public class Archon implements Player {
 								archonRank--;
 								if (archonRank == 1) {
 									rc.broadcastMessageSignal(
-											RobotPlayer.MESSAGE_DECLARE_LEADER, 0,
-											MAX_RADIUS);
+											RobotPlayer.MESSAGE_DECLARE_LEADER,
+											0, MAX_RADIUS);
 								}
 							}
 							healthyArchonCount--;
@@ -418,18 +434,19 @@ public class Archon implements Player {
 		rcWrapper.initOnNewTurn();
 		myCurrentLocation = rc.getLocation();
 		inDanger = false;
-		rc.setIndicatorString(2,
-				"Acceptance Rate: " + successfulBuilds + "/" + buildAttempts);
+		//rc.setIndicatorString(2,
+		//		"Acceptance Rate: " + successfulBuilds + "/" + buildAttempts);
 		IncomingSignals = rc.emptySignalQueue();
-		//field.removeParticleByID(
-		//		Encoding.encodeLocationID(this.myCurrentLocation));
+		// field.removeParticleByID(
+		// Encoding.encodeLocationID(this.myCurrentLocation));
 		if (helpMessageDelay > 0) {
 			helpMessageDelay--;
 		}
 
 		if (Turn.currentTurn() == 1) {
 			figureOutRank(rc);
-			healthyArchonCount = rc.getInitialArchonLocations(rcWrapper.myTeam).length;	
+			healthyArchonCount = rc
+					.getInitialArchonLocations(rcWrapper.myTeam).length;
 		}
 	}
 
@@ -440,20 +457,21 @@ public class Archon implements Player {
 		checkInbox(rc);
 
 		seekHelpIfNeeded(rc);
-		if(!inDanger){
-			broadcastLateMessages(rc);
-			figureOutDistribution();			
-		}
+		broadcastLateMessages(rc);
+		figureOutDistribution();
 
 		attemptActivateRobots(rc);
 		if (!inDanger) {
-			rc.setIndicatorString(1, "at least into attempBuild function.");
+			//rc.setIndicatorString(1, "at least into attempBuild function.");
 			attemptBuild(rc);
 		}
 		attemptRepairingWeakest(rc);
-
 		adjustBattle(rc);
-		attempMoving(rc);
+		
+		//If not necessary move with a probability.
+		if(inDanger || Probability.acceptWithProbability(.10)){
+			attempMoving(rc);
+		}
 	}
 
 	private void attempMoving(RobotController rc) throws GameActionException {
@@ -473,7 +491,7 @@ public class Archon implements Player {
 			MapLocation[] partsLocations = rc
 					.sensePartLocations(RobotType.ARCHON.sensorRadiusSquared);
 			for (MapLocation partsLocation : partsLocations) {
-				if (partsAdded.contains(partsLocations)) {
+				if (!partsAdded.contains(partsLocations)) {
 					double amount = rc.senseParts(partsLocation);
 					field.addParticle(new ChargedParticle(
 							Encoding.encodeLocationID(partsLocation),
@@ -483,8 +501,8 @@ public class Archon implements Player {
 			}
 			consideredPartsBeforeFrom.add(myCurrentLocation);
 		}
-		if(inDanger){
-			Battle.addUniqueBorderParticles(rcWrapper, field);	
+		if (inDanger) {
+			Battle.addBorderParticles(rcWrapper, field);
 		}
 
 	}

@@ -11,7 +11,7 @@ public class ArchonConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double oppositeGuardCharge() {
-		return -1.0;
+		return -10.0;
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class ArchonConfigurator extends RobotPotentialConfigurator {
 	
 	@Override
 	protected double allyDefaultCharge() {
-		return 30.0;
+		return 10.0;
 	}
 
 	@Override

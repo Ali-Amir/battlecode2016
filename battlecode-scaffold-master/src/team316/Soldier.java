@@ -3,6 +3,7 @@ package team316;
 import java.util.ArrayList;
 
 import battlecode.common.Clock;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -105,30 +106,45 @@ public class Soldier implements Player {
 		}
 		return bestTarget;
 	}
-	public boolean processMessage(int message, RobotController rc){
+	public boolean processMessage(int message, RobotController rc) throws GameActionException{
+		boolean success = true;
+		MapLocation location = EncodedMessage.getMessageLocation(message);
 		switch(EncodedMessage.getMessageType(message)){
 			case EMPTY_MESSAGE:
 				return false;
 			case ZOMBIE_DEN_LOCATION:
-				MapLocation denLocation = EncodedMessage.getMessageLocation(message);
-				//field.addParticle(new ChargedParticle(100,particleLocation, 10);
-				field.addParticle(ParticleType.DEN, denLocation, 30);
-				rc.setIndicatorString(2, "It's at:" + denLocation);
+				field.addParticle(ParticleType.DEN, location, 30);
+				//rc.setIndicatorString(2, "It's at:" + location);
+				break;
 			case MESSAGE_HELP_ARCHON:
-				MapLocation archonLocation = EncodedMessage.getMessageLocation(message);
 				field.addParticle(ParticleType.ARCHON_ATTACKED,
-						archonLocation, 5);
+						location, 5);
+				break;
 			case NEUTRAL_ARCHON_LOCATION:
-				MapLocation neutralArchonLocation = EncodedMessage.getMessageLocation(message);
 				field.addParticle(new ChargedParticle(50,
-						neutralArchonLocation, 500) );
+						location, 500) );
+				break;
 			case NEUTRAL_NON_ARCHON_LOCATION:
-				MapLocation neutralNonArchonLocation = EncodedMessage.getMessageLocation(message);
 				field.addParticle(new ChargedParticle(1,
-						neutralNonArchonLocation, 500));
+						location, 500));
+				break;
+			case Y_BORDER:
+				int minCoordinateY = location.x;
+				int maxCoordinateY = location.y;
+				rcWrapper.setMaxCoordinate(Direction.NORTH, minCoordinateY);
+				rcWrapper.setMaxCoordinate(Direction.SOUTH, maxCoordinateY);
+				break;
+			case X_BORDER:
+				int minCoordinateX = location.x;
+				int maxCoordinateX = location.y;
+				rcWrapper.setMaxCoordinate(Direction.WEST, minCoordinateX);
+				rcWrapper.setMaxCoordinate(Direction.EAST, maxCoordinateX);
+				break;
 			default :
-				return false;
+				success = false;
+				break;
 		}
+		return success;
 	}
 	public void receiveIncomingSignals(RobotController rc)
 			throws GameActionException {
@@ -174,14 +190,6 @@ public class Soldier implements Player {
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		// Attract towards closest enemy base location prediction.
 		// field.addParticle(elm.predictEnemyBase(rc));
-		if (Turn.currentTurn() == birthday) {
-			while (true) {
-				if (Turn.currentTurn() != birthday) {
-					break;
-				}
-			}
-		}
-
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
 	}
@@ -205,7 +213,7 @@ public class Soldier implements Player {
 		// we are obstructing them
 		if (rc.isCoreReady()) {
 			RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2, rcWrapper.myTeam);
-			Battle.addUniqueAllyParticles(nearbyFriends, field, 2);
+			Battle.addAllyParticles(nearbyFriends, field, 2);
 			if (field.particles().size() == 0 || nearbyFriends.length > 2) {
 				mc.tryToMoveRandom(rc);
 			} else {
@@ -228,7 +236,7 @@ public class Soldier implements Player {
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
 		startByteCodes = Clock.getBytecodeNum();
-		Battle.addUniqueEnemyParticles(rcWrapper.hostileRobotsNearby(), field,
+		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field,
 				3);
 		boolean somethingIsScary = Battle
 				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);

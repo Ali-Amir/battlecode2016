@@ -186,6 +186,12 @@ public class RCWrapper {
 		robots[0] = tmp;
 	}
 
+	public void setMaxCoordinate(Direction direction, int value)
+			throws GameActionException {
+		this.maxCoordinate.put(direction, value);
+		this.rc.setIndicatorString(2, "I just knew about that " + direction + " border at " + value);
+	}
+
 	/**
 	 * Gets the max coordinate in a certain direction.
 	 * 
@@ -216,11 +222,26 @@ public class RCWrapper {
 			}
 		}
 		return this.maxCoordinate.get(direction);
-
 	}
 
+	/**
+	 * Returns the last tile in a certain direction  
+	 * starting from rcWrapper.getCurrentDirection()
+	 * 
+	 * Returns null for any direction other than those:
+	 * NORTH, SOUTH, EAST, and WEST.
+	 * 
+	 * @param direction 
+	 * @return
+	 * @throws GameActionException
+	 */
 	public MapLocation getLastTile(Direction direction)
 			throws GameActionException {
+		boolean validDirection = direction.equals(Direction.NORTH) || direction.equals(Direction.SOUTH)
+				||direction.equals(Direction.EAST) || direction.equals(Direction.WEST);
+		if(!validDirection){
+			return null;
+		}
 		if (rc.onTheMap(
 				getCurrentLocation().add(direction, getSenseRaidus()))) {
 			return null;
