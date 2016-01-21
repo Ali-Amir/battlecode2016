@@ -161,8 +161,8 @@ public class Scout implements Player {
 	private void inspectBorders(RCWrapper rcWrapper) throws GameActionException{
 		for(int i = 0; i < 4; i ++){
 			Direction direction = bordersYetToDiscover[i]; 
-			if(direction == Direction.NONE || rcWrapper.getMaxCoordinate(direction) != null){
-				elm.addBorders(direction, rcWrapper);
+			if(direction != Direction.NONE && rcWrapper.getMaxCoordinate(direction) != null){
+				elm.addBorders(direction, rcWrapper.getMaxCoordinate(direction));
 				bordersYetToDiscover[i] = Direction.NONE;
 			}
 		}

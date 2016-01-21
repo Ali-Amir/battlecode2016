@@ -192,7 +192,7 @@ public class Battle {
 		int y = rcWrapper.getCurrentLocation().y;
 		for (Direction direction : directions) {
 			Integer c = rcWrapper.getMaxCoordinate(direction);
-			if (c == null) {
+			if (c == null || c == -1) {
 				continue;
 			}
 			MapLocation location;

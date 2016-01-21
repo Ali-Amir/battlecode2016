@@ -50,22 +50,22 @@ public class EnemyLocationModel {
 		}
 	}
 	
-	public void addBorders(Direction direction, RCWrapper rcWrapper) throws GameActionException{
-		int coordinateMin;
-		int coordinateMax;
+	public void addBorders(Direction direction, int value) throws GameActionException{
+		//int coordinateMin;
+		//int coordinateMax;
 		boolean isYBorder = (direction.equals(Direction.NORTH) || direction.equals(Direction.SOUTH));
 		if(!knownBorders.contains(direction)){
 			knownBorders.add(direction);
 			if(isYBorder){
-				coordinateMin = rcWrapper.getMaxCoordinate(Direction.NORTH);
-				coordinateMax = rcWrapper.getMaxCoordinate(Direction.SOUTH);
+				//coordinateMin = rcWrapper.getMaxCoordinate(Direction.NORTH);
+				//coordinateMax = rcWrapper.getMaxCoordinate(Direction.SOUTH);
 				notificationsPending.add(EncodedMessage
-						.makeMessage(MessageType.Y_BORDER, new MapLocation(coordinateMin, coordinateMax) ));
+						.makeMessage(MessageType.Y_BORDER, new MapLocation(0, value) ));
 			}else{
-				coordinateMin = rcWrapper.getMaxCoordinate(Direction.WEST);
-				coordinateMax = rcWrapper.getMaxCoordinate(Direction.EAST);
+				//coordinateMin = rcWrapper.getMaxCoordinate(Direction.WEST);
+				//coordinateMax = rcWrapper.getMaxCoordinate(Direction.EAST);
 				notificationsPending.add(EncodedMessage
-						.makeMessage(MessageType.X_BORDER, new MapLocation(coordinateMin, coordinateMax) ));
+						.makeMessage(MessageType.X_BORDER, new MapLocation(value, 0) ));
 			}
 			
 		}

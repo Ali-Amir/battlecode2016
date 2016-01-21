@@ -321,16 +321,21 @@ public class Archon implements Player {
 				field.addParticle(new ChargedParticle(9, location, 100));
 				break;
 			case Y_BORDER:
-				int minCoordinateY = location.x;
-				int maxCoordinateY = location.y;
-				rcWrapper.setMaxCoordinate(Direction.NORTH, minCoordinateY);
-				rcWrapper.setMaxCoordinate(Direction.SOUTH, maxCoordinateY);
+				int coordinateY = location.y;
+				if(coordinateY <= rcWrapper.getCurrentLocation().y){
+					rcWrapper.setMaxCoordinate(Direction.NORTH, coordinateY);					
+				}else{
+					rcWrapper.setMaxCoordinate(Direction.SOUTH, coordinateY);					
+				}
+
 				break;
 			case X_BORDER:
-				int minCoordinateX = location.x;
-				int maxCoordinateX = location.y;
-				rcWrapper.setMaxCoordinate(Direction.WEST, minCoordinateX);
-				rcWrapper.setMaxCoordinate(Direction.EAST, maxCoordinateX);
+				int coordinateX = location.x;
+				if(coordinateX <= rcWrapper.getCurrentLocation().x){
+					rcWrapper.setMaxCoordinate(Direction.WEST, coordinateX);					
+				}else{
+					rcWrapper.setMaxCoordinate(Direction.EAST, coordinateX);	
+				}
 				break;
 			default :
 				success = false;
@@ -472,6 +477,7 @@ public class Archon implements Player {
 		if(inDanger || Probability.acceptWithProbability(.10)){
 			attempMoving(rc);
 		}
+		System.out.println(field.particles());
 	}
 
 	private void attempMoving(RobotController rc) throws GameActionException {

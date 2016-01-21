@@ -30,7 +30,6 @@ public class Soldier implements Player {
 	private final MotionController mc;
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
-	private final int birthday;
 	
 	private int lastBroadcastTurn = -100;
 	private int lastTimeEnemySeen = -100;
@@ -49,7 +48,6 @@ public class Soldier implements Player {
 		this.rcWrapper = new RCWrapper(rc);
 		RobotPlayer.rcWrapper = rcWrapper;
 		this.elm = new EnemyLocationModel();
-		this.birthday = Turn.currentTurn();
 	}
 
 	/*
@@ -295,7 +293,6 @@ public class Soldier implements Player {
 					+ ") maxD(" + maxPartDByteCodes + ") maxE("
 					+ maxPartEByteCodes + ")";
 		}
-
 		startByteCodes = Clock.getBytecodeNum();
 
 		// Decide on mode: Walking vs. Fighting.

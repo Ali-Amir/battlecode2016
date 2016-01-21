@@ -25,7 +25,7 @@ public class EncodedMessage {
 	 */
 	public static MapLocation getMessageLocation(int message) {
 		final int twentyones = (1 << 20) - 1;
-		final int location20bits = (message >> 4) & twentyones;
+		final int location20bits = ((message >> 4) & twentyones);
 		return decodeLocation20bits(location20bits);
 	}
 

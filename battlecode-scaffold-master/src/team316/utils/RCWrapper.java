@@ -186,8 +186,11 @@ public class RCWrapper {
 		robots[0] = tmp;
 	}
 
-	public void setMaxCoordinate(Direction direction, int value)
+	public void setMaxCoordinate(Direction direction, Integer value)
 			throws GameActionException {
+		if(value == -1 || value == null){
+			return;
+		}
 		this.maxCoordinate.put(direction, value);
 		this.rc.setIndicatorString(2, "I just knew about that " + direction + " border at " + value);
 	}
