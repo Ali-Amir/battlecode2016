@@ -26,6 +26,7 @@ public class RCWrapper {
 	private RobotInfo[] attackableHostile = null;
 	private RobotInfo[] attackableEnemyTeam = null;
 	private Map<Direction, Integer> maxCoordinate = new HashMap<>();
+	private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
 	private Integer senseRadius = null;
 	public RobotInfo archonNearby = null;
 	public final Team myTeam;
@@ -34,7 +35,6 @@ public class RCWrapper {
 	private double currentHealth;
 	private MapLocation currentLocation;
 	private RobotType type;
-
 	/**
 	 * Creates a new instance of RobotController wrapper class with given robot
 	 * controller.
@@ -195,7 +195,13 @@ public class RCWrapper {
 		this.maxCoordinate.put(direction, value);
 		this.rc.setIndicatorString(2, "I just knew about that " + direction + " border at " + value);
 	}
-
+	
+	public Integer getMaxSoFarCoordinate(Direction direction) throws GameActionException{
+		getMaxCoordinate(direction);
+		return maxSoFarCoordinate.get(direction);
+	}
+	
+	
 	/**
 	 * Gets the max coordinate in a certain direction.
 	 * 
@@ -211,21 +217,15 @@ public class RCWrapper {
 		}
 		MapLocation lastTile = getLastTile(direction);
 		if (lastTile == null) {
+			MapLocation furthest = getCurrentLocation().add(direction, getSenseRaidus());
+			int coordinate = Grid.getRelevantCoordinate(direction, furthest);
+			maxSoFarCoordinate.put(direction, coordinate);
 			return null;
 		}
-		if (direction.equals(Direction.WEST)
-				|| direction.equals(Direction.EAST)) {
-			System.out.println("Direction: " + direction + "coordinate" + lastTile.x);
-			maxCoordinate.put(direction, lastTile.x);
-		} else {
-			if (direction.equals(Direction.NORTH)
-					|| direction.equals(Direction.SOUTH)) {
-				maxCoordinate.put(direction, lastTile.y);
-			} else {
-				return null;
-			}
-		}
-		return this.maxCoordinate.get(direction);
+		int coordinate = Grid.getRelevantCoordinate(direction, lastTile);
+		maxCoordinate.put(direction, coordinate);
+		maxSoFarCoordinate.put(direction, coordinate);
+		return coordinate;
 	}
 
 	/**
@@ -241,25 +241,23 @@ public class RCWrapper {
 	 */
 	public MapLocation getLastTile(Direction direction)
 			throws GameActionException {
-		boolean validDirection = direction.equals(Direction.NORTH) || direction.equals(Direction.SOUTH)
-				||direction.equals(Direction.EAST) || direction.equals(Direction.WEST);
-		if(!validDirection){
+		if(!Grid.isMainDirection(direction)){
 			return null;
 		}
 		if (rc.onTheMap(
 				getCurrentLocation().add(direction, getSenseRaidus()))) {
 			return null;
 		}
-		System.out.println(this.getCurrentLocation());
+		//System.out.println(this.getCurrentLocation());
 		for (int d = getSenseRaidus() - 1; d > 0; d--) {
 			MapLocation proposedLocation = getCurrentLocation().add(direction,
 					d);
 			if (rc.onTheMap(proposedLocation)) {
-				System.out.println("Direction:" + direction + "Location: " + proposedLocation);
+				//System.out.println("Direction:" + direction + "Location: " + proposedLocation);
 				return proposedLocation;
 			}
 		}
-		System.out.println("Direction:" + direction + "Location: " + this.getCurrentLocation());
+		//System.out.println("Direction:" + direction + "Location: " + this.getCurrentLocation());
 		return this.getCurrentLocation();
 	}
 }

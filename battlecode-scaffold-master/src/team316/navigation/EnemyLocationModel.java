@@ -1,7 +1,9 @@
 package team316.navigation;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -13,6 +15,7 @@ import battlecode.common.RobotInfo;
 import team316.utils.EncodedMessage;
 import team316.utils.RCWrapper;
 import team316.utils.EncodedMessage.MessageType;
+import team316.utils.Grid;
 
 public class EnemyLocationModel {
 
@@ -20,12 +23,14 @@ public class EnemyLocationModel {
 	final Set<MapLocation> knownNeutrals;
 	final Set<Direction> knownBorders;
 	public Queue<Integer> notificationsPending;
-
+	final Map<Direction, Integer> maxCoordinateSofar;
+	private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
 	public EnemyLocationModel() {
 		knownZombieDens = new HashSet<>();
 		knownNeutrals = new HashSet<>();
 		notificationsPending = new LinkedList<>();
 		knownBorders = new HashSet<>();
+		maxCoordinateSofar = new HashMap<>();
 	}
 
 	public void addZombieDenLocation(RobotInfo r) {
@@ -51,19 +56,12 @@ public class EnemyLocationModel {
 	}
 	
 	public void addBorders(Direction direction, int value) throws GameActionException{
-		//int coordinateMin;
-		//int coordinateMax;
-		boolean isYBorder = (direction.equals(Direction.NORTH) || direction.equals(Direction.SOUTH));
 		if(!knownBorders.contains(direction)){
 			knownBorders.add(direction);
-			if(isYBorder){
-				//coordinateMin = rcWrapper.getMaxCoordinate(Direction.NORTH);
-				//coordinateMax = rcWrapper.getMaxCoordinate(Direction.SOUTH);
+			if(Grid.isVertical(direction)){
 				notificationsPending.add(EncodedMessage
 						.makeMessage(MessageType.Y_BORDER, new MapLocation(0, value) ));
 			}else{
-				//coordinateMin = rcWrapper.getMaxCoordinate(Direction.WEST);
-				//coordinateMax = rcWrapper.getMaxCoordinate(Direction.EAST);
 				notificationsPending.add(EncodedMessage
 						.makeMessage(MessageType.X_BORDER, new MapLocation(value, 0) ));
 			}
@@ -71,6 +69,10 @@ public class EnemyLocationModel {
 		}
 	}
 	
-	public void onNewTurn() {
+	public void onNewTurn(RCWrapper rcWrapper) throws GameActionException {
+		for(int i = 0; i < 4; i++){
+			Direction direction = Grid.mainDirections[i];
+			maxSoFarCoordinate.put(direction, rcWrapper.getMaxSoFarCoordinate(direction));
+		}
 	}
 }
