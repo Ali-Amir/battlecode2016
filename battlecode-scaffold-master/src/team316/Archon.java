@@ -477,7 +477,7 @@ public class Archon implements Player {
 		if(inDanger || Probability.acceptWithProbability(.10)){
 			attempMoving(rc);
 		}
-		System.out.println(field.particles());
+		rc.setIndicatorString(2, "" + field.particles());
 	}
 
 	private void attempMoving(RobotController rc) throws GameActionException {

@@ -54,8 +54,9 @@ public class RCWrapper {
 		this.currentHealth = rc.getHealth();
 		this.previousHealth = this.currentHealth;
 		this.type = rc.getType();
+		//this.senseRadius = getSenseRaidus();
 	}
-
+	
 	/**
 	 * Should be called on beginning of each turn.
 	 */

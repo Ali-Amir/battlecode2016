@@ -81,7 +81,7 @@ public class Scout implements Player {
 		int messageB = elm.notificationsPending.isEmpty()
 				? 0
 				: elm.notificationsPending.poll();
-		System.out.println("messageA: " + messageA + ", messageB:" + messageB);
+		//System.out.println("messageA: " + messageA + ", messageB:" + messageB);
 		rc.broadcastMessageSignal(messageA, messageB, BROADCAST_RADIUS);
 	}
 
