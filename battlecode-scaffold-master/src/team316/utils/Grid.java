@@ -34,4 +34,21 @@ public class Grid {
 
 		return null;
 	}
+	
+	public static Integer compareCoordinates(Direction direction, Integer coordinate1, Integer coordinate2){
+		if(coordinate1 == null){
+			return coordinate2;
+		}
+		if(coordinate2 == null){
+			return coordinate1;
+		}
+		if(direction.equals(Direction.NORTH) || direction.equals(Direction.WEST)){
+			return Math.min(coordinate1, coordinate2);
+		}else{
+			return Math.max(coordinate1, coordinate2);
+		}
+	}
+	
+
+
 }

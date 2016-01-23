@@ -197,7 +197,7 @@ public class Archon implements Player {
 						MessageType.MESSAGE_HELP_ARCHON,
 						rcWrapper.getCurrentLocation());
 				rc.broadcastMessageSignal(message, 0, 1000);
-				rc.setIndicatorString(1, "Seeking Help!");
+				//rc.setIndicatorString(1, "Seeking Help!");
 				helpMessageDelay = 15;
 			}
 		}

@@ -54,13 +54,15 @@ public class RCWrapper {
 		this.currentHealth = rc.getHealth();
 		this.previousHealth = this.currentHealth;
 		this.type = rc.getType();
-		//this.senseRadius = getSenseRaidus();
+		// this.senseRadius = getSenseRaidus();
 	}
-	
+
 	/**
 	 * Should be called on beginning of each turn.
+	 * 
+	 * @throws GameActionException
 	 */
-	public void initOnNewTurn() {
+	public void initOnNewTurn() throws GameActionException {
 		robotsNearby = null;
 		hostileNearby = null;
 		enemyTeamNearby = null;
@@ -70,6 +72,14 @@ public class RCWrapper {
 		this.previousHealth = this.currentHealth;
 		this.currentHealth = rc.getHealth();
 		this.currentLocation = null;
+		String output = "Max so far in ";
+		for (int i = 0; i < 4; i++) {
+			Direction direction = Grid.mainDirections[i];
+			//output += direction + " is " + "something";
+			output += direction + " is " + getMaxSoFarCoordinate(direction);
+		}
+		output += "broadcast:" + maxBroadcastRadius();
+		rc.setIndicatorString(1, output);
 	}
 
 	/**
@@ -171,7 +181,7 @@ public class RCWrapper {
 		if (robots.length == 0) {
 			return;
 		}
-		
+
 		int weakestId = 0;
 		for (int i = 1; i < robots.length; ++i) {
 			double weaknessCur = Battle.weakness(robots[i]);
@@ -189,19 +199,21 @@ public class RCWrapper {
 
 	public void setMaxCoordinate(Direction direction, Integer value)
 			throws GameActionException {
-		if(value == -1 || value == null){
+		if (value == -1 || value == null) {
 			return;
 		}
+		this.maxSoFarCoordinate.put(direction, value);
 		this.maxCoordinate.put(direction, value);
-		this.rc.setIndicatorString(2, "I just knew about that " + direction + " border at " + value);
+		this.rc.setIndicatorString(2,
+				"I just knew about that " + direction + " border at " + value);
 	}
-	
-	public Integer getMaxSoFarCoordinate(Direction direction) throws GameActionException{
+
+	public Integer getMaxSoFarCoordinate(Direction direction)
+			throws GameActionException {
 		getMaxCoordinate(direction);
 		return maxSoFarCoordinate.get(direction);
 	}
-	
-	
+
 	/**
 	 * Gets the max coordinate in a certain direction.
 	 * 
@@ -217,8 +229,12 @@ public class RCWrapper {
 		}
 		MapLocation lastTile = getLastTile(direction);
 		if (lastTile == null) {
-			MapLocation furthest = getCurrentLocation().add(direction, getSenseRaidus());
+			MapLocation furthest = getCurrentLocation().add(direction,
+					getSenseRaidus());
 			int coordinate = Grid.getRelevantCoordinate(direction, furthest);
+			coordinate = Grid.compareCoordinates(direction, coordinate,
+					this.maxSoFarCoordinate.getOrDefault(direction, null));
+
 			maxSoFarCoordinate.put(direction, coordinate);
 			return null;
 		}
@@ -229,35 +245,50 @@ public class RCWrapper {
 	}
 
 	/**
-	 * Returns the last tile in a certain direction  
-	 * starting from rcWrapper.getCurrentDirection()
+	 * Returns the last tile in a certain direction starting from
+	 * rcWrapper.getCurrentDirection()
 	 * 
-	 * Returns null for any direction other than those:
-	 * NORTH, SOUTH, EAST, and WEST.
+	 * Returns null for any direction other than those: NORTH, SOUTH, EAST, and
+	 * WEST.
 	 * 
-	 * @param direction 
+	 * @param direction
 	 * @return
 	 * @throws GameActionException
 	 */
 	public MapLocation getLastTile(Direction direction)
 			throws GameActionException {
-		if(!Grid.isMainDirection(direction)){
+		if (!Grid.isMainDirection(direction)) {
 			return null;
 		}
 		if (rc.onTheMap(
 				getCurrentLocation().add(direction, getSenseRaidus()))) {
 			return null;
 		}
-		//System.out.println(this.getCurrentLocation());
+		// System.out.println(this.getCurrentLocation());
 		for (int d = getSenseRaidus() - 1; d > 0; d--) {
 			MapLocation proposedLocation = getCurrentLocation().add(direction,
 					d);
 			if (rc.onTheMap(proposedLocation)) {
-				//System.out.println("Direction:" + direction + "Location: " + proposedLocation);
+				// System.out.println("Direction:" + direction + "Location: " +
+				// proposedLocation);
 				return proposedLocation;
 			}
 		}
-		//System.out.println("Direction:" + direction + "Location: " + this.getCurrentLocation());
+		// System.out.println("Direction:" + direction + "Location: " +
+		// this.getCurrentLocation());
 		return this.getCurrentLocation();
+	}
+	public Integer maxBroadcastRadius() throws GameActionException{
+		int x = getCurrentLocation().x;
+		int x1 = getMaxSoFarCoordinate(Direction.WEST);
+		int x2 = getMaxSoFarCoordinate(Direction.EAST);
+		int restx = 80 - (x2 - x1);
+		int xComponent = restx + Math.max(x - x1, x2 - x);
+		int y = getCurrentLocation().y;
+		int y1 = getMaxSoFarCoordinate(Direction.NORTH);
+		int y2 = getMaxSoFarCoordinate(Direction.SOUTH);
+		int resty = 80 - (y2 - y1);
+		int yComponent = resty + Math.max(y - y1, y2 - y);
+		return xComponent*xComponent + yComponent*yComponent;
 	}
 }

@@ -69,10 +69,12 @@ public class EnemyLocationModel {
 		}
 	}
 	
-	public void onNewTurn(RCWrapper rcWrapper) throws GameActionException {
+	public void onNewTurn() throws GameActionException {
+		/*
 		for(int i = 0; i < 4; i++){
 			Direction direction = Grid.mainDirections[i];
 			maxSoFarCoordinate.put(direction, rcWrapper.getMaxSoFarCoordinate(direction));
 		}
+		*/
 	}
 }
