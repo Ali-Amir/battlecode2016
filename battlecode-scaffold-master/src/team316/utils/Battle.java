@@ -187,17 +187,17 @@ public class Battle {
 			PotentialField field) throws GameActionException {
 		Direction[] directions = {Direction.NORTH, Direction.SOUTH,
 				Direction.EAST, Direction.WEST};
-		final int fromDistance = 2;
-		final int width = 3;
+		final int fromDistance = 1;
+		final int width = 1;
 		int x = rcWrapper.getCurrentLocation().x;
 		int y = rcWrapper.getCurrentLocation().y;
 		for (Direction direction : directions) {
 			Integer c = rcWrapper.getMaxCoordinate(direction);
-			if (c == null) {
+			if (c == null || c == -1) {
 				continue;
 			}
 			MapLocation location;
-			int charge = -1000, id;
+			int charge = -1000;
 			// number of charges we add; must be odd.
 			boolean bordersAreClose = false;
 			boolean isVertical = (direction.equals(Direction.NORTH)
@@ -218,6 +218,7 @@ public class Battle {
 				} else {
 					location = new MapLocation(c, y + i);
 				}
+				// We put the charge one tile off the map.
 				location = location.add(direction);
 				field.addParticle(new ChargedParticle(charge, location, 1));
 			}

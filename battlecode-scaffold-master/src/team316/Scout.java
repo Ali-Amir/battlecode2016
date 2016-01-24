@@ -78,7 +78,7 @@ public class Scout implements Player {
 		int messageB = elm.notificationsPending.isEmpty()
 				? 0
 				: elm.notificationsPending.poll();
-		System.out.println("messageA: " + messageA + ", messageB:" + messageB);
+		//System.out.println("messageA: " + messageA + ", messageB:" + messageB);
 		lastBroadcast = Turn.currentTurn();
 		rc.broadcastMessageSignal(messageA, messageB, BROADCAST_RADIUS);
 	}
@@ -160,14 +160,12 @@ public class Scout implements Player {
 			}
 		}
 	}
-
-	private void inspectBorders(RCWrapper rcWrapper)
-			throws GameActionException {
-		for (int i = 0; i < 4; i++) {
-			Direction direction = bordersYetToDiscover[i];
-			if (direction == Direction.NONE
-					|| rcWrapper.getMaxCoordinate(direction) != null) {
-				elm.addBorders(direction, rcWrapper);
+	
+	private void inspectBorders(RCWrapper rcWrapper) throws GameActionException{
+		for(int i = 0; i < 4; i ++){
+			Direction direction = bordersYetToDiscover[i]; 
+			if(direction != Direction.NONE && rcWrapper.getMaxCoordinate(direction) != null){
+				elm.addBorders(direction, rcWrapper.getMaxCoordinate(direction));
 				bordersYetToDiscover[i] = Direction.NONE;
 			}
 		}

@@ -119,46 +119,6 @@ public class PotentialField {
 	}
 
 	/**
-	 * Adds a new particle into the field.
-	 * 
-	 * @param id
-	 *            ID of the particle.
-	 * 
-	 * @param type
-	 *            Type of the particle.
-	 * @param location
-	 *            Map location of the particle.
-	 * @param lifetime
-	 *            Life time of the particle in turns.
-	 */
-	public void addParticle(int id, ParticleType type, MapLocation location,
-			int lifetime) {
-		addParticle(type, location, lifetime);
-		/*
-		if (!currentIDs.contains(id)) {
-			if (numParticles + 1 == PARTICLE_LIMIT) {
-				compressParticles();
-			}
-
-			particles[numParticles] = config.particle(type, location, lifetime);
-			++numParticles;
-		} else {
-			removeIDWaitlist.add(id);
-			queuedParticles.put(id,
-					config.particle(id, type, location, lifetime));
-		}
-		*/
-	}
-	/*
-	public void removeParticleByID(int id) {
-		if (currentIDs.contains(id)) {
-			removeIDWaitlist.add(id);
-			queuedParticles.remove(id);
-		}
-	}
-	 */
-	
-	/**
 	 * @return Directions with most attraction.
 	 */
 	public Direction strongetAttractionDirection(MapLocation to) {
@@ -261,7 +221,8 @@ public class PotentialField {
 			}
 			particles[i].location = new MapLocation((int) (x / total),
 					(int) (y / total));
-			particles[i].charge = totalCharge / total / (maxEndTurn - curTurn);
+//			particles[i].charge = totalCharge / total / (maxEndTurn - curTurn);
+			particles[i].charge = totalCharge / (maxEndTurn - curTurn);
 			particles[i].expiryTurn = maxEndTurn;
 		}
 	}

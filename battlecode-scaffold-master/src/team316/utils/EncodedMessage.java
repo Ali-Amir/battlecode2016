@@ -7,7 +7,7 @@ public class EncodedMessage {
 	// Please, append new types to the end.
 	public enum MessageType {
 		EMPTY_MESSAGE, ZOMBIE_DEN_LOCATION, ENEMY_ARCHON_LOCATION, NEUTRAL_ARCHON_LOCATION, NEUTRAL_NON_ARCHON_LOCATION , MESSAGE_HELLO_ARCHON, MESSAGE_WELCOME_ACTIVATED_ARCHON,
-		MESSAGE_HELP_ARCHON, Y_BORDER, X_BORDER
+		MESSAGE_HELP_ARCHON, Y_BORDER, X_BORDER, DEFENSE_MODE_ON, GATHER
 	}
 
 	/**
@@ -27,7 +27,7 @@ public class EncodedMessage {
 	 */
 	public static MapLocation getMessageLocation(int message) {
 		final int twentyones = (1 << 20) - 1;
-		final int location20bits = (message >> 4) & twentyones;
+		final int location20bits = ((message >> 4) & twentyones);
 		return decodeLocation20bits(location20bits);
 	}
 

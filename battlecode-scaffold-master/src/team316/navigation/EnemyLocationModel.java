@@ -1,9 +1,11 @@
 package team316.navigation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -12,10 +14,10 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
-import battlecode.world.control.ZombieControlProvider;
 import team316.RobotPlayer;
 import team316.utils.EncodedMessage;
 import team316.utils.EncodedMessage.MessageType;
+import team316.utils.Grid;
 import team316.utils.RCWrapper;
 
 public class EnemyLocationModel {
@@ -27,7 +29,8 @@ public class EnemyLocationModel {
 	private final RobotController rc;
 	private final RCWrapper rcWrapper;
 	public Queue<Integer> notificationsPending;
-
+	final Map<Direction, Integer> maxCoordinateSofar;
+	private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
 	public EnemyLocationModel() {
 		knownZombieDens = new HashSet<>();
 		knownNeutrals = new HashSet<>();
@@ -36,6 +39,7 @@ public class EnemyLocationModel {
 		knownBorders = new HashSet<>();
 		this.rc = RobotPlayer.rc;
 		this.rcWrapper = RobotPlayer.rcWrapper;
+		maxCoordinateSofar = new HashMap<>();
 	}
 
 	public int numStrategicLocations() {
@@ -83,27 +87,16 @@ public class EnemyLocationModel {
 					.makeMessage(MessageType.NEUTRAL_NON_ARCHON_LOCATION, loc));
 		}
 	}
-
-	public void addBorders(Direction direction, RCWrapper rcWrapper)
-			throws GameActionException {
-		int coordinateMin;
-		int coordinateMax;
-		boolean isYBorder = (direction.equals(Direction.NORTH)
-				|| direction.equals(Direction.SOUTH));
-		if (!knownBorders.contains(direction)) {
+	
+	public void addBorders(Direction direction, int value) throws GameActionException{
+		if(!knownBorders.contains(direction)){
 			knownBorders.add(direction);
-			if (isYBorder) {
-				coordinateMin = rcWrapper.getMaxCoordinate(Direction.NORTH);
-				coordinateMax = rcWrapper.getMaxCoordinate(Direction.SOUTH);
-				notificationsPending
-						.add(EncodedMessage.makeMessage(MessageType.Y_BORDER,
-								new MapLocation(coordinateMin, coordinateMax)));
-			} else {
-				coordinateMin = rcWrapper.getMaxCoordinate(Direction.WEST);
-				coordinateMax = rcWrapper.getMaxCoordinate(Direction.EAST);
-				notificationsPending
-						.add(EncodedMessage.makeMessage(MessageType.X_BORDER,
-								new MapLocation(coordinateMin, coordinateMax)));
+			if(Grid.isVertical(direction)){
+				notificationsPending.add(EncodedMessage
+						.makeMessage(MessageType.Y_BORDER, new MapLocation(0, value) ));
+			}else{
+				notificationsPending.add(EncodedMessage
+						.makeMessage(MessageType.X_BORDER, new MapLocation(value, 0) ));
 			}
 
 		}
