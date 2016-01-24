@@ -26,10 +26,17 @@ public class Scout implements Player {
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
 
+	private int minX;
+	private int minY;
+	private int maxX;
+	private int maxY;
+	private int nextFlowerSwitchTurn = 0;
+	private int curFlowerStage = 0;
 	private int lastBroadcast = -100;
 	private int curDirection = 0;
 	private Direction[] bordersYetToDiscover = {Direction.NORTH,
 			Direction.SOUTH, Direction.EAST, Direction.WEST};
+
 	public enum ScoutState {
 		RUNAWAY, ROAM_AROUND, NEED_TO_BROADCAST
 	}
@@ -41,6 +48,10 @@ public class Scout implements Player {
 		this.rcWrapper = new RCWrapper(rc);
 		RobotPlayer.rcWrapper = rcWrapper;
 		this.elm = new EnemyLocationModel();
+		minX = Math.max(0, rc.getLocation().x - 80);
+		minY = Math.max(0, rc.getLocation().y - 80);
+		maxX = Math.min(580, rc.getLocation().x + 80);
+		maxY = Math.max(580, rc.getLocation().y + 80);
 	}
 
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
@@ -78,32 +89,75 @@ public class Scout implements Player {
 		int messageB = elm.notificationsPending.isEmpty()
 				? 0
 				: elm.notificationsPending.poll();
-		//System.out.println("messageA: " + messageA + ", messageB:" + messageB);
+		// System.out.println("messageA: " + messageA + ", messageB:" +
+		// messageB);
 		lastBroadcast = Turn.currentTurn();
 		rc.broadcastMessageSignal(messageA, messageB, BROADCAST_RADIUS);
 	}
 
 	public void roamAround(RobotController rc) throws GameActionException {
-		if (rc.isCoreReady()) {
-			for (int i = 0; i < 8; ++i, curDirection = (curDirection + 1) & 7) {
-				Direction maybeForward = Direction.values()[curDirection];
-				if (rc.canMove(maybeForward)) {
-					rc.move(maybeForward);
-					return;
-				}
+		if (nextFlowerSwitchTurn <= Turn.currentTurn()) {
+			nextFlowerSwitchTurn = Turn.currentTurn()
+					+ (maxY - minY + maxX - minX + 2) / 4;
+			curFlowerStage = (curFlowerStage + 1) & 15;
+
+			int whichCorner = curFlowerStage / 2;
+
+			final double TARGET_CHARGE = 1.0;
+			final double DEVIATION_CHARGE = 0.02;
+			final int midX = (maxX + minX) / 2;
+			final int midY = (maxY + minY) / 2;
+			MapLocation targetLocation;
+			MapLocation deviationLocation;
+			if (whichCorner == 0) {
+				targetLocation = new MapLocation(midX, minY);
+				deviationLocation = new MapLocation((minX + 3 * midX) / 4,
+						(midY + minY) / 2);
+			} else if (whichCorner == 1) {
+				targetLocation = new MapLocation(maxX, minY);
+				deviationLocation = new MapLocation((maxX + 2 * midX) / 3,
+						((midY + minY) / 2 + minY) / 2);
+			} else if (whichCorner == 2) {
+				targetLocation = new MapLocation(maxX, midY);
+				deviationLocation = new MapLocation((maxX + midX) / 2,
+						(midY * 2 + minY) / 3);
+			} else if (whichCorner == 3) {
+				targetLocation = new MapLocation(maxX, maxY);
+				deviationLocation = new MapLocation(
+						((maxX + midX) / 2 + maxX) / 2, (midY * 2 + maxY) / 3);
+			} else if (whichCorner == 4) {
+				targetLocation = new MapLocation(midX, maxY);
+				deviationLocation = new MapLocation((maxX + 3 * midX) / 4,
+						(midY + maxY) / 2);
+			} else if (whichCorner == 5) {
+				targetLocation = new MapLocation(minX, maxY);
+				deviationLocation = new MapLocation(
+						((minX + midX) / 2 + minX) / 2, (midY * 2 + maxY) / 3);
+			} else if (whichCorner == 6) {
+				targetLocation = new MapLocation(minX, midY);
+				deviationLocation = new MapLocation((minX + midX) / 2,
+						(midY * 2 + maxY) / 3);
+			} else if (whichCorner == 7) {
+				targetLocation = new MapLocation(minX, minY);
+				deviationLocation = new MapLocation((minX + 2 * midX) / 3,
+						((midY + minY) / 2 + minY) / 2);
+			} else {
+				throw new RuntimeException(
+						"Unknown whichCorner " + whichCorner);
 			}
 
-			for (int i = 0; i < 8; ++i, curDirection = (curDirection + 1) & 7) {
-				Direction maybeForward = Direction.values()[curDirection];
-				MapLocation ahead = rc.getLocation().add(maybeForward);
-				if (rc.senseRubble(
-						ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-					rc.clearRubble(maybeForward);
-					return;
-				}
+			if (curFlowerStage % 2 != 0) {
+				targetLocation = new MapLocation(midX, midY);
 			}
 
+			field.addParticle(new ChargedParticle(DEVIATION_CHARGE,
+					deviationLocation,
+					(nextFlowerSwitchTurn - Turn.currentTurn() + 1) / 2));
+			field.addParticle(new ChargedParticle(TARGET_CHARGE, targetLocation,
+					nextFlowerSwitchTurn - Turn.currentTurn() + 1));
 		}
+
+		mc.tryToMove(rc);
 	}
 
 	public void runaway(RobotController rc) throws GameActionException {
@@ -160,12 +214,27 @@ public class Scout implements Player {
 			}
 		}
 	}
-	
-	private void inspectBorders(RCWrapper rcWrapper) throws GameActionException{
-		for(int i = 0; i < 4; i ++){
-			Direction direction = bordersYetToDiscover[i]; 
-			if(direction != Direction.NONE && rcWrapper.getMaxCoordinate(direction) != null){
-				elm.addBorders(direction, rcWrapper.getMaxCoordinate(direction));
+
+	private void inspectBorders(RCWrapper rcWrapper)
+			throws GameActionException {
+		for (int i = 0; i < 4; i++) {
+			Direction direction = bordersYetToDiscover[i];
+			if (!direction.equals(Direction.NONE)
+					&& rcWrapper.getMaxCoordinate(direction) != null) {
+				elm.addBorders(direction,
+						rcWrapper.getMaxCoordinate(direction));
+				if (direction.equals(Direction.NORTH)) {
+					minY = rcWrapper.getMaxCoordinate(direction);
+				}
+				if (direction.equals(Direction.SOUTH)) {
+					maxY = rcWrapper.getMaxCoordinate(direction);
+				}
+				if (direction.equals(Direction.EAST)) {
+					maxX = rcWrapper.getMaxCoordinate(direction);
+				}
+				if (direction.equals(Direction.WEST)) {
+					minX = rcWrapper.getMaxCoordinate(direction);
+				}
 				bordersYetToDiscover[i] = Direction.NONE;
 			}
 		}
