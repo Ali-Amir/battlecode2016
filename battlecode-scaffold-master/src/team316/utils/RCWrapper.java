@@ -313,11 +313,11 @@ public class RCWrapper {
 				return proposedLocation;
 			}
 		}
-	// System.out.println("Direction:" + direction + "Location: " +
-	// this.getCurrentLocation());
-return this.getCurrentLocation();
+		// System.out.println("Direction:" + direction + "Location: " +
+		// this.getCurrentLocation());
+		return this.getCurrentLocation();
 	}
-	public Integer maxBroadcastRadius() throws GameActionException{
+	public Integer maxBroadcastRadius() throws GameActionException {
 		int x = getCurrentLocation().x;
 		int x1 = getMaxSoFarCoordinate(Direction.WEST);
 		int x2 = getMaxSoFarCoordinate(Direction.EAST);
@@ -328,6 +328,6 @@ return this.getCurrentLocation();
 		int y2 = getMaxSoFarCoordinate(Direction.SOUTH);
 		int resty = 80 - (y2 - y1);
 		int yComponent = resty + Math.max(y - y1, y2 - y);
-		return xComponent*xComponent + yComponent*yComponent;
+		return xComponent * xComponent + yComponent * yComponent;
 	}
 }
