@@ -76,10 +76,10 @@ public class RCWrapper {
 		for (int i = 0; i < 4; i++) {
 			Direction direction = Grid.mainDirections[i];
 			//output += direction + " is " + "something";
-			output += direction + " is " + getMaxSoFarCoordinate(direction);
+			//output += direction + " is " + getMaxSoFarCoordinate(direction);
 		}
-		output += "broadcast:" + maxBroadcastRadius();
-		rc.setIndicatorString(1, output);
+		//output += "broadcast:" + maxBroadcastRadius();
+		//rc.setIndicatorString(1, output);
 	}
 
 	/**
@@ -204,8 +204,8 @@ public class RCWrapper {
 		}
 		this.maxSoFarCoordinate.put(direction, value);
 		this.maxCoordinate.put(direction, value);
-		this.rc.setIndicatorString(2,
-				"I just knew about that " + direction + " border at " + value);
+		//this.rc.setIndicatorString(2,
+			//	"I just knew about that " + direction + " border at " + value);
 	}
 
 	public Integer getMaxSoFarCoordinate(Direction direction)

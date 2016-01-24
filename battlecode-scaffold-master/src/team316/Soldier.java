@@ -40,6 +40,8 @@ public class Soldier implements Player {
 	private int maxPartCByteCodes = 0;
 	private int maxPartDByteCodes = 0;
 	private int maxPartEByteCodes = 0;
+	private boolean gatherMode = false;
+	private MapLocation gatherLocation = null;
 
 	public Soldier(MapLocation archonLoc, PotentialField field,
 			MotionController mc, RobotController rc) {
@@ -123,8 +125,6 @@ public class Soldier implements Player {
 						location, 500) );
 				break;
 			case NEUTRAL_NON_ARCHON_LOCATION:
-				field.addParticle(new ChargedParticle(1,
-						location, 500));
 				break;
 			case Y_BORDER:
 				int minCoordinateY = location.x;
@@ -138,12 +138,19 @@ public class Soldier implements Player {
 				rcWrapper.setMaxCoordinate(Direction.WEST, minCoordinateX);
 				rcWrapper.setMaxCoordinate(Direction.EAST, maxCoordinateX);
 				break;
+
+			case GATHER:
+				gatherMode = true;
+				gatherLocation = location;
+				break;
+				
 			default :
 				success = false;
 				break;
 		}
 		return success;
 	}
+
 	public void receiveIncomingSignals(RobotController rc)
 			throws GameActionException {
 		// Do message signaling stuff.
@@ -190,6 +197,9 @@ public class Soldier implements Player {
 		// field.addParticle(elm.predictEnemyBase(rc));
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
+		if(gatherMode){
+			field.addParticle(new ChargedParticle(1000,gatherLocation, 1));
+		}
 	}
 
 	/**
@@ -310,6 +320,7 @@ public class Soldier implements Player {
 					Clock.getBytecodeNum() - startByteCodes); // TODO
 			fightingModeCode(rc);
 		}
+		//rc.setIndicatorString(2, "" + field.particles());
 	}
 
 }
