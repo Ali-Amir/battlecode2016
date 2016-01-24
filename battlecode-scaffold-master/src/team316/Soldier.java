@@ -30,7 +30,7 @@ public class Soldier implements Player {
 	private final MotionController mc;
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
-	
+
 	private int lastBroadcastTurn = -100;
 	private int lastTimeEnemySeen = -100;
 	private int maxParticlesSoFar = 0;
@@ -111,7 +111,7 @@ public class Soldier implements Player {
 				field.addParticle(new ChargedParticle(50, location, 500));
 				break;
 			case NEUTRAL_NON_ARCHON_LOCATION :
-				//field.addParticle(new ChargedParticle(1, location, 500));
+				// field.addParticle(new ChargedParticle(1, location, 500));
 				break;
 			case Y_BORDER :
 				int minCoordinateY = location.x;
@@ -126,11 +126,11 @@ public class Soldier implements Player {
 				rcWrapper.setMaxCoordinate(Direction.EAST, maxCoordinateX);
 				break;
 
-			case GATHER:
+			case GATHER :
 				gatherMode = true;
 				gatherLocation = location;
 				break;
-				
+
 			default :
 				success = false;
 				break;
@@ -178,8 +178,14 @@ public class Soldier implements Player {
 		// field.addParticle(elm.predictEnemyBase(rc));
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
-		if(gatherMode){
-			field.addParticle(new ChargedParticle(1000,gatherLocation, 1));
+		if (gatherMode) {
+			if (gatherLocation.distanceSquaredTo(
+					rc.getLocation()) <= rc.getType().attackRadiusSquared) {
+				field.addParticle(new ChargedParticle(1000, gatherLocation, 5));
+				gatherMode = false;
+			} else {
+				field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
+			}
 		}
 	}
 
@@ -314,7 +320,7 @@ public class Soldier implements Player {
 					Clock.getBytecodeNum() - startByteCodes); // TODO
 			fightingModeCode(rc);
 		}
-		//rc.setIndicatorString(2, "" + field.particles());
+		// rc.setIndicatorString(2, "" + field.particles());
 	}
 
 }
