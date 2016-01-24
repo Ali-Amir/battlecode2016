@@ -13,6 +13,7 @@ import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
 
 public class Battle {
+
 	public static void addAllyParticles(RobotInfo[] allyArray,
 			PotentialField field, int lifetime) {
 		for (RobotInfo e : allyArray) {
@@ -222,7 +223,6 @@ public class Battle {
 			}
 
 		}
-
 	}
 
 	public static RobotInfo[] robotsWhoCanAttackLocation(MapLocation loc,
@@ -244,6 +244,18 @@ public class Battle {
 			}
 		}
 		return attackers;
+	}
+
+	public static MapLocation centerOfMassPlusPoint(RobotInfo[] robots,
+			MapLocation self) {
+		double x = self.x, y = self.y;
+		int sum = 1;
+		for (RobotInfo r : robots) {
+			x += r.location.x;
+			y += r.location.y;
+			++sum;
+		}
+		return new MapLocation((int) (x / sum), (int) (y / sum));
 	}
 
 }

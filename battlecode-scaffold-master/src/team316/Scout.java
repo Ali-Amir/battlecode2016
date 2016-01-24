@@ -1,7 +1,5 @@
 package team316;
 
-import java.util.List;
-
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -10,26 +8,25 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
-import javafx.scene.shape.ArcType;
 import team316.navigation.ChargedParticle;
 import team316.navigation.EnemyLocationModel;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
-import team316.utils.EncodedMessage;
-import team316.utils.EncodedMessage.MessageType;
 import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
 public class Scout implements Player {
 
 	private static final int BROADCAST_RADIUS = 80 * 80 * 2;
+	private static final int BROADCAST_INTERVAL_MIN = 50;
 
 	private final PotentialField field;
 	private final MotionController mc;
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
 
+	private int lastBroadcast = -100;
 	private int curDirection = 0;
 	private Direction[] bordersYetToDiscover = {Direction.NORTH,
 			Direction.SOUTH, Direction.EAST, Direction.WEST};
@@ -72,7 +69,7 @@ public class Scout implements Player {
 				break;
 
 			default :
-				assert(0 == 1) : "One state case was missed!";
+				assert (0 == 1) : "One state case was missed!";
 		}
 	}
 
@@ -82,6 +79,7 @@ public class Scout implements Player {
 				? 0
 				: elm.notificationsPending.poll();
 		System.out.println("messageA: " + messageA + ", messageB:" + messageB);
+		lastBroadcast = Turn.currentTurn();
 		rc.broadcastMessageSignal(messageA, messageB, BROADCAST_RADIUS);
 	}
 
@@ -120,7 +118,8 @@ public class Scout implements Player {
 		}
 	}
 
-	public ScoutState assessSituation(RobotController rc) throws GameActionException {
+	public ScoutState assessSituation(RobotController rc)
+			throws GameActionException {
 		inspectEnemiesWithinSightRange();
 		inspectNeutralRobotswithinSightRange(rc);
 		inspectBorders(rcWrapper);
@@ -129,7 +128,8 @@ public class Scout implements Player {
 		if (robotsWhoCanAttackMe.length > 0) {
 			return ScoutState.RUNAWAY;
 		} else {
-			if (elm.notificationsPending.size() > 0) {
+			if (elm.notificationsPending.size() > 0 && Turn.currentTurn()
+					- lastBroadcast >= BROADCAST_INTERVAL_MIN) {
 				return ScoutState.NEED_TO_BROADCAST;
 			} else {
 				return ScoutState.ROAM_AROUND;
@@ -143,9 +143,12 @@ public class Scout implements Player {
 			if (r.type.equals(RobotType.ZOMBIEDEN)) {
 				elm.addZombieDenLocation(r);
 			}
+			if (r.type.equals(RobotType.ARCHON)) {
+				elm.addEnemyArchonLocation(r.location);
+			}
 		}
 	}
-	
+
 	private void inspectNeutralRobotswithinSightRange(RobotController rc) {
 		RobotInfo[] neutralIsee = rc.senseNearbyRobots(
 				RobotType.SCOUT.sensorRadiusSquared, Team.NEUTRAL);
@@ -157,15 +160,17 @@ public class Scout implements Player {
 			}
 		}
 	}
-	
-	private void inspectBorders(RCWrapper rcWrapper) throws GameActionException{
-		for(int i = 0; i < 4; i ++){
-			Direction direction = bordersYetToDiscover[i]; 
-			if(direction == Direction.NONE || rcWrapper.getMaxCoordinate(direction) != null){
+
+	private void inspectBorders(RCWrapper rcWrapper)
+			throws GameActionException {
+		for (int i = 0; i < 4; i++) {
+			Direction direction = bordersYetToDiscover[i];
+			if (direction == Direction.NONE
+					|| rcWrapper.getMaxCoordinate(direction) != null) {
 				elm.addBorders(direction, rcWrapper);
 				bordersYetToDiscover[i] = Direction.NONE;
 			}
 		}
 	}
-	
+
 }

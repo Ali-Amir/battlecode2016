@@ -57,12 +57,17 @@ public class MotionController {
 	}
 
 	public boolean tryToMove(RobotController rc) throws GameActionException {
+		return tryToMove(rc, rc.getLocation());
+	}
+
+	public boolean tryToMove(RobotController rc, MapLocation reference)
+			throws GameActionException {
 		if (!rc.isCoreReady()) {
 			return false;
 		}
 
 		if (field.numParticles == 0) {
-			int[] directions = field.directionsByAttraction(rc.getLocation());
+			int[] directions = field.directionsByAttraction(reference);
 			for (int i = 0; i < directions.length; ++i) {
 				Direction maybeForward = Direction.values()[directions[i]];
 				MapLocation ahead = rc.getLocation().add(maybeForward);
@@ -75,7 +80,7 @@ public class MotionController {
 			return false;
 		}
 
-		int[] directions = field.directionsByAttraction(rc.getLocation());
+		int[] directions = field.directionsByAttraction(reference);
 		// Collections.shuffle(directions.subList(0, 2));
 		// Collections.shuffle(directions.subList(2, 4));
 		// Collections.shuffle(directions.subList(4, directions.size()));
