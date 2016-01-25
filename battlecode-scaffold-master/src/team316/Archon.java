@@ -561,7 +561,7 @@ public class Archon implements Player {
 		if (finishedMission && Turn.currentTurn() > 500) {
 			switchModes(rc);
 		}
-		if (!myMode.equals(GameMode.FREEPLAY) && gatherMessageDelay == 0
+		if (!myMode.equals(GameMode.FREEPLAY) && gatherMessageDelay <= 0
 				&& !inDanger) {
 			int message = EncodedMessage.makeMessage(messageType,
 					targetLocation);
@@ -602,22 +602,22 @@ public class Archon implements Player {
 					.getInitialArchonLocations(rcWrapper.myTeam).length;
 		}
 
-		if (Turn.currentTurn() - lastDenGatherTurn >= DEN_GATHER_PERIOD_TURNS
-				&& !elm.knownZombieDens.isEmpty()) {
-			lastDenGatherTurn = Turn.currentTurn();
-			MapLocation closestDen = null;
-			for (MapLocation l : elm.knownZombieDens) {
-				if (closestDen == null
-						|| closestDen.distanceSquaredTo(rc.getLocation()) > l
-								.distanceSquaredTo(rc.getLocation())) {
-					closestDen = l;
-				}
-			}
-			elm.knownZombieDens.remove(closestDen);
-			rc.broadcastMessageSignal(
-					EncodedMessage.makeMessage(MessageType.GATHER, closestDen),
-					0, MAX_RADIUS);
-		}
+		// if (Turn.currentTurn() - lastDenGatherTurn >= DEN_GATHER_PERIOD_TURNS
+		// && !elm.knownZombieDens.isEmpty()) {
+		// lastDenGatherTurn = Turn.currentTurn();
+		// MapLocation closestDen = null;
+		// for (MapLocation l : elm.knownZombieDens) {
+		// if (closestDen == null
+		// || closestDen.distanceSquaredTo(rc.getLocation()) > l
+		// .distanceSquaredTo(rc.getLocation())) {
+		// closestDen = l;
+		// }
+		// }
+		// elm.knownZombieDens.remove(closestDen);
+		// rc.broadcastMessageSignal(
+		// EncodedMessage.makeMessage(MessageType.GATHER, closestDen),
+		// 0, MAX_RADIUS);
+		// }
 
 		// Start producing vipers if 1/3 of the game has passed. Getting ready
 		// for ambush.
