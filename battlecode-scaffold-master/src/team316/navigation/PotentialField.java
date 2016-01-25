@@ -6,7 +6,6 @@ import java.util.List;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
-import battlecode.common.RobotType;
 import team316.RobotPlayer;
 import team316.navigation.configurations.ArchonConfigurator;
 import team316.navigation.configurations.GuardConfigurator;
@@ -29,16 +28,17 @@ public class PotentialField {
 	private final ChargedParticle[] particles;
 	public int numParticles;
 	// List of IDs currently in particles.
-	//private final Set<Integer> currentIDs = new HashSet<>();
+	// private final Set<Integer> currentIDs = new HashSet<>();
 	// List of IDs to be removed in the next time directionsByAttraction is
 	// called.
-	//private final Set<Integer> removeIDWaitlist = new HashSet<>();
+	// private final Set<Integer> removeIDWaitlist = new HashSet<>();
 
-	//private final Map<Integer, ChargedParticle> queuedParticles = new HashMap<>();
+	// private final Map<Integer, ChargedParticle> queuedParticles = new
+	// HashMap<>();
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
 
-		particles = new ChargedParticle[PARTICLE_LIMIT];
+		particles = new ChargedParticle[20 * PARTICLE_LIMIT];
 		numParticles = 0;
 	}
 
@@ -91,7 +91,7 @@ public class PotentialField {
 	 *            New particle.
 	 */
 	public void addParticle(ChargedParticle particle) {
-		if (numParticles + 1 == PARTICLE_LIMIT) {
+		if (numParticles + 1 >= PARTICLE_LIMIT) {
 			compressParticles();
 		}
 
@@ -111,7 +111,7 @@ public class PotentialField {
 	 */
 	public void addParticle(ParticleType type, MapLocation location,
 			int lifetime) {
-		if (numParticles + 1 == PARTICLE_LIMIT) {
+		if (numParticles + 1 >= PARTICLE_LIMIT) {
 			compressParticles();
 		}
 
@@ -197,7 +197,7 @@ public class PotentialField {
 	 */
 	private void compressParticles() {
 		discardDeadParticles();
-		
+
 		final int curTurn = Turn.currentTurn();
 		for (int i = 0; i < numParticles; ++i) {
 			double x = particles[i].location.y, y = particles[i].location.y;
@@ -222,7 +222,8 @@ public class PotentialField {
 			}
 			particles[i].location = new MapLocation((int) (x / total),
 					(int) (y / total));
-//			particles[i].charge = totalCharge / total / (maxEndTurn - curTurn);
+			// particles[i].charge = totalCharge / total / (maxEndTurn -
+			// curTurn);
 			particles[i].charge = totalCharge / (maxEndTurn - curTurn);
 			particles[i].expiryTurn = maxEndTurn;
 		}
