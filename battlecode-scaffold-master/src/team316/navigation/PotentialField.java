@@ -133,16 +133,15 @@ public class PotentialField {
 	public int[] directionsByAttraction(MapLocation to) {
 		discardDeadParticles();
 
-		Vector totalForce = new Vector(0, 0);
+		double totalX = RobotPlayer.rnd.nextDouble() / 1000000.0;
+		double totalY = RobotPlayer.rnd.nextDouble() / 1000000.0;
 		for (int i = 0; i < numParticles; ++i) {
 			ChargedParticle particle = particles[i];
 			Vector newForce = particle.force(to);
-			double randomXAdjustment = RobotPlayer.rnd.nextDouble() / 1000000.0;
-			double randomYAdjustment = RobotPlayer.rnd.nextDouble() / 1000000.0;
-			totalForce = new Vector(
-					totalForce.x() + newForce.x() + randomXAdjustment,
-					totalForce.y() + newForce.y() + randomYAdjustment);
+			totalX += newForce.x();
+			totalY += newForce.y();
 		}
+		Vector totalForce = new Vector(totalX, totalY);
 
 		final int[] directions = new int[]{Direction.NORTH.ordinal(),
 				Direction.NORTH_EAST.ordinal(), Direction.EAST.ordinal(),
@@ -181,7 +180,7 @@ public class PotentialField {
 	/**
 	 * Discards particles that are not alive.
 	 */
-	private void discardDeadParticles() {
+	public void discardDeadParticles() {
 		for (int i = 0; i < numParticles; ++i) {
 			if (!particles[i].isAlive()) {
 				particles[i] = particles[numParticles - 1];

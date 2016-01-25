@@ -232,6 +232,7 @@ public class Soldier implements Player {
 		// field.addParticle(elm.predictEnemyBase(rc));
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
+		field.discardDeadParticles();
 		if (gatherMode) {
 			if (gatherLocation.distanceSquaredTo(
 					rc.getLocation()) <= rc.getType().attackRadiusSquared || archonAttacked) {
@@ -312,7 +313,14 @@ public class Soldier implements Player {
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
 		startByteCodes = Clock.getBytecodeNum();
-		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
+
+		if (rcWrapper.attackableHostileRobots().length == 0) {
+			// Try to go towards the enemies.
+			Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 2);
+			mc.tryToMove(rc);
+			return;
+		}
+		
 		boolean somethingIsScary = Battle
 				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 
@@ -321,11 +329,6 @@ public class Soldier implements Player {
 		maxPartAByteCodes = Math.max(maxPartAByteCodes,
 				Clock.getBytecodeNum() - startByteCodes); // TODO
 		startByteCodes = Clock.getBytecodeNum();
-
-		if (rcWrapper.attackableHostileRobots().length == 0) {
-			mc.tryToMove(rc);
-			return;
-		}
 
 		maxPartBByteCodes = Math.max(maxPartBByteCodes,
 				Clock.getBytecodeNum() - startByteCodes); // TODO
