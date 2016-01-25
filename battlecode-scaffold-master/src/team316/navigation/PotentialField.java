@@ -6,6 +6,7 @@ import java.util.List;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
+import battlecode.common.RobotType;
 import team316.RobotPlayer;
 import team316.navigation.configurations.ArchonConfigurator;
 import team316.navigation.configurations.GuardConfigurator;
@@ -136,12 +137,12 @@ public class PotentialField {
 		for (int i = 0; i < numParticles; ++i) {
 			ChargedParticle particle = particles[i];
 			Vector newForce = particle.force(to);
-			double randomXAdjustment = RobotPlayer.rnd.nextDouble() / 100.0;
-			double randomYAdjustment = RobotPlayer.rnd.nextDouble() / 100.0;
+			double randomXAdjustment = RobotPlayer.rnd.nextDouble() / 1000000.0;
+			double randomYAdjustment = RobotPlayer.rnd.nextDouble() / 1000000.0;
 			totalForce = new Vector(
 					totalForce.x() + newForce.x() + randomXAdjustment,
 					totalForce.y() + newForce.y() + randomYAdjustment);
-		} 
+		}
 
 		final int[] directions = new int[]{Direction.NORTH.ordinal(),
 				Direction.NORTH_EAST.ordinal(), Direction.EAST.ordinal(),
@@ -171,7 +172,7 @@ public class PotentialField {
 		for (int dir = RobotPlayer.rnd.nextBoolean() == true
 				? 1
 				: -1, i = 1; i < 8; ++i, dir = -dir) {
-			int curDir = (strongestDir + ((i + 1) / 2) * dir + 8) % 8;
+			int curDir = (strongestDir + ((i + 1) / 2) * dir + 8) & 7;
 			sortedDirections[i] = directions[curDir];
 		}
 		return sortedDirections;
