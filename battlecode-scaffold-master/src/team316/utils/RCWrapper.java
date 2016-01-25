@@ -1,6 +1,7 @@
 package team316.utils;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import battlecode.common.Direction;
@@ -37,6 +38,7 @@ public class RCWrapper {
 	private double currentHealth;
 	private MapLocation currentLocation;
 	private RobotType type;
+	private static final int INF = (int) 1e9;
 	/**
 	 * Creates a new instance of RobotController wrapper class with given robot
 	 * controller.
@@ -317,6 +319,7 @@ public class RCWrapper {
 		// this.getCurrentLocation());
 		return this.getCurrentLocation();
 	}
+
 	public Integer maxBroadcastRadius() throws GameActionException {
 		int x = getCurrentLocation().x;
 		int x1 = getMaxSoFarCoordinate(Direction.WEST);
@@ -330,4 +333,18 @@ public class RCWrapper {
 		int yComponent = resty + Math.max(y - y1, y2 - y);
 		return xComponent * xComponent + yComponent * yComponent;
 	}
+
+	public MapLocation getClosestLocation(LinkedList<MapLocation> locations) {
+		MapLocation closestLocation = null;
+		int shortestDistance = INF;
+		for (MapLocation location : locations) {
+			int distance = getCurrentLocation().distanceSquaredTo(location);
+			if (distance < shortestDistance) {
+				closestLocation = location;
+				shortestDistance = distance;
+			}
+		}
+		return closestLocation;
+	}
+
 }

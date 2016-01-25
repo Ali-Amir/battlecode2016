@@ -45,6 +45,9 @@ public class Soldier implements Player {
 	private boolean isBlitzkriegActivated = false;
 	private MapLocation enemyBaseLocation = null;
 
+	private static int nearestFollowerDistance;
+	private boolean archonAttacked;
+	
 	public Soldier(MapLocation archonLoc, PotentialField field,
 			MotionController mc, RobotController rc) {
 		this.field = field;
@@ -89,13 +92,16 @@ public class Soldier implements Player {
 		}
 	}
 
-	public boolean processMessage(int message, RobotController rc)
+	public boolean processMessage(MapLocation senderLocation, int message, RobotController rc)
 			throws GameActionException {
 		boolean success = true;
+		Direction movementDirection;
 		MapLocation location = EncodedMessage.getMessageLocation(message);
+		int distanceFromSender = rcWrapper.getCurrentLocation().distanceSquaredTo(senderLocation);
 		switch (EncodedMessage.getMessageType(message)) {
 			case EMPTY_MESSAGE :
 				return false;
+				
 			case ZOMBIE_DEN_LOCATION :
 				rc.setIndicatorString(2,
 						"Added a den location at turn " + Turn.currentTurn()
@@ -103,24 +109,30 @@ public class Soldier implements Player {
 								+ location.y + ")");
 				elm.addZombieDenLocation(location);
 				break;
+				
 			case ENEMY_ARCHON_LOCATION :
-				field.addParticle(ParticleType.OPPOSITE_ARCHON, location, 10);
+				//field.addParticle(ParticleType.OPPOSITE_ARCHON, location, 10);
 				break;
+				
 			case MESSAGE_HELP_ARCHON :
+				archonAttacked = true;
 				field.addParticle(ParticleType.ARCHON_ATTACKED, location, 5);
 				break;
+				
 			case NEUTRAL_ARCHON_LOCATION :
 				field.addParticle(new ChargedParticle(50, location, 500));
 				break;
+
 			case NEUTRAL_NON_ARCHON_LOCATION :
-				// field.addParticle(new ChargedParticle(1, location, 500));
 				break;
+				
 			case Y_BORDER :
 				int minCoordinateY = location.x;
 				int maxCoordinateY = location.y;
 				rcWrapper.setMaxCoordinate(Direction.NORTH, minCoordinateY);
 				rcWrapper.setMaxCoordinate(Direction.SOUTH, maxCoordinateY);
 				break;
+
 			case X_BORDER :
 				int minCoordinateX = location.x;
 				int maxCoordinateX = location.y;
@@ -129,8 +141,39 @@ public class Soldier implements Player {
 				break;
 
 			case GATHER :
-				gatherMode = true;
-				gatherLocation = location;
+				if(distanceFromSender < nearestFollowerDistance){
+					gatherMode = true;
+					movementDirection = senderLocation.directionTo(location);
+					gatherLocation = senderLocation.add(movementDirection.dx*4, movementDirection.dy*4);
+					nearestFollowerDistance = distanceFromSender;
+				}
+				break;
+
+			case ATTACK :
+				if(distanceFromSender < nearestFollowerDistance){
+					gatherMode = true;
+					movementDirection = senderLocation.directionTo(location);
+					gatherLocation = senderLocation.add(movementDirection.dx*4, movementDirection.dy*4);
+					nearestFollowerDistance = distanceFromSender;
+				}
+				break;
+
+			case ACTIVATE :
+				if(distanceFromSender < nearestFollowerDistance){
+					gatherMode = true;
+					movementDirection = senderLocation.directionTo(location);
+					gatherLocation = senderLocation.add(movementDirection.dx*4, movementDirection.dy*4);
+					nearestFollowerDistance = distanceFromSender;
+				}
+				break;
+				
+			case DEFENSE_MODE_ON :
+				if(distanceFromSender < nearestFollowerDistance){
+					gatherMode = true;
+					movementDirection = senderLocation.directionTo(location);
+					gatherLocation = senderLocation.add(movementDirection.dx*4, movementDirection.dy*4);
+					nearestFollowerDistance = distanceFromSender;
+				}
 				break;
 
 			case ENEMY_BASE_LOCATION :
@@ -172,9 +215,9 @@ public class Soldier implements Player {
 						signal.getLocation(), 2);
 			} else if (signal.getTeam().equals(rcWrapper.myTeam)
 					&& signal.getMessage() != null) {
-				boolean processMessage1 = processMessage(signal.getMessage()[0],
+				boolean processMessage1 = processMessage(signal.getLocation(), signal.getMessage()[0],
 						rc);
-				boolean processMessage2 = processMessage(signal.getMessage()[1],
+				boolean processMessage2 = processMessage(signal.getLocation(), signal.getMessage()[1],
 						rc);
 				// if (!processMessage1 && !processMessage2) {
 				// field.addParticle(ParticleType.FIGHTING_ALLY,
@@ -191,9 +234,10 @@ public class Soldier implements Player {
 		rcWrapper.initOnNewTurn();
 		if (gatherMode) {
 			if (gatherLocation.distanceSquaredTo(
-					rc.getLocation()) <= rc.getType().attackRadiusSquared) {
-				field.addParticle(new ChargedParticle(1000, gatherLocation, 5));
-				gatherMode = false;
+					rc.getLocation()) <= rc.getType().attackRadiusSquared || archonAttacked) {
+				//field.addParticle(new ChargedParticle(1000, gatherLocation, 5));
+				//gatherMode = false;
+				//field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
 			} else {
 				field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
 			}
@@ -203,6 +247,9 @@ public class Soldier implements Player {
 		if (enemyBaseLocation != null) {
 			field.addParticle(new ChargedParticle(-1.0, enemyBaseLocation, 1));
 		}
+
+		archonAttacked = false;
+		nearestFollowerDistance = (int)1e9;
 	}
 
 	/**
@@ -366,7 +413,7 @@ public class Soldier implements Player {
 
 			walkingModeCode(rc);
 		}
-		// rc.setIndicatorString(2, "" + field.particles());
+		rc.setIndicatorString(2, "" + gatherMode + " Location: " + gatherLocation + "field:" + field.particles());
 	}
 
 }
