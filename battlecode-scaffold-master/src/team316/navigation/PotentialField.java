@@ -6,7 +6,6 @@ import java.util.List;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
-import battlecode.common.RobotType;
 import team316.RobotPlayer;
 import team316.navigation.configurations.ArchonConfigurator;
 import team316.navigation.configurations.GuardConfigurator;
