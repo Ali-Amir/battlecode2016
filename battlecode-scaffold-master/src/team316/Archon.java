@@ -65,6 +65,7 @@ public class Archon implements Player {
 		FREEPLAY, GATHER, ACTIVATE, ATTACK, DEFENSE
 	}
 	private GameMode myMode = GameMode.FREEPLAY;
+	private boolean reachedTarget;
 	
 	//private boolean defenseMode = false;
 	//private boolean gatherMode = false;
@@ -303,7 +304,10 @@ public class Archon implements Player {
 				break;
 
 			case ZOMBIE_DEN_LOCATION :
-				densLocations.add(location);
+				if(!densLocations.contains(location)){
+					densLocations.add(location);					
+				}
+
 				// field.addParticle(ParticleType.DEN, location, 100);
 				break;
 
@@ -457,35 +461,41 @@ public class Archon implements Player {
 		}
 		MapLocation closestDenLocation = rcWrapper
 				.getClosestLocation(densLocations);
-		if (closestDenLocation != null) {
+		if (closestDenLocation != null && Turn.currentTurn() > 600) {
 			targetLocation = closestDenLocation;
 			myMode = GameMode.ATTACK;
 			int attackMessage = EncodedMessage.makeMessage(
 					MessageType.ATTACK, targetLocation);
+			System.out.println("Den message!");
 			rc.broadcastMessageSignal(attackMessage, emptyMessage, MAX_RADIUS);
 			return;
 		}
-		targetLocation = rcWrapper.getCurrentLocation();
-		int attackMessage = EncodedMessage.makeMessage(
-				MessageType.DEFENSE_MODE_ON, targetLocation);
-		myMode = GameMode.DEFENSE;
-		rc.broadcastMessageSignal(attackMessage, emptyMessage, MAX_RADIUS);
+		if(Turn.currentTurn() > 1000){
+			targetLocation = rcWrapper.getCurrentLocation();
+			int defenseMessage = EncodedMessage.makeMessage(
+					MessageType.DEFENSE_MODE_ON, targetLocation);
+			myMode = GameMode.DEFENSE;			
+			System.out.println("Defense message!");
+			rc.broadcastMessageSignal(defenseMessage, emptyMessage, MAX_RADIUS);
+		}
 	}
 	// High level logic here.
-	private void addSpecialParticles(RobotController rc) {
+	private void checkMode(RobotController rc) throws GameActionException {
 		boolean finishedMission = false;
-		boolean reachedTarget = false;
+		reachedTarget = false;
 		Integer distance = null;
 		if(targetLocation != null){
 			distance = rcWrapper.getCurrentLocation().distanceSquaredTo(targetLocation); 			
 		}
 		switch (myMode){
 			case FREEPLAY:
-				//reachedTarget = true;
+				rc.setIndicatorString(1, "FreePlay");
+				reachedTarget = true;
 				//finishedMission = Turn.currentTurn() > 200;
 				break;
 				
 			case GATHER:
+				rc.setIndicatorString(1, "Gather");
 				if(distance <= 10){
 					reachedTarget = true;
 					finishedMission = true;
@@ -493,6 +503,7 @@ public class Archon implements Player {
 				break;
 				
 			case ACTIVATE:
+				rc.setIndicatorString(1, "Activate");
 				if(distance <= 1){
 					reachedTarget = true;
 				}
@@ -502,46 +513,48 @@ public class Archon implements Player {
 				break;
 
 			case ATTACK:
-				if(distance <= 100){
+				rc.setIndicatorString(1, "Attack: " + densLocations);
+				if(distance <= 35){
 					reachedTarget = true;
-				}
-				if(rc.senseNearbyRobots(targetLocation, 0, Team.NEUTRAL).length == 0){
-					finishedMission = true;
+					if(rc.senseNearbyRobots(targetLocation, 0, Team.ZOMBIE).length == 0){
+						finishedMission = true;
+					}
 				}
 				break;
 
 			case DEFENSE:
+				rc.setIndicatorString(1, "Defense");
+				reachedTarget = true;
 				break;
 
 			default:
 				break;
 		}
 		
-		if(finishedMission){
+		if(finishedMission && Turn.currentTurn() > 500){
 			switchModes(rc);
 		}
 
-		if (!reachedTarget) {
+		if (!reachedTarget && !inDanger) {
 			field.addParticle(new ChargedParticle(1000, targetLocation, 1));
 			return;
 		}
-		// If there is a neutral archon just go there.
 	}
 
 	private void initializeArchon(RobotController rc)
 			throws GameActionException {
 		rcWrapper.initOnNewTurn();
-		myCurrentLocation = rc.getLocation();
+		myCurrentLocation = rcWrapper.getCurrentLocation();
 		inDanger = false;
-		// rc.setIndicatorString(2,
-		// "Acceptance Rate: " + successfulBuilds + "/" + buildAttempts);
 		IncomingSignals = rc.emptySignalQueue();
-		// field.removeParticleByID(
-		// Encoding.encodeLocationID(this.myCurrentLocation));
 		if (helpMessageDelay > 0) {
 			helpMessageDelay--;
 		}
-		addSpecialParticles(rc);
+		checkInbox(rc);
+
+		seekHelpIfNeeded(rc);
+
+		checkMode(rc);
 
 		if (Turn.currentTurn() == 1) {
 			figureOutRank(rc);
@@ -553,9 +566,6 @@ public class Archon implements Player {
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		initializeArchon(rc);
-		checkInbox(rc);
-
-		seekHelpIfNeeded(rc);
 		broadcastLateMessages(rc);
 		figureOutDistribution();
 
@@ -601,8 +611,8 @@ public class Archon implements Player {
 		for (MapLocation partsLocation : partsLocations) {
 			// if (!partsAdded.contains(partsLocations)) {
 			double amount = rc.senseParts(partsLocation);
-			//field.addParticle(new ChargedParticle(amount / 100.0,
-				//	partsLocation, 1));
+			field.addParticle(new ChargedParticle(amount / 100.0,
+					partsLocation, 1));
 			// partsAdded.add(partsLocation);
 			// }
 		}

@@ -94,6 +94,7 @@ public class Soldier implements Player {
 		switch (EncodedMessage.getMessageType(message)) {
 			case EMPTY_MESSAGE :
 				return false;
+				
 			case ZOMBIE_DEN_LOCATION :
 				rc.setIndicatorString(2,
 						"Added a den location at turn " + Turn.currentTurn()
@@ -101,24 +102,29 @@ public class Soldier implements Player {
 								+ location.y + ")");
 				elm.addZombieDenLocation(location);
 				break;
+				
 			case ENEMY_ARCHON_LOCATION :
-				field.addParticle(ParticleType.OPPOSITE_ARCHON, location, 10);
+				//field.addParticle(ParticleType.OPPOSITE_ARCHON, location, 10);
 				break;
+				
 			case MESSAGE_HELP_ARCHON :
 				field.addParticle(ParticleType.ARCHON_ATTACKED, location, 5);
 				break;
+				
 			case NEUTRAL_ARCHON_LOCATION :
 				field.addParticle(new ChargedParticle(50, location, 500));
 				break;
+
 			case NEUTRAL_NON_ARCHON_LOCATION :
-				// field.addParticle(new ChargedParticle(1, location, 500));
 				break;
+				
 			case Y_BORDER :
 				int minCoordinateY = location.x;
 				int maxCoordinateY = location.y;
 				rcWrapper.setMaxCoordinate(Direction.NORTH, minCoordinateY);
 				rcWrapper.setMaxCoordinate(Direction.SOUTH, maxCoordinateY);
 				break;
+
 			case X_BORDER :
 				int minCoordinateX = location.x;
 				int maxCoordinateX = location.y;
@@ -127,6 +133,21 @@ public class Soldier implements Player {
 				break;
 
 			case GATHER :
+				gatherMode = true;
+				gatherLocation = location;
+				break;
+
+			case ATTACK :
+				gatherMode = true;
+				gatherLocation = location;
+				break;
+
+			case ACTIVATE :
+				gatherMode = true;
+				gatherLocation = location;
+				break;
+
+			case DEFENSE_MODE_ON :
 				gatherMode = true;
 				gatherLocation = location;
 				break;
@@ -320,7 +341,7 @@ public class Soldier implements Player {
 					Clock.getBytecodeNum() - startByteCodes); // TODO
 			fightingModeCode(rc);
 		}
-		// rc.setIndicatorString(2, "" + field.particles());
+		rc.setIndicatorString(2, "" + gatherMode + " Location: " + gatherLocation + "field:" + field.particles());
 	}
 
 }
