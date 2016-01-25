@@ -225,6 +225,27 @@ public class Battle {
 
 		}
 	}
+	
+	public static RobotInfo[] robotsWhoCanAttackLocationPlusDelta(MapLocation loc,
+			RobotInfo[] robots, int delta) {
+		int count = 0;
+		for (RobotInfo r : robots) {
+			if (r.location
+					.distanceSquaredTo(loc) <= r.type.attackRadiusSquared + delta) {
+				++count;
+			}
+		}
+
+		RobotInfo[] attackers = new RobotInfo[count];
+		int index = 0;
+		for (RobotInfo r : robots) {
+			if (r.location
+					.distanceSquaredTo(loc) <= r.type.attackRadiusSquared + delta) {
+				attackers[index++] = r;
+			}
+		}
+		return attackers;
+	}
 
 	public static RobotInfo[] robotsWhoCanAttackLocation(MapLocation loc,
 			RobotInfo[] robots) {

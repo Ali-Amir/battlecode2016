@@ -66,6 +66,10 @@ public class Scout implements Player {
 		ScoutState state = assessSituation(rc);
 
 		rc.setIndicatorString(0, "Currently in mode: " + state);
+		String statusString = "minX: " + minX + " maxX: " + maxX + " minY: "
+				+ minY + " maxY: " + maxY + " nextTurn: "
+				+ nextFlowerSwitchTurn + " particles: " + field.particles();
+		rc.setIndicatorString(1, statusString);
 
 		switch (state) {
 			case RUNAWAY :
@@ -103,8 +107,8 @@ public class Scout implements Player {
 
 			int whichCorner = curFlowerStage / 2;
 
-			final double TARGET_CHARGE = 1.0;
-			final double DEVIATION_CHARGE = 0.02;
+			final double TARGET_CHARGE = 1.0 / 100.0;
+			final double DEVIATION_CHARGE = 0.02 / 100.0;
 			final int midX = (maxX + minX) / 2;
 			final int midY = (maxY + minY) / 2;
 			MapLocation targetLocation;
@@ -161,10 +165,11 @@ public class Scout implements Player {
 	}
 
 	public void runaway(RobotController rc) throws GameActionException {
-		RobotInfo[] robotsWhoCanAttackMe = Battle.robotsWhoCanAttackLocation(
-				rc.getLocation(), rcWrapper.enemyTeamRobotsNearby());
+		RobotInfo[] robotsWhoCanAttackMe = Battle
+				.robotsWhoCanAttackLocationPlusDelta(rc.getLocation(),
+						rcWrapper.enemyTeamRobotsNearby(), 5);
 		for (RobotInfo r : robotsWhoCanAttackMe) {
-			field.addParticle(new ChargedParticle(-1.0, r.location, 1));
+			field.addParticle(new ChargedParticle(-1.0, r.location, 2));
 		}
 
 		if (rc.isCoreReady()) {
@@ -235,6 +240,7 @@ public class Scout implements Player {
 				if (direction.equals(Direction.WEST)) {
 					minX = rcWrapper.getMaxCoordinate(direction);
 				}
+				nextFlowerSwitchTurn = Turn.currentTurn();
 				bordersYetToDiscover[i] = Direction.NONE;
 			}
 		}
