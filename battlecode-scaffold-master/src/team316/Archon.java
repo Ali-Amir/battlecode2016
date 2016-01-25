@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.math.Fraction;
+
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -16,22 +18,19 @@ import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import battlecode.common.Team;
 import team316.navigation.ChargedParticle;
-import team316.navigation.EnemyLocationModel;
 import team316.navigation.ParticleType;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
 import team316.utils.EncodedMessage;
 import team316.utils.EncodedMessage.MessageType;
+import team316.utils.Encoding;
 import team316.utils.Grid;
 import team316.utils.Probability;
 import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
 public class Archon implements Player {
-
-	private final static int BLITZKRIEG_NOTIFICATION_PERIOD_TURNS = 100;
-	private final static int DEN_GATHER_PERIOD_TURNS = 200;
 
 	// For archonRank;
 	// 1 is the leader.
@@ -56,25 +55,17 @@ public class Archon implements Player {
 	private int helpMessageDelay = 0;
 	private int gatherMessageDelay = 0;
 	private final RCWrapper rcWrapper;
-
 	private MapLocation targetLocation = null;
 	private int HELP_MESSASGE_MAX_DELAY = 15;
 	private int GATHER_MESSASGE_MAX_DELAY = 15;
 	private LinkedList<MapLocation> densLocations = new LinkedList<>();
 	private LinkedList<MapLocation> neutralArchonLocations = new LinkedList<>();
 	private Signal[] IncomingSignals;
-
 	static int[] tryDirections = {0, -1, 1, -2, 2};
 	private final static int MAX_RADIUS = GameConstants.MAP_MAX_HEIGHT
 			* GameConstants.MAP_MAX_HEIGHT
 			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
-
-	private MapLocation enemyBaseLocation = null;
-	private int lastBlitzkriegNotification = -1000;
-	private final EnemyLocationModel elm;
-	private int lastDenGatherTurn = -1000;
-
-	private boolean isTopArchon = false;
+	private boolean isTopArchon = false; 
 	public enum GameMode {
 		FREEPLAY, GATHER, ACTIVATE, ATTACK, DEFENSE
 	}
@@ -95,14 +86,13 @@ public class Archon implements Player {
 		this.field = field;
 		this.mc = mc;
 		this.rcWrapper = new RCWrapper(rc);
-		this.elm = new EnemyLocationModel();
 	}
 
 	private boolean attemptBuild(RobotController rc)
 			throws GameActionException {
 		Direction proposedBuildDirection = null;
 		if (rc.isCoreReady()) {
-			if (myMode.equals(GameMode.DEFENSE)) {
+			if (myMode.equals(GameMode.DEFENSE) ) {
 				toBuild = RobotType.TURRET;
 				for (int i = 0; i < 4; i++) {
 					proposedBuildDirection = Grid.mainDirections[i]
@@ -149,6 +139,23 @@ public class Archon implements Player {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Sends a message next turn. Useful with communicating with a unit just
+	 * built.
+	 * 
+	 * @param message1
+	 * @param message2
+	 * @param radius
+	 */
+	private void addNextTurnMessage(Integer firstInteger, Integer secondInteger,
+			int radius) {
+		ArrayList<Integer> message = new ArrayList<>();
+		message.add(firstInteger);
+		message.add(secondInteger);
+		message.add(radius);
+		toBroadcastNextTurnList.add(message);
 	}
 
 	/**
@@ -298,7 +305,7 @@ public class Archon implements Player {
 		myMode = GameMode.GATHER;
 		targetLocation = location;
 	}
-
+	
 	private boolean processMessage(int message) throws GameActionException {
 		MapLocation location = EncodedMessage.getMessageLocation(message);
 		boolean success = false;
@@ -307,9 +314,7 @@ public class Archon implements Player {
 				break;
 
 			case ZOMBIE_DEN_LOCATION :
-				elm.addZombieDenLocation(location);
-				//field.addParticle(ParticleType.DEN, location, 100);
-				if (!densLocations.contains(location)) {
+				if(!densLocations.contains(location)){
 					densLocations.add(location);
 				}
 
@@ -345,40 +350,31 @@ public class Archon implements Player {
 				} else {
 					rcWrapper.setMaxCoordinate(Direction.EAST, coordinateX);
 				}
-
+				
 				break;
 
 			case DEFENSE_MODE_ON :
 				myMode = GameMode.DEFENSE;
 				targetLocation = location;
-				// isTopArchon = false;
+				//isTopArchon = false;
 				break;
-
+				
 			case ACTIVATE :
 				myMode = GameMode.ACTIVATE;
 				targetLocation = location;
-				// isTopArchon = false;
+				//isTopArchon = false;
 				break;
-
+				
 			case ATTACK :
 				myMode = GameMode.ATTACK;
 				targetLocation = location;
-				// isTopArchon = false;
+				//isTopArchon = false;
 				break;
 
 			case GATHER :
 				System.out.println("Gather Message received!");
-				if (elm.knownZombieDens.contains(location)) {
-					lastDenGatherTurn = Turn.currentTurn();
-					elm.knownZombieDens.remove(location);
-				}
 				startGather(location);
-				// isTopArchon = false;
-				break;
-
-			case ENEMY_BASE_LOCATION :
-				System.out.println("Enemy base location received: " + location);
-				enemyBaseLocation = location;
+				//isTopArchon = false;
 				break;
 
 			default :
@@ -465,18 +461,17 @@ public class Archon implements Player {
 
 	}
 
-	private void switchModes(RobotController rc) throws GameActionException {
+	private void switchModes(RobotController rc) throws GameActionException{
 		MapLocation closestArchonLocation = rcWrapper
 				.getClosestLocation(neutralArchonLocations);
-		int emptyMessage = EncodedMessage.makeMessage(MessageType.EMPTY_MESSAGE,
-				new MapLocation(0, 0));
+		int emptyMessage = EncodedMessage.makeMessage(
+				MessageType.EMPTY_MESSAGE, new MapLocation(0, 0));
 		if (closestArchonLocation != null) {
 			targetLocation = closestArchonLocation;
 			myMode = GameMode.ACTIVATE;
-			int activateMessage = EncodedMessage
-					.makeMessage(MessageType.ACTIVATE, targetLocation);
-			// rc.broadcastMessageSignal(activateMessage, emptyMessage,
-			// MAX_RADIUS);
+			int activateMessage = EncodedMessage.makeMessage(
+					MessageType.ACTIVATE, targetLocation);
+			//rc.broadcastMessageSignal(activateMessage, emptyMessage, MAX_RADIUS);
 			return;
 		}
 		MapLocation closestDenLocation = rcWrapper
@@ -484,21 +479,19 @@ public class Archon implements Player {
 		if (closestDenLocation != null && Turn.currentTurn() > 600) {
 			targetLocation = closestDenLocation;
 			myMode = GameMode.ATTACK;
-			int attackMessage = EncodedMessage.makeMessage(MessageType.ATTACK,
-					targetLocation);
+			int attackMessage = EncodedMessage.makeMessage(
+					MessageType.ATTACK, targetLocation);
 			System.out.println("Den message!");
-			// rc.broadcastMessageSignal(attackMessage, emptyMessage,
-			// MAX_RADIUS);
+			//rc.broadcastMessageSignal(attackMessage, emptyMessage, MAX_RADIUS);
 			return;
 		}
-		if (Turn.currentTurn() > 1000) {
+		if(Turn.currentTurn() > 1000){
 			targetLocation = rcWrapper.getCurrentLocation();
-			int defenseMessage = EncodedMessage
-					.makeMessage(MessageType.DEFENSE_MODE_ON, targetLocation);
-			myMode = GameMode.DEFENSE;
+			int defenseMessage = EncodedMessage.makeMessage(
+					MessageType.DEFENSE_MODE_ON, targetLocation);
+			myMode = GameMode.DEFENSE;			
 			System.out.println("Defense message!");
-			// rc.broadcastMessageSignal(defenseMessage, emptyMessage,
-			// MAX_RADIUS);
+			//rc.broadcastMessageSignal(defenseMessage, emptyMessage, MAX_RADIUS);
 		}
 	}
 	
@@ -507,45 +500,42 @@ public class Archon implements Player {
 		boolean finishedMission = false;
 		reachedTarget = false;
 		Integer distance = null;
-		if (targetLocation != null) {
-			distance = rcWrapper.getCurrentLocation()
-					.distanceSquaredTo(targetLocation);
+		if(targetLocation != null){
+			distance = rcWrapper.getCurrentLocation().distanceSquaredTo(targetLocation); 			
 		}
 		MessageType messageType = null;
-		switch (myMode) {
-			case FREEPLAY :
+		switch (myMode){
+			case FREEPLAY:
 				rc.setIndicatorString(1, "FreePlay");
 				reachedTarget = true;
-				// finishedMission = Turn.currentTurn() > 200;
+				//finishedMission = Turn.currentTurn() > 200;
 				break;
-
-			case GATHER :
+				
+			case GATHER:
 				rc.setIndicatorString(1, "Gather");
-				if (distance <= 10) {
+				if(distance <= 10){
 					reachedTarget = true;
 					finishedMission = true;
 				}
 				messageType = MessageType.GATHER;
 				break;
-
-			case ACTIVATE :
+				
+			case ACTIVATE:
 				rc.setIndicatorString(1, "Activate");
-				if (distance <= 1) {
+				if(distance <= 1){
 					reachedTarget = true;
 				}
-				if (rc.senseNearbyRobots(targetLocation, 0,
-						Team.NEUTRAL).length == 0) {
+				if(rc.senseNearbyRobots(targetLocation, 0, Team.NEUTRAL).length == 0){
 					finishedMission = true;
 				}
 				messageType = MessageType.ACTIVATE;
 				break;
 
-			case ATTACK :
+			case ATTACK:
 				rc.setIndicatorString(1, "Attack: " + densLocations);
-				if (distance <= 35) {
+				if(distance <= 35){
 					reachedTarget = true;
-					if (rc.senseNearbyRobots(targetLocation, 0,
-							Team.ZOMBIE).length == 0) {
+					if(rc.senseNearbyRobots(targetLocation, 0, Team.ZOMBIE).length == 0){
 						finishedMission = true;
 						densLocations.remove(targetLocation);
 					}
@@ -553,17 +543,17 @@ public class Archon implements Player {
 				messageType = MessageType.ATTACK;
 				break;
 
-			case DEFENSE :
+			case DEFENSE:
 				rc.setIndicatorString(1, "Defense");
 				reachedTarget = true;
 				messageType = MessageType.DEFENSE_MODE_ON;
 				break;
 
-			default :
+			default:
 				break;
 		}
-
-		if (finishedMission && Turn.currentTurn() > 500) {
+		
+		if(finishedMission && Turn.currentTurn() > 500){
 			switchModes(rc);
 		}
 		if(!myMode.equals(GameMode.FREEPLAY)){
@@ -589,9 +579,6 @@ public class Archon implements Player {
 		if (helpMessageDelay > 0) {
 			helpMessageDelay--;
 		}
-		// if (gatherMode) { // TODO
-		// field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
-		// }
 		if (gatherMessageDelay > 0) {
 			gatherMessageDelay--;
 		}
@@ -607,45 +594,6 @@ public class Archon implements Player {
 			healthyArchonCount = rc
 					.getInitialArchonLocations(rcWrapper.myTeam).length;
 		}
-
-		// if (Turn.currentTurn() - lastDenGatherTurn >= DEN_GATHER_PERIOD_TURNS
-		// && !elm.knownZombieDens.isEmpty()) {
-		// lastDenGatherTurn = Turn.currentTurn();
-		// MapLocation closestDen = null;
-		// for (MapLocation l : elm.knownZombieDens) {
-		// if (closestDen == null
-		// || closestDen.distanceSquaredTo(rc.getLocation()) > l
-		// .distanceSquaredTo(rc.getLocation())) {
-		// closestDen = l;
-		// }
-		// }
-		// elm.knownZombieDens.remove(closestDen);
-		// rc.broadcastMessageSignal(
-		// EncodedMessage.makeMessage(MessageType.GATHER, closestDen),
-		// 0, MAX_RADIUS);
-		// }
-
-		// Start producing vipers if 1/3 of the game has passed. Getting ready
-		// for ambush.
-		if (enemyBaseLocation != null) {
-			field.addParticle(new ChargedParticle(-0.1, enemyBaseLocation, 1));
-
-			if (Turn.currentTurn() >= 2000) {
-				buildDistribution.clear();
-				buildDistribution.put(RobotType.VIPER, 100.0);
-				buildDistribution.put(RobotType.SOLDIER, 2.0);
-			}
-
-			if (Turn.currentTurn() >= 2500 && Turn.currentTurn()
-					- lastBlitzkriegNotification >= BLITZKRIEG_NOTIFICATION_PERIOD_TURNS) {
-				lastBlitzkriegNotification = Turn.currentTurn();
-				rc.broadcastMessageSignal(EncodedMessage
-						.makeMessage(MessageType.BLITZKRIEG, enemyBaseLocation),
-						0, MAX_RADIUS);
-			}
-		}
-
-		rc.setIndicatorString(1, "Zombie den locations known: ");
 	}
 
 	@Override
@@ -662,8 +610,7 @@ public class Archon implements Player {
 		adjustBattle(rc);
 		// If not necessary move with a probability.
 		if (inDanger || myMode.equals(GameMode.GATHER)
-				|| (Probability.acceptWithProbability(.10)
-						&& !myMode.equals(GameMode.DEFENSE))) {
+				|| (Probability.acceptWithProbability(.10) && !myMode.equals(GameMode.DEFENSE))) {
 			attempMoving(rc);
 		}
 		if (!inDanger && myMode.equals(GameMode.FREEPLAY)
@@ -673,7 +620,7 @@ public class Archon implements Player {
 			int emptyMessage = EncodedMessage.makeMessage(
 					MessageType.EMPTY_MESSAGE, new MapLocation(0, 0));
 			rc.broadcastMessageSignal(gatherMessage, emptyMessage, MAX_RADIUS);
-			// System.out.println("Gather Message sent");
+			//System.out.println("Gather Message sent");
 			startGather(rcWrapper.getCurrentLocation());
 		}
 	}
@@ -697,8 +644,8 @@ public class Archon implements Player {
 		for (MapLocation partsLocation : partsLocations) {
 			// if (!partsAdded.contains(partsLocations)) {
 			double amount = rc.senseParts(partsLocation);
-			field.addParticle(
-					new ChargedParticle(amount / 100.0, partsLocation, 1));
+			field.addParticle(new ChargedParticle(amount / 100.0,
+					partsLocation, 1));
 			// partsAdded.add(partsLocation);
 			// }
 		}
@@ -708,6 +655,24 @@ public class Archon implements Player {
 			Battle.addBorderParticles(rcWrapper, field);
 		}
 
+	}
+
+	/**
+	 * Gets an unmarried turret or scout or null if there is not.
+	 * 
+	 * @param robots
+	 * @param targetType
+	 * @param married
+	 * @return
+	 */
+	private static RobotInfo getLonelyRobot(RobotInfo[] robots,
+			RobotType targetType, Set<Integer> married) {
+		for (RobotInfo robot : robots) {
+			if (robot.type == targetType && !married.contains(robot.ID)) {
+				return robot;
+			}
+		}
+		return null;
 	}
 
 }
