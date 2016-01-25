@@ -22,15 +22,17 @@ import team316.utils.RCWrapper;
 
 public class EnemyLocationModel {
 
-	private final Set<MapLocation> knownZombieDens;
+	public final Set<MapLocation> knownZombieDens;
 	private final Set<MapLocation> knownNeutrals;
 	private final Set<MapLocation> knownEnemyArchonLocations;
 	private final Set<Direction> knownBorders;
 	private final RobotController rc;
 	private final RCWrapper rcWrapper;
-	public Queue<Integer> notificationsPending;
-	final Map<Direction, Integer> maxCoordinateSofar;
+	private final Map<Direction, Integer> maxCoordinateSofar;
 	private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
+	
+	public Queue<Integer> notificationsPending;
+	
 	public EnemyLocationModel() {
 		knownZombieDens = new HashSet<>();
 		knownNeutrals = new HashSet<>();
