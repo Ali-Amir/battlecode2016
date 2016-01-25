@@ -80,15 +80,16 @@ public class Archon implements Player {
 	}
 	private GameMode myMode = GameMode.FREEPLAY;
 	private boolean reachedTarget;
-	private static int emptyMessage = EncodedMessage
-			.makeMessage(MessageType.EMPTY_MESSAGE, new MapLocation(0, 0));
-	// private boolean defenseMode = false;
-	// private boolean gatherMode = false;
-	// private boolean activationMode = false;
-	// private boolean attackMode = false;
-	// private MapLocation gatherLocation = null;
-	// private MapLocation attackLocation = null;
-
+	private static int emptyMessage = EncodedMessage.makeMessage(
+			MessageType.EMPTY_MESSAGE, new MapLocation(0, 0));
+	int modeMessage;
+	//private boolean defenseMode = false;
+	//private boolean gatherMode = false;
+	//private boolean activationMode = false;
+	//private boolean attackMode = false;
+	//private MapLocation gatherLocation = null;
+	//private MapLocation attackLocation = null;
+	
 	public Archon(PotentialField field, MotionController mc,
 			RobotController rc) {
 		this.field = field;
@@ -139,6 +140,9 @@ public class Archon implements Player {
 					rc.build(buildDirection, toBuild);
 					// lastBuilt = toBuild;
 					toBuild = null;
+					if(!myMode.equals(GameMode.FREEPLAY)){
+						addNextTurnMessage(modeMessage, emptyMessage, 2);
+					}
 					return true;
 				}
 
@@ -304,7 +308,7 @@ public class Archon implements Player {
 
 			case ZOMBIE_DEN_LOCATION :
 				elm.addZombieDenLocation(location);
-				field.addParticle(ParticleType.DEN, location, 100);
+				//field.addParticle(ParticleType.DEN, location, 100);
 				if (!densLocations.contains(location)) {
 					densLocations.add(location);
 				}
@@ -322,7 +326,7 @@ public class Archon implements Player {
 				break;
 
 			case NEUTRAL_NON_ARCHON_LOCATION :
-				field.addParticle(new ChargedParticle(9, location, 100));
+				field.addParticle(new ChargedParticle(30, location, 100));
 				break;
 
 			case Y_BORDER :
@@ -497,6 +501,7 @@ public class Archon implements Player {
 			// MAX_RADIUS);
 		}
 	}
+	
 	// High level logic here.
 	private void checkMode(RobotController rc) throws GameActionException {
 		boolean finishedMission = false;
@@ -561,10 +566,11 @@ public class Archon implements Player {
 		if (finishedMission && Turn.currentTurn() > 500) {
 			switchModes(rc);
 		}
-		if (!myMode.equals(GameMode.FREEPLAY) && gatherMessageDelay <= 0
-				&& !inDanger) {
-			int message = EncodedMessage.makeMessage(messageType,
-					targetLocation);
+		if(!myMode.equals(GameMode.FREEPLAY)){
+			modeMessage = EncodedMessage.makeMessage(messageType, targetLocation);			
+		}
+		if(!myMode.equals(GameMode.FREEPLAY) && gatherMessageDelay == 0 && !inDanger){
+			int message = modeMessage;
 			rc.broadcastMessageSignal(message, emptyMessage, 1000);
 			gatherMessageDelay = GATHER_MESSASGE_MAX_DELAY;
 		}
