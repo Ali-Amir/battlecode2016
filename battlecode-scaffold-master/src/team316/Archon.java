@@ -73,6 +73,7 @@ public class Archon implements Player {
 	private boolean reachedTarget;
 	private static int emptyMessage = EncodedMessage.makeMessage(
 			MessageType.EMPTY_MESSAGE, new MapLocation(0, 0));
+	int modeMessage;
 	//private boolean defenseMode = false;
 	//private boolean gatherMode = false;
 	//private boolean activationMode = false;
@@ -129,6 +130,9 @@ public class Archon implements Player {
 					rc.build(buildDirection, toBuild);
 					// lastBuilt = toBuild;
 					toBuild = null;
+					if(!myMode.equals(GameMode.FREEPLAY)){
+						addNextTurnMessage(modeMessage, emptyMessage, 2);
+					}
 					return true;
 				}
 
@@ -311,7 +315,7 @@ public class Archon implements Player {
 
 			case ZOMBIE_DEN_LOCATION :
 				if(!densLocations.contains(location)){
-					densLocations.add(location);					
+					densLocations.add(location);
 				}
 
 				// field.addParticle(ParticleType.DEN, location, 100);
@@ -327,7 +331,7 @@ public class Archon implements Player {
 				break;
 
 			case NEUTRAL_NON_ARCHON_LOCATION :
-				field.addParticle(new ChargedParticle(9, location, 100));
+				field.addParticle(new ChargedParticle(30, location, 100));
 				break;
 
 			case Y_BORDER :
@@ -490,6 +494,7 @@ public class Archon implements Player {
 			//rc.broadcastMessageSignal(defenseMessage, emptyMessage, MAX_RADIUS);
 		}
 	}
+	
 	// High level logic here.
 	private void checkMode(RobotController rc) throws GameActionException {
 		boolean finishedMission = false;
@@ -551,8 +556,11 @@ public class Archon implements Player {
 		if(finishedMission && Turn.currentTurn() > 500){
 			switchModes(rc);
 		}
+		if(!myMode.equals(GameMode.FREEPLAY)){
+			modeMessage = EncodedMessage.makeMessage(messageType, targetLocation);			
+		}
 		if(!myMode.equals(GameMode.FREEPLAY) && gatherMessageDelay == 0 && !inDanger){
-			int message = EncodedMessage.makeMessage(messageType, targetLocation);
+			int message = modeMessage;
 			rc.broadcastMessageSignal(message, emptyMessage, 1000);
 			gatherMessageDelay = GATHER_MESSASGE_MAX_DELAY;
 		}
