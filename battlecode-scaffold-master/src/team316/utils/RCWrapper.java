@@ -1,6 +1,7 @@
 package team316.utils;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import battlecode.common.Direction;
@@ -35,6 +36,7 @@ public class RCWrapper {
 	private double currentHealth;
 	private MapLocation currentLocation;
 	private RobotType type;
+	private static final int INF = (int) 1e9;
 	/**
 	 * Creates a new instance of RobotController wrapper class with given robot
 	 * controller.
@@ -75,11 +77,11 @@ public class RCWrapper {
 		String output = "Max so far in ";
 		for (int i = 0; i < 4; i++) {
 			Direction direction = Grid.mainDirections[i];
-			//output += direction + " is " + "something";
-			//output += direction + " is " + getMaxSoFarCoordinate(direction);
+			// output += direction + " is " + "something";
+			// output += direction + " is " + getMaxSoFarCoordinate(direction);
 		}
-		//output += "broadcast:" + maxBroadcastRadius();
-		//rc.setIndicatorString(1, output);
+		// output += "broadcast:" + maxBroadcastRadius();
+		// rc.setIndicatorString(1, output);
 	}
 
 	/**
@@ -204,8 +206,8 @@ public class RCWrapper {
 		}
 		this.maxSoFarCoordinate.put(direction, value);
 		this.maxCoordinate.put(direction, value);
-		//this.rc.setIndicatorString(2,
-			//	"I just knew about that " + direction + " border at " + value);
+		// this.rc.setIndicatorString(2,
+		// "I just knew about that " + direction + " border at " + value);
 	}
 
 	public Integer getMaxSoFarCoordinate(Direction direction)
@@ -278,7 +280,8 @@ public class RCWrapper {
 		// this.getCurrentLocation());
 		return this.getCurrentLocation();
 	}
-	public Integer maxBroadcastRadius() throws GameActionException{
+
+	public Integer maxBroadcastRadius() throws GameActionException {
 		int x = getCurrentLocation().x;
 		int x1 = getMaxSoFarCoordinate(Direction.WEST);
 		int x2 = getMaxSoFarCoordinate(Direction.EAST);
@@ -289,6 +292,20 @@ public class RCWrapper {
 		int y2 = getMaxSoFarCoordinate(Direction.SOUTH);
 		int resty = 80 - (y2 - y1);
 		int yComponent = resty + Math.max(y - y1, y2 - y);
-		return xComponent*xComponent + yComponent*yComponent;
+		return xComponent * xComponent + yComponent * yComponent;
 	}
+
+	public MapLocation getClosestLocation(LinkedList<MapLocation> locations) {
+		MapLocation closestLocation = null;
+		int shortestDistance = INF;
+		for (MapLocation location : locations) {
+			int distance = getCurrentLocation().distanceSquaredTo(location);
+			if (distance < shortestDistance) {
+				closestLocation = location;
+				shortestDistance = distance;
+			}
+		}
+		return closestLocation;
+	}
+
 }
