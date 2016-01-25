@@ -202,8 +202,9 @@ public class Soldier implements Player {
 		if (gatherMode) {
 			if (gatherLocation.distanceSquaredTo(
 					rc.getLocation()) <= rc.getType().attackRadiusSquared) {
-				field.addParticle(new ChargedParticle(1000, gatherLocation, 5));
-				gatherMode = false;
+				//field.addParticle(new ChargedParticle(1000, gatherLocation, 5));
+				//gatherMode = false;
+				field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
 			} else {
 				field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
 			}

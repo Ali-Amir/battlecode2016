@@ -87,16 +87,22 @@ public class EnemyLocationModel {
 					.makeMessage(MessageType.NEUTRAL_NON_ARCHON_LOCATION, loc));
 		}
 	}
-	
-	public void addBorders(Direction direction, int value) throws GameActionException{
-		if(!knownBorders.contains(direction)){
+
+	public void addEnemyBaseLocation(MapLocation loc) {
+		notificationsPending.add(EncodedMessage
+				.makeMessage(MessageType.ENEMY_BASE_LOCATION, loc));
+	}
+
+	public void addBorders(Direction direction, int value)
+			throws GameActionException {
+		if (!knownBorders.contains(direction)) {
 			knownBorders.add(direction);
-			if(Grid.isVertical(direction)){
-				notificationsPending.add(EncodedMessage
-						.makeMessage(MessageType.Y_BORDER, new MapLocation(0, value) ));
-			}else{
-				notificationsPending.add(EncodedMessage
-						.makeMessage(MessageType.X_BORDER, new MapLocation(value, 0) ));
+			if (Grid.isVertical(direction)) {
+				notificationsPending.add(EncodedMessage.makeMessage(
+						MessageType.Y_BORDER, new MapLocation(0, value)));
+			} else {
+				notificationsPending.add(EncodedMessage.makeMessage(
+						MessageType.X_BORDER, new MapLocation(value, 0)));
 			}
 
 		}

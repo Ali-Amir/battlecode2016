@@ -2,7 +2,6 @@ package team316;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -20,6 +19,7 @@ public class Scout implements Player {
 
 	private static final int BROADCAST_RADIUS = 80 * 80 * 2;
 	private static final int BROADCAST_INTERVAL_MIN = 50;
+	private static final int ENEMY_BASE_NOTIFICATION_PERIOD_TURNS = 200;
 
 	private final PotentialField field;
 	private final MotionController mc;
@@ -31,9 +31,11 @@ public class Scout implements Player {
 	private int maxX;
 	private int maxY;
 	private int nextFlowerSwitchTurn = 0;
+	private int lastEnemyBaseNotificationTurn = -1000;
 	private int curFlowerStage = 0;
 	private int lastBroadcast = -100;
 	private int curDirection = 0;
+
 	private Direction[] bordersYetToDiscover = {Direction.NORTH,
 			Direction.SOUTH, Direction.EAST, Direction.WEST};
 
@@ -67,8 +69,8 @@ public class Scout implements Player {
 
 		rc.setIndicatorString(0, "Currently in mode: " + state);
 		String statusString = "minX: " + minX + " maxX: " + maxX + " minY: "
-				+ minY + " maxY: " + maxY + " nextTurn: "
-				+ nextFlowerSwitchTurn + " particles: " + field.particles();
+				+ minY + " maxY: " + maxY + " nextTurn: " + nextFlowerSwitchTurn
+				+ " particles: " + field.particles();
 		rc.setIndicatorString(1, statusString);
 
 		switch (state) {
@@ -182,6 +184,7 @@ public class Scout implements Player {
 		inspectEnemiesWithinSightRange();
 		inspectNeutralRobotswithinSightRange(rc);
 		inspectBorders(rcWrapper);
+		inspectEnemyBase();
 		RobotInfo[] robotsWhoCanAttackMe = Battle.robotsWhoCanAttackLocation(
 				rc.getLocation(), rcWrapper.enemyTeamRobotsNearby());
 		if (robotsWhoCanAttackMe.length > 0) {
@@ -242,6 +245,42 @@ public class Scout implements Player {
 				}
 				nextFlowerSwitchTurn = Turn.currentTurn();
 				bordersYetToDiscover[i] = Direction.NONE;
+			}
+		}
+	}
+
+	private void inspectEnemyBase() throws GameActionException {
+		// Theorem: enemy has a base if there is a bunch of turrets set up
+		// together or there is an archon with at least one turret in sight.s
+		RobotInfo[] enemyRobots = rcWrapper.enemyTeamRobotsNearby();
+		MapLocation archonLocation = null;
+		int sumXTurrets = 0, sumYTurrets = 0, numTurrets = 0;
+		for (RobotInfo r : enemyRobots) {
+			switch (r.type) {
+				case ARCHON :
+					archonLocation = r.location;
+					break;
+				case TURRET :
+					++numTurrets;
+					sumXTurrets += r.location.x;
+					sumYTurrets += r.location.y;
+					break;
+				default :
+					break;
+			}
+		}
+
+		boolean enemyHasBase = (archonLocation != null && numTurrets > 0)
+				|| (numTurrets > 1);
+		if (enemyHasBase) {
+			MapLocation enemyBaseLoc = archonLocation != null
+					? archonLocation
+					: new MapLocation(sumXTurrets / numTurrets,
+							sumYTurrets / numTurrets);
+			if (Turn.currentTurn()
+					- lastEnemyBaseNotificationTurn >= ENEMY_BASE_NOTIFICATION_PERIOD_TURNS) {
+				lastEnemyBaseNotificationTurn = Turn.currentTurn();
+				elm.addEnemyBaseLocation(enemyBaseLoc);
 			}
 		}
 	}
