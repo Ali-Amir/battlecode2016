@@ -42,7 +42,9 @@ public class Soldier implements Player {
 	private int maxPartEByteCodes = 0;
 	private boolean gatherMode = false;
 	private MapLocation gatherLocation = null;
-
+	private static int nearestFollowerDistance;
+	private boolean archonAttacked;
+	
 	public Soldier(MapLocation archonLoc, PotentialField field,
 			MotionController mc, RobotController rc) {
 		this.field = field;
@@ -87,10 +89,12 @@ public class Soldier implements Player {
 		}
 	}
 
-	public boolean processMessage(int message, RobotController rc)
+	public boolean processMessage(MapLocation senderLocation, int message, RobotController rc)
 			throws GameActionException {
 		boolean success = true;
+		Direction movementDirection;
 		MapLocation location = EncodedMessage.getMessageLocation(message);
+		int distanceFromSender = rcWrapper.getCurrentLocation().distanceSquaredTo(senderLocation);
 		switch (EncodedMessage.getMessageType(message)) {
 			case EMPTY_MESSAGE :
 				return false;
@@ -108,6 +112,7 @@ public class Soldier implements Player {
 				break;
 				
 			case MESSAGE_HELP_ARCHON :
+				archonAttacked = true;
 				field.addParticle(ParticleType.ARCHON_ATTACKED, location, 5);
 				break;
 				
@@ -133,23 +138,39 @@ public class Soldier implements Player {
 				break;
 
 			case GATHER :
-				gatherMode = true;
-				gatherLocation = location;
+				if(distanceFromSender < nearestFollowerDistance){
+					gatherMode = true;
+					movementDirection = senderLocation.directionTo(location);
+					gatherLocation = senderLocation.add(movementDirection.dx*4, movementDirection.dy*4);
+					nearestFollowerDistance = distanceFromSender;
+				}
 				break;
 
 			case ATTACK :
-				gatherMode = true;
-				gatherLocation = location;
+				if(distanceFromSender < nearestFollowerDistance){
+					gatherMode = true;
+					movementDirection = senderLocation.directionTo(location);
+					gatherLocation = senderLocation.add(movementDirection.dx*4, movementDirection.dy*4);
+					nearestFollowerDistance = distanceFromSender;
+				}
 				break;
 
 			case ACTIVATE :
-				gatherMode = true;
-				gatherLocation = location;
+				if(distanceFromSender < nearestFollowerDistance){
+					gatherMode = true;
+					movementDirection = senderLocation.directionTo(location);
+					gatherLocation = senderLocation.add(movementDirection.dx*4, movementDirection.dy*4);
+					nearestFollowerDistance = distanceFromSender;
+				}
 				break;
-
+				
 			case DEFENSE_MODE_ON :
-				gatherMode = true;
-				gatherLocation = location;
+				if(distanceFromSender < nearestFollowerDistance){
+					gatherMode = true;
+					movementDirection = senderLocation.directionTo(location);
+					gatherLocation = senderLocation.add(movementDirection.dx*4, movementDirection.dy*4);
+					nearestFollowerDistance = distanceFromSender;
+				}
 				break;
 
 			default :
@@ -182,9 +203,9 @@ public class Soldier implements Player {
 						signal.getLocation(), 2);
 			} else if (signal.getTeam().equals(rcWrapper.myTeam)
 					&& signal.getMessage() != null) {
-				boolean processMessage1 = processMessage(signal.getMessage()[0],
+				boolean processMessage1 = processMessage(signal.getLocation(), signal.getMessage()[0],
 						rc);
-				boolean processMessage2 = processMessage(signal.getMessage()[1],
+				boolean processMessage2 = processMessage(signal.getLocation(), signal.getMessage()[1],
 						rc);
 				// if (!processMessage1 && !processMessage2) {
 				// field.addParticle(ParticleType.FIGHTING_ALLY,
@@ -201,14 +222,16 @@ public class Soldier implements Player {
 		rcWrapper.initOnNewTurn();
 		if (gatherMode) {
 			if (gatherLocation.distanceSquaredTo(
-					rc.getLocation()) <= rc.getType().attackRadiusSquared) {
+					rc.getLocation()) <= rc.getType().attackRadiusSquared || archonAttacked) {
 				//field.addParticle(new ChargedParticle(1000, gatherLocation, 5));
 				//gatherMode = false;
-				field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
+				//field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
 			} else {
 				field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
 			}
 		}
+		archonAttacked = false;
+		nearestFollowerDistance = (int)1e9;
 	}
 
 	/**

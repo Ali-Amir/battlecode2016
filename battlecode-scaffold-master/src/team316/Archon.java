@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.math.Fraction;
+
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -51,9 +53,11 @@ public class Archon implements Player {
 	private Set<MapLocation> consideredPartsBeforeFrom = new HashSet<>();
 	private Set<MapLocation> partsAdded = new HashSet<>();
 	private int helpMessageDelay = 0;
+	private int gatherMessageDelay = 0;
 	private final RCWrapper rcWrapper;
 	private MapLocation targetLocation = null;
 	private int HELP_MESSASGE_MAX_DELAY = 15;
+	private int GATHER_MESSASGE_MAX_DELAY = 15;
 	private LinkedList<MapLocation> densLocations = new LinkedList<>();
 	private LinkedList<MapLocation> neutralArchonLocations = new LinkedList<>();
 	private Signal[] IncomingSignals;
@@ -61,12 +65,14 @@ public class Archon implements Player {
 	private final static int MAX_RADIUS = GameConstants.MAP_MAX_HEIGHT
 			* GameConstants.MAP_MAX_HEIGHT
 			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
+	private boolean isTopArchon = false; 
 	public enum GameMode {
 		FREEPLAY, GATHER, ACTIVATE, ATTACK, DEFENSE
 	}
 	private GameMode myMode = GameMode.FREEPLAY;
 	private boolean reachedTarget;
-	
+	private static int emptyMessage = EncodedMessage.makeMessage(
+			MessageType.EMPTY_MESSAGE, new MapLocation(0, 0));
 	//private boolean defenseMode = false;
 	//private boolean gatherMode = false;
 	//private boolean activationMode = false;
@@ -191,7 +197,7 @@ public class Archon implements Player {
 				int message = EncodedMessage.makeMessage(
 						MessageType.MESSAGE_HELP_ARCHON,
 						rcWrapper.getCurrentLocation());
-				rc.broadcastMessageSignal(message, 0, 1000);
+				rc.broadcastMessageSignal(message, emptyMessage, 1000);
 				helpMessageDelay = this.HELP_MESSASGE_MAX_DELAY;
 			}
 		}
@@ -340,26 +346,31 @@ public class Archon implements Player {
 				} else {
 					rcWrapper.setMaxCoordinate(Direction.EAST, coordinateX);
 				}
+				
 				break;
 
 			case DEFENSE_MODE_ON :
 				myMode = GameMode.DEFENSE;
 				targetLocation = location;
+				//isTopArchon = false;
 				break;
 				
 			case ACTIVATE :
 				myMode = GameMode.ACTIVATE;
 				targetLocation = location;
+				//isTopArchon = false;
 				break;
 				
 			case ATTACK :
 				myMode = GameMode.ATTACK;
 				targetLocation = location;
+				//isTopArchon = false;
 				break;
 
 			case GATHER :
 				System.out.println("Gather Message received!");
 				startGather(location);
+				//isTopArchon = false;
 				break;
 
 			default :
@@ -456,7 +467,7 @@ public class Archon implements Player {
 			myMode = GameMode.ACTIVATE;
 			int activateMessage = EncodedMessage.makeMessage(
 					MessageType.ACTIVATE, targetLocation);
-			rc.broadcastMessageSignal(activateMessage, emptyMessage, MAX_RADIUS);
+			//rc.broadcastMessageSignal(activateMessage, emptyMessage, MAX_RADIUS);
 			return;
 		}
 		MapLocation closestDenLocation = rcWrapper
@@ -467,7 +478,7 @@ public class Archon implements Player {
 			int attackMessage = EncodedMessage.makeMessage(
 					MessageType.ATTACK, targetLocation);
 			System.out.println("Den message!");
-			rc.broadcastMessageSignal(attackMessage, emptyMessage, MAX_RADIUS);
+			//rc.broadcastMessageSignal(attackMessage, emptyMessage, MAX_RADIUS);
 			return;
 		}
 		if(Turn.currentTurn() > 1000){
@@ -476,7 +487,7 @@ public class Archon implements Player {
 					MessageType.DEFENSE_MODE_ON, targetLocation);
 			myMode = GameMode.DEFENSE;			
 			System.out.println("Defense message!");
-			rc.broadcastMessageSignal(defenseMessage, emptyMessage, MAX_RADIUS);
+			//rc.broadcastMessageSignal(defenseMessage, emptyMessage, MAX_RADIUS);
 		}
 	}
 	// High level logic here.
@@ -487,6 +498,7 @@ public class Archon implements Player {
 		if(targetLocation != null){
 			distance = rcWrapper.getCurrentLocation().distanceSquaredTo(targetLocation); 			
 		}
+		MessageType messageType = null;
 		switch (myMode){
 			case FREEPLAY:
 				rc.setIndicatorString(1, "FreePlay");
@@ -500,6 +512,7 @@ public class Archon implements Player {
 					reachedTarget = true;
 					finishedMission = true;
 				}
+				messageType = MessageType.GATHER;
 				break;
 				
 			case ACTIVATE:
@@ -510,6 +523,7 @@ public class Archon implements Player {
 				if(rc.senseNearbyRobots(targetLocation, 0, Team.NEUTRAL).length == 0){
 					finishedMission = true;
 				}
+				messageType = MessageType.ACTIVATE;
 				break;
 
 			case ATTACK:
@@ -518,13 +532,16 @@ public class Archon implements Player {
 					reachedTarget = true;
 					if(rc.senseNearbyRobots(targetLocation, 0, Team.ZOMBIE).length == 0){
 						finishedMission = true;
+						densLocations.remove(targetLocation);
 					}
 				}
+				messageType = MessageType.ATTACK;
 				break;
 
 			case DEFENSE:
 				rc.setIndicatorString(1, "Defense");
 				reachedTarget = true;
+				messageType = MessageType.DEFENSE_MODE_ON;
 				break;
 
 			default:
@@ -534,7 +551,11 @@ public class Archon implements Player {
 		if(finishedMission && Turn.currentTurn() > 500){
 			switchModes(rc);
 		}
-
+		if(!myMode.equals(GameMode.FREEPLAY) && gatherMessageDelay == 0 && !inDanger){
+			int message = EncodedMessage.makeMessage(messageType, targetLocation);
+			rc.broadcastMessageSignal(message, emptyMessage, 1000);
+			gatherMessageDelay = GATHER_MESSASGE_MAX_DELAY;
+		}
 		if (!reachedTarget && !inDanger) {
 			field.addParticle(new ChargedParticle(1000, targetLocation, 1));
 			return;
@@ -550,6 +571,10 @@ public class Archon implements Player {
 		if (helpMessageDelay > 0) {
 			helpMessageDelay--;
 		}
+		if (gatherMessageDelay > 0) {
+			gatherMessageDelay--;
+		}
+
 		checkInbox(rc);
 
 		seekHelpIfNeeded(rc);
@@ -587,7 +612,7 @@ public class Archon implements Player {
 			int emptyMessage = EncodedMessage.makeMessage(
 					MessageType.EMPTY_MESSAGE, new MapLocation(0, 0));
 			rc.broadcastMessageSignal(gatherMessage, emptyMessage, MAX_RADIUS);
-			System.out.println("Gather Message sent");
+			//System.out.println("Gather Message sent");
 			startGather(rcWrapper.getCurrentLocation());
 		}
 	}
