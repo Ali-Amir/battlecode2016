@@ -81,16 +81,16 @@ public class Battle {
 					}
 					added = true;
 					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
+							new ChargedParticle(-1000.0, s.location, lifetime));
 					break;
 				case BIGZOMBIE :
 					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 6) {
+							RobotPlayer.rc.getLocation()) >= 9) {
 						break;
 					}
 					added = true;
 					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
+							new ChargedParticle(-1000.0, s.location, lifetime));
 					break;
 				case STANDARDZOMBIE :
 					if (s.location.distanceSquaredTo(
@@ -99,14 +99,14 @@ public class Battle {
 					}
 					added = true;
 					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
+							new ChargedParticle(-1000.0, s.location, lifetime));
 					break;
 				case SCOUT :
 					break;
 				default :
 					added = true;
 					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
+							new ChargedParticle(-1000.0, s.location, lifetime));
 			}
 		}
 		return added;
