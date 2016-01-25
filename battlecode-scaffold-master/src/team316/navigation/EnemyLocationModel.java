@@ -1,45 +1,77 @@
 package team316.navigation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import team316.RobotPlayer;
 import team316.utils.EncodedMessage;
-import team316.utils.RCWrapper;
 import team316.utils.EncodedMessage.MessageType;
 import team316.utils.Grid;
+import team316.utils.RCWrapper;
 
 public class EnemyLocationModel {
 
-	final Set<MapLocation> knownZombieDens;
-	final Set<MapLocation> knownNeutrals;
-	final Set<Direction> knownBorders;
+	private final Set<MapLocation> knownZombieDens;
+	private final Set<MapLocation> knownNeutrals;
+	private final Set<MapLocation> knownEnemyArchonLocations;
+	private final Set<Direction> knownBorders;
+	private final RobotController rc;
+	private final RCWrapper rcWrapper;
 	public Queue<Integer> notificationsPending;
 	final Map<Direction, Integer> maxCoordinateSofar;
 	private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
 	public EnemyLocationModel() {
 		knownZombieDens = new HashSet<>();
 		knownNeutrals = new HashSet<>();
+		knownEnemyArchonLocations = new HashSet<>();
 		notificationsPending = new LinkedList<>();
 		knownBorders = new HashSet<>();
+		this.rc = RobotPlayer.rc;
+		this.rcWrapper = RobotPlayer.rcWrapper;
 		maxCoordinateSofar = new HashMap<>();
 	}
 
-	public void addZombieDenLocation(RobotInfo r) {
-		if (!knownZombieDens.contains(r.location)) {
-			knownZombieDens.add(r.location);
-			notificationsPending
-					.add(EncodedMessage.zombieDenLocation(r.location));
+	public int numStrategicLocations() {
+		return knownZombieDens.size();
+	}
+
+	public void pushStrategicLocationsToField(PotentialField field,
+			int lifetime) {
+		for (MapLocation zombieDen : knownZombieDens) {
+			field.addParticle(ParticleType.DEN, zombieDen, 1);
 		}
 	}
+
+	public void addEnemyArchonLocation(MapLocation loc) {
+		if (!knownEnemyArchonLocations.contains(loc)) {
+			knownEnemyArchonLocations.add(loc);
+			notificationsPending.add(EncodedMessage
+					.makeMessage(MessageType.ENEMY_ARCHON_LOCATION, loc));
+		}
+	}
+
+	public void addZombieDenLocation(MapLocation loc) {
+		if (!knownZombieDens.contains(loc)) {
+			knownZombieDens.add(loc);
+			notificationsPending.add(EncodedMessage.zombieDenLocation(loc));
+		}
+	}
+
+	public void addZombieDenLocation(RobotInfo r) {
+		addZombieDenLocation(r.location);
+	}
+
 	public void addNeutralArchon(MapLocation loc) {
 		if (!knownNeutrals.contains(loc)) {
 			knownNeutrals.add(loc);
@@ -47,6 +79,7 @@ public class EnemyLocationModel {
 					.makeMessage(MessageType.NEUTRAL_ARCHON_LOCATION, loc));
 		}
 	}
+
 	public void addNeutralNonArchon(MapLocation loc) {
 		if (!knownNeutrals.contains(loc)) {
 			knownNeutrals.add(loc);
@@ -65,16 +98,33 @@ public class EnemyLocationModel {
 				notificationsPending.add(EncodedMessage
 						.makeMessage(MessageType.X_BORDER, new MapLocation(value, 0) ));
 			}
-			
+
 		}
 	}
-	
-	public void onNewTurn() throws GameActionException {
-		/*
-		for(int i = 0; i < 4; i++){
-			Direction direction = Grid.mainDirections[i];
-			maxSoFarCoordinate.put(direction, rcWrapper.getMaxSoFarCoordinate(direction));
+
+	public void onNewTurn() {
+		List<MapLocation> locationsToDelete = new ArrayList<>();
+		RobotInfo[] densNearby = null;
+		for (MapLocation loc : knownZombieDens) {
+			if (rc.getLocation().distanceSquaredTo(
+					loc) <= rc.getType().sensorRadiusSquared) {
+				if (densNearby == null) {
+					densNearby = rcWrapper.zombieDensNearby();
+				}
+				boolean isStillAlive = false;
+				for (RobotInfo r : densNearby) {
+					if (r.location.equals(loc)) {
+						isStillAlive = true;
+					}
+				}
+				if (!isStillAlive) {
+					locationsToDelete.add(loc);
+				}
+			}
 		}
-		*/
+
+		for (MapLocation loc : locationsToDelete) {
+			knownZombieDens.remove(loc);
+		}
 	}
 }

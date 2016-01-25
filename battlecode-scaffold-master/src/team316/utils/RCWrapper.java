@@ -26,6 +26,8 @@ public class RCWrapper {
 	private RobotInfo[] enemyTeamNearby = null;
 	private RobotInfo[] attackableHostile = null;
 	private RobotInfo[] attackableEnemyTeam = null;
+	private RobotInfo[] allyRobotsNearby = null;
+	private RobotInfo[] zombieDensNearby = null;
 	private Map<Direction, Integer> maxCoordinate = new HashMap<>();
 	private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
 	private Integer senseRadius = null;
@@ -70,7 +72,9 @@ public class RCWrapper {
 		enemyTeamNearby = null;
 		attackableHostile = null;
 		attackableEnemyTeam = null;
+		allyRobotsNearby = null;
 		archonNearby = null;
+		zombieDensNearby = null;
 		this.previousHealth = this.currentHealth;
 		this.currentHealth = rc.getHealth();
 		this.currentLocation = null;
@@ -132,6 +136,27 @@ public class RCWrapper {
 	}
 
 	/**
+	 * @return Zombie dens in the range of sight.
+	 */
+	public RobotInfo[] zombieDensNearby() {
+		int num = 0;
+		final RobotInfo[] hostileRobots = hostileRobotsNearby();
+		for (RobotInfo r : hostileRobots) {
+			if (r.type.equals(RobotType.ZOMBIEDEN)) {
+				++num;
+			}
+		}
+		final RobotInfo[] robots = new RobotInfo[num];
+		int index = 0;
+		for (RobotInfo r : hostileRobots) {
+			if (r.type.equals(RobotType.ZOMBIEDEN)) {
+				robots[index++] = r;
+			}
+		}
+		return robots;
+	}
+
+	/**
 	 * @return Enemy team's robots nearby sorted by attack priority (first has
 	 *         highest priority). Caches results to avoid overhead.
 	 */
@@ -177,6 +202,20 @@ public class RCWrapper {
 				.senseNearbyRobots(rc.getType().attackRadiusSquared, enemyTeam);
 		putWeakestInFront(attackableEnemyTeam);
 		return attackableEnemyTeam;
+	}
+
+	/**
+	 * @return Own team's robots nearby. Caches results to avoid overhead.
+	 */
+	public RobotInfo[] allyRobotsNearby() {
+		if (allyRobotsNearby != null) {
+			return allyRobotsNearby;
+		}
+
+		// Get the enemy team robots.
+		allyRobotsNearby = rc.senseNearbyRobots(
+				rc.getType().sensorRadiusSquared, rc.getTeam());
+		return allyRobotsNearby;
 	}
 
 	public static void putWeakestInFront(RobotInfo[] robots) {

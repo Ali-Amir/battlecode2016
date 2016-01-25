@@ -9,6 +9,7 @@ public class EncodedMessage {
 		EMPTY_MESSAGE, ZOMBIE_DEN_LOCATION, ENEMY_ARCHON_LOCATION, NEUTRAL_ARCHON_LOCATION, NEUTRAL_NON_ARCHON_LOCATION , MESSAGE_HELLO_ARCHON, MESSAGE_WELCOME_ACTIVATED_ARCHON,
 		MESSAGE_HELP_ARCHON, Y_BORDER, X_BORDER, DEFENSE_MODE_ON, GATHER, ATTACK, ACTIVATE
 	}
+
 	/**
 	 * Gets message type.
 	 * 
@@ -18,6 +19,7 @@ public class EncodedMessage {
 	public static MessageType getMessageType(int message) {
 		return MessageType.values()[(message & 15)];
 	}
+
 	/**
 	 * 
 	 * @param message
@@ -44,7 +46,6 @@ public class EncodedMessage {
 	}
 
 	public static int encodeLocation20bits(MapLocation loc) {
-
 		int encoding = (loc.x << 10) + loc.y;
 		return encoding;
 	}
