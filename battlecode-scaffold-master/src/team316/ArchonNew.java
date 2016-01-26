@@ -426,48 +426,45 @@ public class ArchonNew implements Player {
 	public void play(RobotController rc) throws GameActionException {
 		initOnNewTurn(rc);
 
-		while (Clock.getBytecodesLeft() > 10000) {
-			ActionIntent mode = assessSitutation();
-			switch (mode) {
-				case I_AM_BORN :
-					// Init distribution on birth
-					buildDistribution.clear();
-					buildDistribution.put(RobotType.SCOUT, 10.0);
-					buildDistribution.put(RobotType.SOLDIER, 90.0);
+		ActionIntent mode = assessSitutation();
+		switch (mode) {
+			case I_AM_BORN :
+				// Init distribution on birth
+				buildDistribution.clear();
+				buildDistribution.put(RobotType.SCOUT, 10.0);
+				buildDistribution.put(RobotType.SOLDIER, 90.0);
 
-					figureOutRank(rc);
-					healthyArchonCount = rc
-							.getInitialArchonLocations(rcWrapper.myTeam).length;
+				figureOutRank(rc);
+				healthyArchonCount = rc
+						.getInitialArchonLocations(rcWrapper.myTeam).length;
 
-					usualRoutineCode();
-					break;
+				usualRoutineCode();
+				break;
 
-				case OMG_OMG_IM_ATTACKED :
-					// TODO runaway from enemies, ask for help.
-					tryActivateNearbyNeutrals(rc); // TODO only if not chased by
-													// zombies.
-					// Add border particles.
-					Battle.addBorderParticles(rcWrapper, field);
-					Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(),
-							field, 1);
+			case OMG_OMG_IM_ATTACKED :
+				tryActivateNearbyNeutrals(rc); // TODO only if not chased by
+												// zombies.
+				// Add border particles.
+				Battle.addBorderParticles(rcWrapper, field);
+				Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field,
+						1);
 
-					if (Turn.turnsSince(
-							lastHelpAskedTurn) >= HELP_MESSAGE_MAX_DELAY) {
-						addToMessageQueue(EncodedMessage.makeMessage(
-								MessageType.MESSAGE_HELP_ARCHON,
-								rc.getLocation()), 1000);
-					}
+				if (Turn.turnsSince(
+						lastHelpAskedTurn) >= HELP_MESSAGE_MAX_DELAY) {
+					addToMessageQueue(EncodedMessage.makeMessage(
+							MessageType.MESSAGE_HELP_ARCHON, rc.getLocation()),
+							1000);
+				}
 
-					mc.tryToMove(rc);
-					break;
+				mc.tryToMove(rc);
+				break;
 
-				case USUAL_ROUTINE :
-					usualRoutineCode();
-					break;
-			}
-
-			checkIfTargetWasReached(rc);
+			case USUAL_ROUTINE :
+				usualRoutineCode();
+				break;
 		}
+
+		checkIfTargetWasReached(rc);
 	}
 
 }
