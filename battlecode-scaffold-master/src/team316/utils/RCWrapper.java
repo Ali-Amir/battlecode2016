@@ -88,14 +88,14 @@ public class RCWrapper {
 		this.currentHealth = rc.getHealth();
 		this.currentLocation = null;
 		this.maxBroadcastRadius = null;
-		String output = "Max so far in ";
-		for (int i = 0; i < 4; i++) {
-			Direction direction = Grid.mainDirections[i];
-			// output += direction + " is " + "something";
-			// output += direction + " is " + getMaxSoFarCoordinate(direction);
+		if(type == RobotType.ARCHON || type == RobotType.SCOUT){
+			for (int i = 0; i < 4; i++) {
+				Direction direction = Grid.mainDirections[i];
+				if(maxCoordinate[direction.ordinal()] == null){
+					getMaxSoFarCoordinate(direction);
+				}
+			}			
 		}
-		// output += "broadcast:" + maxBroadcastRadius();
-		// rc.setIndicatorString(1, output);
 	}
 
 	/**

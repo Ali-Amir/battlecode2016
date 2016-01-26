@@ -215,10 +215,10 @@ public class ArchonNew implements Player {
 
 	private void processMessage(int message) throws GameActionException {
 		MapLocation location = EncodedMessage.getMessageLocation(message);
+		if (EncodedMessage.isEmptyMessage(message)) {
+			return;
+		}
 		switch (EncodedMessage.getMessageType(message)) {
-			case EMPTY_MESSAGE :
-				break;
-
 			case ZOMBIE_DEN_LOCATION :
 				elm.addZombieDenLocation(location);
 				break;
