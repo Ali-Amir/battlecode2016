@@ -1,8 +1,6 @@
 package team316.utils;
 
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Set;
 
 import battlecode.common.Direction;
@@ -31,10 +29,9 @@ public class RCWrapper {
 	private RobotInfo[] allyRobotsNearby = null;
 	private RobotInfo[] zombieDensNearby = null;
 	private Signal[] incomingSignals = null;
-	
-	private Map<Direction, Integer> maxCoordinate = new HashMap<>();
-	private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
-	
+
+	private Integer maxCoordinate[] = new Integer[10];
+	private Integer maxSoFarCoordinate[] = new Integer[10];
 	private Integer senseRadius = null;
 	public RobotInfo archonNearby = null;
 	public final Team myTeam;
@@ -44,6 +41,8 @@ public class RCWrapper {
 	private MapLocation currentLocation;
 	private RobotType type;
 	private static final int INF = (int) 1e9;
+	private String loggingString;
+	private Integer maxBroadcastRadius;
 	/**
 	 * Creates a new instance of RobotController wrapper class with given robot
 	 * controller.
@@ -63,6 +62,10 @@ public class RCWrapper {
 		this.currentHealth = rc.getHealth();
 		this.previousHealth = this.currentHealth;
 		this.type = rc.getType();
+		for (int i = 0; i < 10; i++) {
+			maxCoordinate[i] = null;
+			maxSoFarCoordinate[i] = null;
+		}
 		// this.senseRadius = getSenseRaidus();
 	}
 
@@ -84,6 +87,7 @@ public class RCWrapper {
 		this.previousHealth = this.currentHealth;
 		this.currentHealth = rc.getHealth();
 		this.currentLocation = null;
+		this.maxBroadcastRadius = null;
 		String output = "Max so far in ";
 		for (int i = 0; i < 4; i++) {
 			Direction direction = Grid.mainDirections[i];
@@ -93,7 +97,7 @@ public class RCWrapper {
 		// output += "broadcast:" + maxBroadcastRadius();
 		// rc.setIndicatorString(1, output);
 	}
-	
+
 	/**
 	 * @return Incoming singlas from queue. Caches results.
 	 */
@@ -155,6 +159,10 @@ public class RCWrapper {
 	 * @return Zombie dens in the range of sight.
 	 */
 	public RobotInfo[] zombieDensNearby() {
+		if (zombieDensNearby != null) {
+			return zombieDensNearby;
+		}
+		
 		int num = 0;
 		final RobotInfo[] hostileRobots = hostileRobotsNearby();
 		for (RobotInfo r : hostileRobots) {
@@ -169,7 +177,8 @@ public class RCWrapper {
 				robots[index++] = r;
 			}
 		}
-		return robots;
+		zombieDensNearby = robots;
+		return zombieDensNearby;
 	}
 
 	/**
@@ -259,8 +268,10 @@ public class RCWrapper {
 		if (value == -1 || value == null) {
 			return;
 		}
-		this.maxSoFarCoordinate.put(direction, value);
-		this.maxCoordinate.put(direction, value);
+		int directionOrdinal = direction.ordinal();
+		maxSoFarCoordinate[directionOrdinal] = value;
+		maxCoordinate[directionOrdinal] = value;
+		// this.maxCoordinate.put(direction, value);
 		// this.rc.setIndicatorString(2,
 		// "I just knew about that " + direction + " border at " + value);
 	}
@@ -268,7 +279,7 @@ public class RCWrapper {
 	public Integer getMaxSoFarCoordinate(Direction direction)
 			throws GameActionException {
 		getMaxCoordinate(direction);
-		return maxSoFarCoordinate.get(direction);
+		return maxSoFarCoordinate[direction.ordinal()];
 	}
 
 	/**
@@ -281,8 +292,8 @@ public class RCWrapper {
 	 */
 	public Integer getMaxCoordinate(Direction direction)
 			throws GameActionException {
-		if (this.maxCoordinate.containsKey(direction)) {
-			return this.maxCoordinate.get(direction);
+		if (maxCoordinate[direction.ordinal()] != null) {
+			return maxCoordinate[direction.ordinal()];
 		}
 		MapLocation lastTile = getLastTile(direction);
 		if (lastTile == null) {
@@ -290,14 +301,13 @@ public class RCWrapper {
 					getSenseRaidus());
 			int coordinate = Grid.getRelevantCoordinate(direction, furthest);
 			coordinate = Grid.compareCoordinates(direction, coordinate,
-					this.maxSoFarCoordinate.getOrDefault(direction, null));
-
-			maxSoFarCoordinate.put(direction, coordinate);
+					maxSoFarCoordinate[direction.ordinal()]);
+			maxSoFarCoordinate[direction.ordinal()] = coordinate;
 			return null;
 		}
 		int coordinate = Grid.getRelevantCoordinate(direction, lastTile);
-		maxCoordinate.put(direction, coordinate);
-		maxSoFarCoordinate.put(direction, coordinate);
+		maxCoordinate[direction.ordinal()] = coordinate;
+		maxSoFarCoordinate[direction.ordinal()] = coordinate;
 		return coordinate;
 	}
 
@@ -336,18 +346,66 @@ public class RCWrapper {
 		return this.getCurrentLocation();
 	}
 
-	public Integer maxBroadcastRadius() throws GameActionException {
-		int x = getCurrentLocation().x;
-		int x1 = getMaxSoFarCoordinate(Direction.WEST);
-		int x2 = getMaxSoFarCoordinate(Direction.EAST);
-		int restx = 80 - (x2 - x1);
-		int xComponent = restx + Math.max(x - x1, x2 - x);
-		int y = getCurrentLocation().y;
-		int y1 = getMaxSoFarCoordinate(Direction.NORTH);
-		int y2 = getMaxSoFarCoordinate(Direction.SOUTH);
-		int resty = 80 - (y2 - y1);
-		int yComponent = resty + Math.max(y - y1, y2 - y);
-		return xComponent * xComponent + yComponent * yComponent;
+	private Integer getFurthestBorderDistance(Direction startDirection,
+			Direction endDirection, Integer coordinate)
+					throws GameActionException {
+		Integer maxSoFarStart = getMaxSoFarCoordinate(startDirection);
+		Integer maxSoFarEnd = getMaxSoFarCoordinate(endDirection);
+		Integer maxStart = getMaxCoordinate(startDirection);/// maxCoordinate.getOrDefault(startDirection,
+															/// null);
+		Integer maxEnd = getMaxCoordinate(endDirection);
+		// loggingString += "In " + startDirection + ": " + maxSoFarStart + ",
+		// In " + endDirection + ": " + maxSoFarEnd;
+		// loggingString += "Real Max: In " + startDirection + ": " + maxStart +
+		// ", In " + endDirection + ": " + maxEnd;
+		int start, myEnd;
+		boolean fixedStart = false, fixedEnd = false;
+
+		if (maxStart == null) {
+			start = maxSoFarStart;
+		} else {
+			start = maxStart;
+			fixedStart = true;
+		}
+
+		if (maxEnd == null) {
+			myEnd = maxSoFarEnd;
+		} else {
+			myEnd = maxEnd;
+			fixedEnd = true;
+		}
+
+		int possible = 80 - (myEnd - start);
+		int maxFromStartDistance = coordinate - start,
+				maxToEndDistance = myEnd - coordinate;
+
+		if (!fixedStart) {
+			maxFromStartDistance += Math.min(start, possible);
+		}
+
+		if (!fixedEnd) {
+			maxToEndDistance += Math.min(possible, 580 - myEnd);
+		}
+		return Math.max(maxFromStartDistance, maxToEndDistance);
+	}
+
+	public Integer getMaxBroadcastRadius() throws GameActionException {
+		if (maxBroadcastRadius != null) {
+			return maxBroadcastRadius;
+		}
+		// loggingString = "";
+		int xComponent = getFurthestBorderDistance(Direction.WEST,
+				Direction.EAST, getCurrentLocation().x);
+		int yComponent = getFurthestBorderDistance(Direction.NORTH,
+				Direction.SOUTH, getCurrentLocation().y);
+		int result = xComponent * xComponent + yComponent * yComponent;
+		// loggingString += "dx= " + xComponent + ", dy= " + yComponent + ",
+		// result= " + result;
+		// rc.setIndicatorString(2, loggingString);
+		// System.out.println("dx= " + xComponent + ", dy= " + yComponent + ",
+		// result= " + result);
+		maxBroadcastRadius = result;
+		return result;
 	}
 
 	public MapLocation getClosestLocation(LinkedList<MapLocation> locations) {
@@ -362,7 +420,7 @@ public class RCWrapper {
 		}
 		return closestLocation;
 	}
-	
+
 	public MapLocation getClosestLocation(Set<MapLocation> locations) {
 		MapLocation closestLocation = null;
 		int shortestDistance = INF;
