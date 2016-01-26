@@ -37,9 +37,6 @@ public class ArchonNew implements Player {
 		I_AM_BORN, OMG_OMG_IM_ATTACKED, USUAL_ROUTINE, WANNA_GO_FOR_A_WALK, DEFENSE
 	}
 
-	private final static int MAX_RADIUS = GameConstants.MAP_MAX_HEIGHT
-			* GameConstants.MAP_MAX_HEIGHT
-			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
 	private final static int HELP_MESSAGE_MAX_DELAY = 30;
 	private final static int GATHER_MESSAGE_MAX_DELAY = 15;
 	private final static int MESSAGE_BROADCAST_ATTEMPT_FREQUENCY = 10;
@@ -193,7 +190,7 @@ public class ArchonNew implements Player {
 		archonRank++;
 
 		// Find farthest archon from me and broadcast that I'm initialized.
-		
+
 		MapLocation[] archonLocations = rc
 				.getInitialArchonLocations(rcWrapper.myTeam);
 		int furthestArchonDistance = 0;
@@ -205,7 +202,8 @@ public class ArchonNew implements Player {
 					furthestArchonDistance = distance;
 				}
 			}
-			//System.out.println("furthest Distance: " + furthestArchonDistance);
+			// System.out.println("furthest Distance: " +
+			// furthestArchonDistance);
 		} else {
 			furthestArchonDistance = rcWrapper.getMaxBroadcastRadius();
 		}
@@ -214,7 +212,8 @@ public class ArchonNew implements Player {
 		int message = EncodedMessage.makeMessage(
 				MessageType.MESSAGE_HELLO_ARCHON,
 				rcWrapper.getCurrentLocation());
-		rc.broadcastMessageSignal(message, EncodedMessage.makeEmptyMessage(), furthestArchonDistance);
+		rc.broadcastMessageSignal(message, EncodedMessage.makeEmptyMessage(),
+				furthestArchonDistance);
 
 		rc.setIndicatorString(0, "My archon rank is: " + archonRank);
 	}
@@ -330,13 +329,11 @@ public class ArchonNew implements Player {
 			walkReason = WalkReason.ACTIVATE;
 		}
 		/*
-		MapLocation closestNeutralArchonLocation = rcWrapper
-				.getClosestLocation(neutralArchonLocations);
-		if (closestNeutralArchonLocation != null) {
-			targetLocation = closestNeutralArchonLocation;
-			walkReason = WalkReason.ACTIVATE;
-		}
-		*/
+		 * MapLocation closestNeutralArchonLocation = rcWrapper
+		 * .getClosestLocation(neutralArchonLocations); if
+		 * (closestNeutralArchonLocation != null) { targetLocation =
+		 * closestNeutralArchonLocation; walkReason = WalkReason.ACTIVATE; }
+		 */
 	}
 
 	// High level logic here.
@@ -458,8 +455,8 @@ public class ArchonNew implements Player {
 				Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field,
 						1);
 
-				if (Turn.turnsSince(
-						lastHelpAskedTurn) >= HELP_MESSAGE_MAX_DELAY) {
+				if (Turn.turnsSince(lastHelpAskedTurn) >= HELP_MESSAGE_MAX_DELAY
+						&& rc.getRobotCount() > 1) {
 					lastHelpAskedTurn = Turn.currentTurn();
 					addToMessageQueue(EncodedMessage.makeMessage(
 							MessageType.MESSAGE_HELP_ARCHON, rc.getLocation()),
