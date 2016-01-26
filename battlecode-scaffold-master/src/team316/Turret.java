@@ -104,15 +104,17 @@ public class Turret implements Player {
 	}
 
 	private void attackCode(RobotController rc) throws GameActionException {
+		rc.setIndicatorString(2, "Searching for enemy");
 		if (!rc.isWeaponReady()) {
 			return;
 		}
 		RobotInfo[] visibleEnemyArray = rc.senseHostileRobots(rc.getLocation(),
-				1000000);
+				rc.getType().sensorRadiusSquared);
 		if (visibleEnemyArray.length > 0) {
 			lastTimeEnemySeen = Turn.currentTurn();
 		}
-		double weakest = 0;
+
+		double weakest = -100000;
 		MapLocation weakestLocation = null;
 		for (RobotInfo enemy : visibleEnemyArray) {
 			int distanceToSignalingEnemy = rc.getLocation()
@@ -130,7 +132,7 @@ public class Turret implements Player {
 			rc.attackLocation(weakestLocation);
 			return;
 		}
-
+		rc.setIndicatorString(2, "Can't see any enemies!");
 		for (Signal s : incomingSignals) {
 			if (s.getTeam() == rc.getTeam().opponent()) {
 				MapLocation enemySignalLocation = s.getLocation();

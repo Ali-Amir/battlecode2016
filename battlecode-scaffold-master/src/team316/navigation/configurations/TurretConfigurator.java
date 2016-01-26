@@ -36,7 +36,7 @@ public class TurretConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double allyArchonCharge() {
-		return -1.0;
+		return 20.0;
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class TurretConfigurator extends RobotPotentialConfigurator {
 	
 	@Override
 	protected double allyDefaultCharge() {
-		return 10.0;
+		return 20.0;
 	}
 
 	@Override
