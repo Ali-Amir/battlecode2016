@@ -53,5 +53,13 @@ public class EncodedMessage {
 	public static MapLocation decodeLocation20bits(int encoding) {
 		return new MapLocation(encoding >> 10, encoding & 1023);
 	}
-
+	
+	public static int EmptyMessage(){
+		return EncodedMessage.makeMessage(MessageType.ZOMBIE_DEN_LOCATION, new MapLocation(1000, 1000));
+	}
+	
+	public static boolean isEmptyMessage(int message){
+		return message == EmptyMessage();
+	}
+	
 }

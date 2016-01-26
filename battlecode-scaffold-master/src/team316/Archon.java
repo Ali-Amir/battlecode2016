@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.math.Fraction;
 
+import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -62,7 +63,7 @@ public class Archon implements Player {
 	private LinkedList<MapLocation> neutralArchonLocations = new LinkedList<>();
 	private Signal[] IncomingSignals;
 	static int[] tryDirections = {0, -1, 1, -2, 2};
-	private final static int MAX_RADIUS = GameConstants.MAP_MAX_HEIGHT
+	private static int MAX_RADIUS = GameConstants.MAP_MAX_HEIGHT
 			* GameConstants.MAP_MAX_HEIGHT
 			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
 	private boolean isTopArchon = false; 
@@ -309,6 +310,11 @@ public class Archon implements Player {
 	private boolean processMessage(int message) throws GameActionException {
 		MapLocation location = EncodedMessage.getMessageLocation(message);
 		boolean success = false;
+		//TODO add in new code.
+		if(EncodedMessage.isEmptyMessage(message)){
+			return false;
+		}
+		
 		switch (EncodedMessage.getMessageType(message)) {
 			case EMPTY_MESSAGE :
 				break;
@@ -573,6 +579,7 @@ public class Archon implements Player {
 	private void initializeArchon(RobotController rc)
 			throws GameActionException {
 		rcWrapper.initOnNewTurn();
+		MAX_RADIUS = rcWrapper.getMaxBroadcastRadius();
 		myCurrentLocation = rcWrapper.getCurrentLocation();
 		inDanger = false;
 		IncomingSignals = rc.emptySignalQueue();
@@ -654,7 +661,6 @@ public class Archon implements Player {
 		if (inDanger) {
 			Battle.addBorderParticles(rcWrapper, field);
 		}
-
 	}
 
 	/**
