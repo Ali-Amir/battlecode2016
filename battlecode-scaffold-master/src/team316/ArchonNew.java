@@ -81,7 +81,7 @@ public class ArchonNew implements Player {
 		this.birthTurn = Turn.currentTurn();
 		this.elm = new EnemyLocationModel();
 		this.messageQueue = new ArrayList<>();
-		this.toBuild = RobotType.SCOUT;
+		this.toBuild = RobotType.SOLDIER;
 	}
 
 	private boolean attemptBuild(RobotController rc)
@@ -466,7 +466,7 @@ public class ArchonNew implements Player {
 		if (rcWrapper.isUnderAttack()) {
 			return ActionIntent.OMG_OMG_IM_ATTACKED;
 		}
-		
+
 		if (Turn.currentTurn() > 100) {
 			buildDistribution.clear();
 			buildDistribution.put(RobotType.SCOUT, 5.0);
@@ -478,12 +478,12 @@ public class ArchonNew implements Player {
 		 * if (Turn.currentTurn() > 1000) { return ActionIntent.DEFENSE; }
 		 */
 		if (enemyBaseLoc != null) {
-			if (Turn.currentTurn() > 2000) {
+			if (Turn.currentTurn() > 1000) {
 				buildDistribution.clear();
 				buildDistribution.put(RobotType.VIPER, 100.0);
 			}
 
-			if (Turn.currentTurn() > 2500 && Turn.turnsSince(
+			if (Turn.currentTurn() > 1500 && Turn.turnsSince(
 					lastBlitzkriegAnnouncement) > BLITZKRIEG_ANNOUNCEMENT_FREQUENCY_TURNS) {
 				lastBlitzkriegAnnouncement = Turn.currentTurn();
 				addToMessageQueue(
@@ -538,7 +538,7 @@ public class ArchonNew implements Player {
 		}
 
 		attemptBuild(rc);
-		
+
 		mc.tryToMoveRandom(rc);
 	}
 
@@ -566,6 +566,10 @@ public class ArchonNew implements Player {
 				figureOutRank(rc);
 				healthyArchonCount = rc
 						.getInitialArchonLocations(rcWrapper.myTeam).length;
+
+				if (archonRank == 1) {
+					this.toBuild = RobotType.SCOUT;
+				}
 
 				usualRoutineCode();
 				break;

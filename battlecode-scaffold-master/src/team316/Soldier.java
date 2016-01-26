@@ -370,7 +370,7 @@ public class Soldier implements Player {
 		}
 
 		field.addParticle(new ChargedParticle(100.0, enemyBaseLocation, 1));
-		if (Turn.currentTurn() < 3000 - TURNS_BEFORE_AMBUSH && rc.getLocation()
+		if (Turn.currentTurn() < 1700 && rc.getLocation()
 				.distanceSquaredTo(enemyBaseLocation) <= 40 * 6) {
 			field.addParticle(
 					new ChargedParticle(-200.0, enemyBaseLocation, 1));
