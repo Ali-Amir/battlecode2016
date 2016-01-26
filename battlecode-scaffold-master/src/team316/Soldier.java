@@ -1,7 +1,5 @@
 package team316;
 
-import java.util.ArrayList;
-
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -25,6 +23,7 @@ public class Soldier implements Player {
 	private static final int MESSAGE_DELAY_TURNS = 5000;
 	private static final int BROADCAST_RADIUSSQR = 200;
 	private static final int ARMY_MARCH_SIZE = 4;
+	private static final int TURNS_BEFORE_AMBUSH = 300;
 
 	private final PotentialField field;
 	private final MotionController mc;
@@ -42,6 +41,10 @@ public class Soldier implements Player {
 	private int maxPartEByteCodes = 0;
 	private boolean gatherMode = false;
 	private MapLocation gatherLocation = null;
+
+	private boolean isBlitzkriegActivated = false;
+	private MapLocation enemyBaseLocation = null;
+
 	private static int nearestFollowerDistance;
 	private boolean archonAttacked;
 
@@ -182,6 +185,15 @@ public class Soldier implements Player {
 				}
 				break;
 
+			case ENEMY_BASE_LOCATION :
+				enemyBaseLocation = location;
+				break;
+
+			case BLITZKRIEG :
+				isBlitzkriegActivated = true;
+				enemyBaseLocation = location;
+				break;
+
 			default :
 				break;
 		}
@@ -225,6 +237,7 @@ public class Soldier implements Player {
 		// field.addParticle(elm.predictEnemyBase(rc));
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
+		field.discardDeadParticles();
 		if (gatherMode) {
 			if (gatherLocation.distanceSquaredTo(
 					rc.getLocation()) <= rc.getType().attackRadiusSquared
@@ -238,6 +251,12 @@ public class Soldier implements Player {
 				field.addParticle(new ChargedParticle(1000, gatherLocation, 1));
 			}
 		}
+
+		// Try to avoid enemy base location until blitzkrieg is activated.
+		if (enemyBaseLocation != null) {
+			field.addParticle(new ChargedParticle(-1.0, enemyBaseLocation, 1));
+		}
+
 		archonAttacked = false;
 		nearestFollowerDistance = (int) 1e9;
 	}
@@ -302,7 +321,14 @@ public class Soldier implements Player {
 		// 2. And attracting that lasts for 5 turns (so that when the enemy out
 		// of sight we try to go back).
 		startByteCodes = Clock.getBytecodeNum();
-		Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 3);
+
+		if (rcWrapper.attackableHostileRobots().length == 0) {
+			// Try to go towards the enemies.
+			Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field, 2);
+			mc.tryToMove(rc);
+			return;
+		}
+		
 		boolean somethingIsScary = Battle
 				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 
@@ -311,11 +337,6 @@ public class Soldier implements Player {
 		maxPartAByteCodes = Math.max(maxPartAByteCodes,
 				Clock.getBytecodeNum() - startByteCodes); // TODO
 		startByteCodes = Clock.getBytecodeNum();
-
-		if (rcWrapper.attackableHostileRobots().length == 0) {
-			mc.tryToMove(rc);
-			return;
-		}
 
 		maxPartBByteCodes = Math.max(maxPartBByteCodes,
 				Clock.getBytecodeNum() - startByteCodes); // TODO
@@ -335,6 +356,29 @@ public class Soldier implements Player {
 
 		maxPartDByteCodes = Math.max(maxPartDByteCodes,
 				Clock.getBytecodeNum() - startByteCodes); // TODO
+	}
+
+	/**
+	 * Implements logic for walking when there are no enemy robots around and
+	 * blitzkrieg is activated.
+	 * 
+	 * @param rc
+	 * @throws GameActionException
+	 */
+	public void blitzkriegModeCode(RobotController rc)
+			throws GameActionException {
+		if (!rc.isCoreReady()) {
+			return;
+		}
+
+		field.addParticle(new ChargedParticle(100.0, enemyBaseLocation, 1));
+		if (Turn.currentTurn() < 3000 - TURNS_BEFORE_AMBUSH && rc.getLocation()
+				.distanceSquaredTo(enemyBaseLocation) <= 40 * 6) {
+			field.addParticle(
+					new ChargedParticle(-200.0, enemyBaseLocation, 1));
+		}
+		
+		mc.tryToMove(rc);
 	}
 
 	@Override
@@ -359,19 +403,26 @@ public class Soldier implements Player {
 		startByteCodes = Clock.getBytecodeNum();
 
 		// Decide on mode: Walking vs. Fighting.
-		if (rcWrapper.hostileRobotsNearby().length == 0) { // Walking.
-			rc.setIndicatorString(0, statusString + " MODE: WALKING");
+		if (rcWrapper.hostileRobotsNearby().length != 0) { // Fighting.
+			rc.setIndicatorString(0, "MODE: FIGHTING. " + statusString);
+
+			maxPartEByteCodes = Math.max(maxPartEByteCodes,
+					Clock.getBytecodeNum() - startByteCodes); // TODO
+			fightingModeCode(rc);
+		} else if (isBlitzkriegActivated) { // Blitzkrieg.
+			rc.setIndicatorString(0, "MODE: BLITZKRIEG. " + statusString);
+
+			maxPartEByteCodes = Math.max(maxPartEByteCodes,
+					Clock.getBytecodeNum() - startByteCodes); // TODO
+
+			blitzkriegModeCode(rc);
+		} else { // Walking.
+			rc.setIndicatorString(0, "MODE: WALKING. " + statusString);
 
 			maxPartEByteCodes = Math.max(maxPartEByteCodes,
 					Clock.getBytecodeNum() - startByteCodes); // TODO
 
 			walkingModeCode(rc);
-		} else { // Fighting.
-			rc.setIndicatorString(0, statusString + " MODE: FIGHTING.");
-
-			maxPartEByteCodes = Math.max(maxPartEByteCodes,
-					Clock.getBytecodeNum() - startByteCodes); // TODO
-			fightingModeCode(rc);
 		}
 		rc.setIndicatorString(2, "" + gatherMode + " Location: "
 				+ gatherLocation + "field:" + field.particles());

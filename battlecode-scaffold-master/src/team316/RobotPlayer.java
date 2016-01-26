@@ -77,7 +77,7 @@ public class RobotPlayer {
 				case VIPER :
 					field = PotentialField.viper();
 					mc = new MotionController(field);
-					player = new Viper(archonLoc, field, mc);
+					player = new Viper(archonLoc, field, mc, rcIn);
 					break;
 				case TTM :
 				case TURRET :

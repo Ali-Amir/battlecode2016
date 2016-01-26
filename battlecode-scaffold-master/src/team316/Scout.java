@@ -34,7 +34,6 @@ public class Scout implements Player {
 	private int lastEnemyBaseNotificationTurn = -1000;
 	private int curFlowerStage = 0;
 	private int lastBroadcast = -100;
-	private int curDirection = 0;
 
 	private Direction[] bordersYetToDiscover = {Direction.NORTH,
 			Direction.SOUTH, Direction.EAST, Direction.WEST};

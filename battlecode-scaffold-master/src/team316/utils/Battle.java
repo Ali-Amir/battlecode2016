@@ -7,6 +7,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
 import team316.RobotPlayer;
 import team316.navigation.ChargedParticle;
 import team316.navigation.ParticleType;
@@ -80,16 +81,16 @@ public class Battle {
 					}
 					added = true;
 					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
+							new ChargedParticle(-1000.0, s.location, lifetime));
 					break;
 				case BIGZOMBIE :
 					if (s.location.distanceSquaredTo(
-							RobotPlayer.rc.getLocation()) >= 6) {
+							RobotPlayer.rc.getLocation()) >= 9) {
 						break;
 					}
 					added = true;
 					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
+							new ChargedParticle(-1000.0, s.location, lifetime));
 					break;
 				case STANDARDZOMBIE :
 					if (s.location.distanceSquaredTo(
@@ -98,14 +99,14 @@ public class Battle {
 					}
 					added = true;
 					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
+							new ChargedParticle(-1000.0, s.location, lifetime));
 					break;
 				case SCOUT :
 					break;
 				default :
 					added = true;
 					field.addParticle(
-							new ChargedParticle(-100.0, s.location, lifetime));
+							new ChargedParticle(-1000.0, s.location, lifetime));
 			}
 		}
 		return added;
@@ -174,7 +175,11 @@ public class Battle {
 	}
 
 	public static double weakness(RobotInfo r) {
-		double weakness = r.attackPower / (r.health + 1.0) / r.maxHealth;
+		double weakness = (r.attackPower + 5) * (r.attackPower + 5)
+				/ (r.health + 1.0) / r.maxHealth;
+		if (r.type.equals(RobotType.SCOUT)) {
+			return weakness - 1e5;
+		}
 		return weakness;
 	}
 
@@ -225,13 +230,13 @@ public class Battle {
 
 		}
 	}
-	
-	public static RobotInfo[] robotsWhoCanAttackLocationPlusDelta(MapLocation loc,
-			RobotInfo[] robots, int delta) {
+
+	public static RobotInfo[] robotsWhoCanAttackLocationPlusDelta(
+			MapLocation loc, RobotInfo[] robots, int delta) {
 		int count = 0;
 		for (RobotInfo r : robots) {
-			if (r.location
-					.distanceSquaredTo(loc) <= r.type.attackRadiusSquared + delta) {
+			if (r.location.distanceSquaredTo(loc) <= r.type.attackRadiusSquared
+					+ delta) {
 				++count;
 			}
 		}
@@ -239,8 +244,8 @@ public class Battle {
 		RobotInfo[] attackers = new RobotInfo[count];
 		int index = 0;
 		for (RobotInfo r : robots) {
-			if (r.location
-					.distanceSquaredTo(loc) <= r.type.attackRadiusSquared + delta) {
+			if (r.location.distanceSquaredTo(loc) <= r.type.attackRadiusSquared
+					+ delta) {
 				attackers[index++] = r;
 			}
 		}
