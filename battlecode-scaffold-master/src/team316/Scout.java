@@ -186,77 +186,12 @@ public class Scout implements Player {
 		int messageB = elm.notificationsPending.isEmpty()
 				? 0
 				: elm.notificationsPending.poll();
-		rc.setIndicatorString(2,
-				"Sending messages: " + EncodedMessage.getMessageType(messageA)
-						+ " loc: " + EncodedMessage.getMessageLocation(messageA)
-						+ " " + EncodedMessage.getMessageType(messageB));
 		lastBroadcast = Turn.currentTurn();
 		rc.broadcastMessageSignal(messageA, messageB,
 				rcWrapper.getMaxBroadcastRadius());
 	}
 
 	public void roamAround(RobotController rc) throws GameActionException {
-		// if (nextFlowerSwitchTurn <= Turn.currentTurn()) {
-		// nextFlowerSwitchTurn = Turn.currentTurn()
-		// + (maxY - minY + maxX - minX + 2) / 4;
-		// curFlowerStage = (curFlowerStage + 1) & 15;
-		//
-		// int whichCorner = curFlowerStage / 2;
-		//
-		// final double TARGET_CHARGE = 1.0 / 100.0;
-		// final double DEVIATION_CHARGE = 0.02 / 100.0;
-		// final int midX = (maxX + minX) / 2;
-		// final int midY = (maxY + minY) / 2;
-		// MapLocation targetLocation;
-		// MapLocation deviationLocation;
-		// if (whichCorner == 0) {
-		// targetLocation = new MapLocation(midX, minY);
-		// deviationLocation = new MapLocation((minX + 3 * midX) / 4,
-		// (midY + minY) / 2);
-		// } else if (whichCorner == 1) {
-		// targetLocation = new MapLocation(maxX, minY);
-		// deviationLocation = new MapLocation((maxX + 2 * midX) / 3,
-		// ((midY + minY) / 2 + minY) / 2);
-		// } else if (whichCorner == 2) {
-		// targetLocation = new MapLocation(maxX, midY);
-		// deviationLocation = new MapLocation((maxX + midX) / 2,
-		// (midY * 2 + minY) / 3);
-		// } else if (whichCorner == 3) {
-		// targetLocation = new MapLocation(maxX, maxY);
-		// deviationLocation = new MapLocation(
-		// ((maxX + midX) / 2 + maxX) / 2, (midY * 2 + maxY) / 3);
-		// } else if (whichCorner == 4) {
-		// targetLocation = new MapLocation(midX, maxY);
-		// deviationLocation = new MapLocation((maxX + 3 * midX) / 4,
-		// (midY + maxY) / 2);
-		// } else if (whichCorner == 5) {
-		// targetLocation = new MapLocation(minX, maxY);
-		// deviationLocation = new MapLocation(
-		// ((minX + midX) / 2 + minX) / 2, (midY * 2 + maxY) / 3);
-		// } else if (whichCorner == 6) {
-		// targetLocation = new MapLocation(minX, midY);
-		// deviationLocation = new MapLocation((minX + midX) / 2,
-		// (midY * 2 + maxY) / 3);
-		// } else if (whichCorner == 7) {
-		// targetLocation = new MapLocation(minX, minY);
-		// deviationLocation = new MapLocation((minX + 2 * midX) / 3,
-		// ((midY + minY) / 2 + minY) / 2);
-		// } else {
-		// throw new RuntimeException(
-		// "Unknown whichCorner " + whichCorner);
-		// }
-		//
-		// if (curFlowerStage % 2 != 0) {
-		// targetLocation = new MapLocation(midX, midY);
-		// }
-		//
-		// field.addParticle(new ChargedParticle(DEVIATION_CHARGE,
-		// deviationLocation,
-		// (nextFlowerSwitchTurn - Turn.currentTurn() + 1) / 2));
-		// field.addParticle(new ChargedParticle(TARGET_CHARGE, targetLocation,
-		// nextFlowerSwitchTurn - Turn.currentTurn() + 1));
-		// }
-
 		if (nextExploreLocation != null) {
 			field.addParticle(new ChargedParticle(0.1, nextExploreLocation, 1));
 		}

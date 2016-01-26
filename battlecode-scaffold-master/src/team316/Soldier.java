@@ -82,10 +82,6 @@ public class Soldier implements Player {
 		switch (EncodedMessage.getMessageType(message)) {
 
 			case ZOMBIE_DEN_LOCATION :
-				rc.setIndicatorString(2,
-						"Added a den location at turn " + Turn.currentTurn()
-								+ " and location (" + location.x + ","
-								+ location.y + ")");
 				elm.addZombieDenLocation(location);
 				break;
 
@@ -251,7 +247,6 @@ public class Soldier implements Player {
 				Clock.getBytecodeNum() - startByteCodes); // TODO
 		startByteCodes = Clock.getBytecodeNum();
 
-		// rc.setIndicatorString(1, "Got here " + Turn.currentTurn());
 		// there are no enemies nearby
 		// check to see if we are in the way of friends
 		// we are obstructing them
@@ -268,18 +263,13 @@ public class Soldier implements Player {
 				elm.pushStrategicLocationsToField(field, 1);
 				mc.tryToMove(rc, Battle.centerOfMassPlusPoint(
 						rcWrapper.allyRobotsNearby(), rc.getLocation()));
-				rc.setIndicatorString(1, "Following elm!");
 			} else {
 				RobotInfo[] nearbyFriends = rc.senseNearbyRobots(2,
 						rcWrapper.myTeam);
-				rc.setIndicatorString(1,
-						"Currently close allies: " + nearbyFriends.length
-								+ ". Neighbors in total: "
-								+ rcWrapper.allyRobotsNearby().length);
 				maxPartBByteCodes = Math.max(maxPartBByteCodes,
 						Clock.getBytecodeNum() - startByteCodes); // TODO
 				startByteCodes = Clock.getBytecodeNum();
-				if (!field.particles().isEmpty()) {
+				if (field.numParticles > 0) {
 					mc.tryToMove(rc);
 				} else if (nearbyFriends.length > 2) {
 					mc.tryToMoveRandom(rc);
@@ -300,8 +290,6 @@ public class Soldier implements Player {
 				maxPartCByteCodes = Math.max(maxPartCByteCodes,
 						Clock.getBytecodeNum() - startByteCodes); // TODO
 			}
-		} else {
-			rc.setIndicatorString(1, "Core not ready!");
 		}
 	}
 

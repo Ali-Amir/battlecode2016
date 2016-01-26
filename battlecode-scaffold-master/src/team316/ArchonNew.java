@@ -138,10 +138,6 @@ public class ArchonNew implements Player {
 			message1 = messageQueue.get(0);
 			messageQueue.remove(0);
 		}
-		rc.setIndicatorString(2,
-				"Sending messages: "
-						+ EncodedMessage.getMessageType(message0.message) + ","
-						+ EncodedMessage.getMessageType(message1.message));
 		rc.broadcastMessageSignal(message0.message, message1.message,
 				Math.max(message0.radiusSqr, message1.radiusSqr));
 	}
@@ -208,8 +204,6 @@ public class ArchonNew implements Player {
 					furthestArchonDistance = distance;
 				}
 			}
-			// System.out.println("furthest Distance: " +
-			// furthestArchonDistance);
 		} else {
 			furthestArchonDistance = rcWrapper.getMaxBroadcastRadius();
 		}
@@ -220,8 +214,6 @@ public class ArchonNew implements Player {
 				rcWrapper.getCurrentLocation());
 		rc.broadcastMessageSignal(message, EncodedMessage.makeEmptyMessage(),
 				furthestArchonDistance);
-
-		rc.setIndicatorString(0, "My archon rank is: " + archonRank);
 	}
 
 	private void processMessage(int message) throws GameActionException {
@@ -565,7 +557,6 @@ public class ArchonNew implements Player {
 
 		switch (mode) {
 			case I_AM_BORN :
-				rc.setIndicatorString(1, "I AM BORN");
 				// Init distribution on birth
 				buildDistribution.clear();
 				buildDistribution.put(RobotType.SOLDIER, 75.0);

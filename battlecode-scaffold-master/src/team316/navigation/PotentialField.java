@@ -220,11 +220,6 @@ public class PotentialField {
 		}
 	}
 
-	public List<ChargedParticle> particles() {
-		return Collections.unmodifiableList(
-				Arrays.asList(particles).subList(0, numParticles));
-	}
-
 	@Override
 	public String toString() {
 		String res = "{";
