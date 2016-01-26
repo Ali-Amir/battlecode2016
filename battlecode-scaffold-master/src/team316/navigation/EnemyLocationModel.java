@@ -40,7 +40,7 @@ public class EnemyLocationModel {
 		notificationsPending = new LinkedList<>();
 		knownBorders = new HashSet<>();
 		this.rc = RobotPlayer.rc;
-		this.rcWrapper = RobotPlayer.rcWrapper;
+		this.rcWrapper = new RCWrapper(rc);
 		maxCoordinateSofar = new HashMap<>();
 	}
 

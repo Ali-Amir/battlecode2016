@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -121,7 +120,7 @@ public class ArchonNew implements Player {
 	/**
 	 * Broadcasts all messages that are on the queue.
 	 */
-	private void broadcastLateMessages(RobotController rc)
+	private void trySendingMessages(RobotController rc)
 			throws GameActionException {
 		// Try sending one message at a time.
 		if (messageQueue.isEmpty()) {
@@ -135,7 +134,10 @@ public class ArchonNew implements Player {
 			message1 = messageQueue.get(0);
 			messageQueue.remove(0);
 		}
-
+		rc.setIndicatorString(2,
+				"Sending messages: "
+						+ EncodedMessage.getMessageType(message0.message) + ","
+						+ EncodedMessage.getMessageType(message1.message));
 		rc.broadcastMessageSignal(message0.message, message1.message,
 				Math.max(message0.radiusSqr, message1.radiusSqr));
 	}
@@ -256,7 +258,7 @@ public class ArchonNew implements Player {
 				break;
 
 			default :
-				assert false;
+				System.out.println(EncodedMessage.getMessageType(message));
 				break;
 		}
 	}
@@ -275,19 +277,14 @@ public class ArchonNew implements Player {
 		switch (type) {
 			case ARCHON :
 				return 100;
-
 			case GUARD :
 				return 5;
-
 			case SOLDIER :
 				return 50;
-
 			case SCOUT :
 				return 1;
-
 			case VIPER :
 				return 20;
-
 			case TTM :
 				return 10;
 			case TURRET :
@@ -351,12 +348,6 @@ public class ArchonNew implements Player {
 					targetLocation = null;
 				}
 				break;
-		}
-	}
-
-	private void attempMoving(RobotController rc) throws GameActionException {
-		if (rc.isCoreReady()) {
-			mc.tryToMove(rc);
 		}
 	}
 
@@ -426,48 +417,56 @@ public class ArchonNew implements Player {
 	public void play(RobotController rc) throws GameActionException {
 		initOnNewTurn(rc);
 
-		while (Clock.getBytecodesLeft() > 10000) {
-			ActionIntent mode = assessSitutation();
-			switch (mode) {
-				case I_AM_BORN :
-					// Init distribution on birth
-					buildDistribution.clear();
-					buildDistribution.put(RobotType.SCOUT, 10.0);
-					buildDistribution.put(RobotType.SOLDIER, 90.0);
-
-					figureOutRank(rc);
-					healthyArchonCount = rc
-							.getInitialArchonLocations(rcWrapper.myTeam).length;
-
-					usualRoutineCode();
-					break;
-
-				case OMG_OMG_IM_ATTACKED :
-					// TODO runaway from enemies, ask for help.
-					tryActivateNearbyNeutrals(rc); // TODO only if not chased by
-													// zombies.
-					// Add border particles.
-					Battle.addBorderParticles(rcWrapper, field);
-					Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(),
-							field, 1);
-
-					if (Turn.turnsSince(
-							lastHelpAskedTurn) >= HELP_MESSAGE_MAX_DELAY) {
-						addToMessageQueue(EncodedMessage.makeMessage(
-								MessageType.MESSAGE_HELP_ARCHON,
-								rc.getLocation()), 1000);
-					}
-
-					mc.tryToMove(rc);
-					break;
-
-				case USUAL_ROUTINE :
-					usualRoutineCode();
-					break;
-			}
-
-			checkIfTargetWasReached(rc);
+		if (Turn.turnsSince(
+				lastBroadcastAttemptTurn) >= MESSAGE_BROADCAST_ATTEMPT_FREQUENCY) {
+			lastBroadcastAttemptTurn = Turn.currentTurn();
+			trySendingMessages(rc);
 		}
+
+		ActionIntent mode = assessSitutation();
+		switch (mode) {
+			case I_AM_BORN :
+				rc.setIndicatorString(1, "I AM BORN");
+				// Init distribution on birth
+				buildDistribution.clear();
+				buildDistribution.put(RobotType.SCOUT, 10.0);
+				buildDistribution.put(RobotType.SOLDIER, 90.0);
+
+				figureOutRank(rc);
+				healthyArchonCount = rc
+						.getInitialArchonLocations(rcWrapper.myTeam).length;
+
+				usualRoutineCode();
+				break;
+
+			case OMG_OMG_IM_ATTACKED :
+				tryActivateNearbyNeutrals(rc); // TODO only if not chased by
+												// zombies.
+				// Add border particles.
+				Battle.addBorderParticles(rcWrapper, field);
+				Battle.addEnemyParticles(rcWrapper.hostileRobotsNearby(), field,
+						1);
+
+				if (Turn.turnsSince(
+						lastHelpAskedTurn) >= HELP_MESSAGE_MAX_DELAY) {
+					lastHelpAskedTurn = Turn.currentTurn();
+					addToMessageQueue(EncodedMessage.makeMessage(
+							MessageType.MESSAGE_HELP_ARCHON, rc.getLocation()),
+							1000);
+				}
+
+				rc.setIndicatorString(1,
+						"OMG_OMG_IM_ATTACKED. Particles: " + field.particles());
+				mc.tryToMove(rc);
+				break;
+
+			case USUAL_ROUTINE :
+				rc.setIndicatorString(1, "USUAL ROUTINE");
+				usualRoutineCode();
+				break;
+		}
+
+		checkIfTargetWasReached(rc);
 	}
 
 }
