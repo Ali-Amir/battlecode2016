@@ -32,7 +32,7 @@ public class PotentialField {
 	// List of observed particles in the field.
 	private final ChargedParticle[] particles;
 	public int numParticles;
-	
+
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
 
@@ -131,8 +131,8 @@ public class PotentialField {
 	public int[] directionsByAttraction(MapLocation to) {
 		discardDeadParticles();
 
-		double totalX = RobotPlayer.rnd.nextDouble() / 1000000.0;
-		double totalY = RobotPlayer.rnd.nextDouble() / 1000000.0;
+		double totalX = (RobotPlayer.rnd.nextDouble() - 0.5) / 1000000.0;
+		double totalY = (RobotPlayer.rnd.nextDouble() - 0.5) / 1000000.0;
 		for (int i = 0; i < numParticles; ++i) {
 			ChargedParticle particle = particles[i];
 			Vector newForce = particle.force(to);
