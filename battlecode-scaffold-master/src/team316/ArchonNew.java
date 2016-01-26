@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -121,7 +120,7 @@ public class ArchonNew implements Player {
 	/**
 	 * Broadcasts all messages that are on the queue.
 	 */
-	private void broadcastLateMessages(RobotController rc)
+	private void trySendingMessages(RobotController rc)
 			throws GameActionException {
 		// Try sending one message at a time.
 		if (messageQueue.isEmpty()) {
@@ -256,7 +255,7 @@ public class ArchonNew implements Player {
 				break;
 
 			default :
-				assert false;
+				System.out.println(EncodedMessage.getMessageType(message));
 				break;
 		}
 	}
@@ -275,19 +274,14 @@ public class ArchonNew implements Player {
 		switch (type) {
 			case ARCHON :
 				return 100;
-
 			case GUARD :
 				return 5;
-
 			case SOLDIER :
 				return 50;
-
 			case SCOUT :
 				return 1;
-
 			case VIPER :
 				return 20;
-
 			case TTM :
 				return 10;
 			case TURRET :
@@ -351,12 +345,6 @@ public class ArchonNew implements Player {
 					targetLocation = null;
 				}
 				break;
-		}
-	}
-
-	private void attempMoving(RobotController rc) throws GameActionException {
-		if (rc.isCoreReady()) {
-			mc.tryToMove(rc);
 		}
 	}
 
@@ -425,6 +413,12 @@ public class ArchonNew implements Player {
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		initOnNewTurn(rc);
+
+		if (Turn.turnsSince(
+				lastBroadcastAttemptTurn) >= MESSAGE_BROADCAST_ATTEMPT_FREQUENCY) {
+			lastBroadcastAttemptTurn = Turn.currentTurn();
+			trySendingMessages(rc);
+		}
 
 		ActionIntent mode = assessSitutation();
 		switch (mode) {
