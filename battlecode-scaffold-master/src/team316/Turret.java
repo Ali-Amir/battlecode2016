@@ -74,6 +74,7 @@ public class Turret implements Player {
 				case SOLDIER :
 					field.addParticle(ParticleType.ALLY_DEFAULT, e.location,
 							lifetime);
+					break;
 				case VIPER :
 					// field.addParticle(ParticleType.ALLY_DEFAULT, e.location,
 					// lifetime);

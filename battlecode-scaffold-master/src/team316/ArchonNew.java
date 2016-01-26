@@ -36,7 +36,7 @@ public class ArchonNew implements Player {
 		I_AM_BORN, OMG_OMG_IM_ATTACKED, USUAL_ROUTINE, WANNA_GO_FOR_A_WALK, DEFENSE
 	}
 
-	private final static int HELP_MESSAGE_MAX_DELAY = 30;
+	private final static int HELP_MESSAGE_MAX_DELAY = 50;
 	private final static int GATHER_MESSAGE_MAX_DELAY = 15;
 	private final static int MESSAGE_BROADCAST_ATTEMPT_FREQUENCY = 10;
 	private static final int BLITZKRIEG_ANNOUNCEMENT_FREQUENCY_TURNS = 50;
@@ -502,6 +502,13 @@ public class ArchonNew implements Player {
 	}
 
 	private void usualRoutineCode() throws GameActionException {
+		// MESSAGING.
+		if (Turn.turnsSince(
+				lastBroadcastAttemptTurn) >= MESSAGE_BROADCAST_ATTEMPT_FREQUENCY) {
+			lastBroadcastAttemptTurn = Turn.currentTurn();
+			trySendingMessages(rc);
+		}
+		
 		addParticlesToField(rc);
 		tryActivateNearbyNeutrals(rc);
 
@@ -529,13 +536,6 @@ public class ArchonNew implements Player {
 		ActionIntent mode = assessSitutation();
 
 		debug_indicator2();
-
-		// MESSAGING.
-		if (Turn.turnsSince(
-				lastBroadcastAttemptTurn) >= MESSAGE_BROADCAST_ATTEMPT_FREQUENCY) {
-			lastBroadcastAttemptTurn = Turn.currentTurn();
-			trySendingMessages(rc);
-		}
 
 		switch (mode) {
 			case I_AM_BORN :
