@@ -1,7 +1,6 @@
 package team316.utils;
 
 import battlecode.common.MapLocation;
-import team316.utils.MacroStrategy.GameMode;
 
 public class EncodedMessage {
 
@@ -10,9 +9,11 @@ public class EncodedMessage {
 		NEUTRAL_NON_ARCHON_LOCATION, MESSAGE_HELLO_ARCHON, MESSAGE_WELCOME_ACTIVATED_ARCHON,
 		MESSAGE_HELP_ARCHON, Y_BORDER, X_BORDER, 
 		DEFENSE_MODE_ON, GATHER, ENEMY_BASE_LOCATION,
-		BLITZKRIEG, ACTIVATE, ATTACK, GAME_MODE
+		BLITZKRIEG, ACTIVATE, ATTACK, 
+		//,GAME_MODE
 	}
 	final static int COMMAND_BITS = 4;
+	
 	/**
 	 * Gets message type.
 	 * 
@@ -42,11 +43,11 @@ public class EncodedMessage {
 	 */
 	public static int zombieDenLocation(MapLocation loc) {
 		return MessageType.ZOMBIE_DEN_LOCATION.ordinal()
-				+ (encodeLocation20bits(loc) << 4);
+				+ (encodeLocation20bits(loc) << COMMAND_BITS);
 	}
 
 	public static int makeMessage(MessageType messageType, MapLocation loc) {
-		return messageType.ordinal() + (encodeLocation20bits(loc) << 4);
+		return messageType.ordinal() + (encodeLocation20bits(loc) << COMMAND_BITS);
 	}
 
 	public static int encodeLocation20bits(MapLocation loc) {
@@ -66,7 +67,7 @@ public class EncodedMessage {
 	public static boolean isEmptyMessage(int message) {
 		return message == makeEmptyMessage();
 	}
-
+	/*
 	public int makeModeMessage(GameMode mode, MapLocation location) {
 		return makeMessage(MessageType.GAME_MODE,location) + (mode.ordinal() << (20 + COMMAND_BITS) ) ;
 	}
@@ -75,4 +76,5 @@ public class EncodedMessage {
 		int modeOrdinal = (message >> (20 + COMMAND_BITS));
 		return GameMode.values()[modeOrdinal];
 	}
+	*/
 }
