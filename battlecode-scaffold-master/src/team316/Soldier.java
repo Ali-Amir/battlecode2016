@@ -20,10 +20,11 @@ import team316.utils.Turn;
 
 public class Soldier implements Player {
 
-	private static final int MESSAGE_DELAY_TURNS = 5000;
-	private static final int BROADCAST_RADIUSSQR = 200;
+	private static final int MESSAGE_DELAY_TURNS = 30;
+	private static final int BROADCAST_RADIUSSQR = 150;
 	private static final int ARMY_MARCH_SIZE = 4;
 	private static final int TURNS_BEFORE_AMBUSH = 300;
+	private static final int BUDDY_HELP_FREQUENCY_TURNS = 10;
 
 	private final PotentialField field;
 	private final MotionController mc;
@@ -47,6 +48,7 @@ public class Soldier implements Player {
 
 	private static int nearestFollowerDistance;
 	private boolean archonAttacked;
+	private int lastHelpedABuddy = -1000;
 
 	public Soldier(MapLocation archonLoc, PotentialField field,
 			MotionController mc, RobotController rc) {
@@ -203,12 +205,10 @@ public class Soldier implements Player {
 	public void receiveIncomingSignals(RobotController rc)
 			throws GameActionException {
 		// Do message signaling stuff.
-		if (Turn.currentTurn() - lastBroadcastTurn > MESSAGE_DELAY_TURNS
-				&& lastTimeEnemySeen > lastBroadcastTurn) {
+		if (Turn.turnsSince(lastBroadcastTurn) > MESSAGE_DELAY_TURNS
+				&& lastTimeEnemySeen + 1 == Turn.currentTurn()) {
 			rc.broadcastSignal(BROADCAST_RADIUSSQR);
 			lastBroadcastTurn = Turn.currentTurn();
-			rc.setIndicatorString(1,
-					"Relay message at turn: " + Turn.currentTurn());
 		}
 
 		final Signal[] signals = rc.emptySignalQueue();
@@ -216,14 +216,14 @@ public class Soldier implements Player {
 			// If ally. Then ally is reporting enemies.
 			if (signal.getMessage() == null
 					&& signal.getTeam().equals(rcWrapper.myTeam)
-					&& lastBroadcastTurn + MESSAGE_DELAY_TURNS < Turn
-							.currentTurn()
+					&& Turn.turnsSince(
+							lastHelpedABuddy) > BUDDY_HELP_FREQUENCY_TURNS
 					&& rcWrapper.attackableHostileRobots().length == 0) {
+				lastHelpedABuddy = Turn.currentTurn();
 				field.addParticle(ParticleType.FIGHTING_ALLY,
-						signal.getLocation(), 2);
-			} else
-				if (signal.getTeam().equals(rcWrapper.myTeam)
-						&& signal.getMessage() != null) {
+						signal.getLocation(), 3);
+			} else if (signal.getTeam().equals(rcWrapper.myTeam)
+					&& signal.getMessage() != null) {
 				processMessage(signal.getLocation(), signal.getMessage()[0],
 						rc);
 				processMessage(signal.getLocation(), signal.getMessage()[1],
@@ -293,9 +293,9 @@ public class Soldier implements Player {
 								+ ". Neighbors in total: "
 								+ rcWrapper.allyRobotsNearby().length);
 				// Battle.addAllyParticles(nearbyFriends, field, 2);
-				// if (field.particles().size() == 0 || nearbyFriends.length >
-				// 2) {
-				if (nearbyFriends.length > 2) {
+				if (!field.particles().isEmpty()) {
+					mc.tryToMove(rc);
+				} else if (nearbyFriends.length > 2) {
 					mc.tryToMoveRandom(rc);
 				}
 				// } else {
@@ -328,7 +328,7 @@ public class Soldier implements Player {
 			mc.tryToMove(rc);
 			return;
 		}
-		
+
 		boolean somethingIsScary = Battle
 				.addScaryParticles(rcWrapper.hostileRobotsNearby(), field, 1);
 
@@ -377,7 +377,7 @@ public class Soldier implements Player {
 			field.addParticle(
 					new ChargedParticle(-200.0, enemyBaseLocation, 1));
 		}
-		
+
 		mc.tryToMove(rc);
 	}
 
