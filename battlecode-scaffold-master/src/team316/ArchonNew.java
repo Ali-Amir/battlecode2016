@@ -466,6 +466,13 @@ public class ArchonNew implements Player {
 		if (rcWrapper.isUnderAttack()) {
 			return ActionIntent.OMG_OMG_IM_ATTACKED;
 		}
+		
+		if (Turn.currentTurn() > 100) {
+			buildDistribution.clear();
+			buildDistribution.put(RobotType.SCOUT, 5.0);
+			buildDistribution.put(RobotType.VIPER, 20.0);
+			buildDistribution.put(RobotType.SOLDIER, 75.0);
+		}
 
 		/*
 		 * if (Turn.currentTurn() > 1000) { return ActionIntent.DEFENSE; }

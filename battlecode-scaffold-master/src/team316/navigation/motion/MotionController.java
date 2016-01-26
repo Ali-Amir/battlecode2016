@@ -84,7 +84,8 @@ public class MotionController {
 		int[] directions = field.directionsByAttraction(reference);
 		for (int i = 0; i < directions.length; ++i) {
 			Direction maybeForward = Direction.values()[directions[i]];
-			if (!rc.getType().equals(RobotType.SCOUT)) {
+			if (!rc.getType().equals(RobotType.SCOUT)
+					&& rc.getType().canClearRubble()) {
 				MapLocation ahead = rc.getLocation().add(maybeForward);
 				if (rc.isCoreReady()
 						&& rc.senseRubble(
@@ -102,14 +103,12 @@ public class MotionController {
 
 		return false;
 	}
-	
 
-	public boolean fallBack(RobotController rc)
-			throws GameActionException {
+	public boolean fallBack(RobotController rc) throws GameActionException {
 		if (!rc.isCoreReady()) {
 			return false;
 		}
-		
+
 		MapLocation reference = rc.getLocation();
 
 		if (field.numParticles == 0) {
@@ -135,10 +134,11 @@ public class MotionController {
 				return true;
 			}
 		}
-		
+
 		for (int i = 0; i < directions.length; ++i) {
 			Direction maybeForward = Direction.values()[directions[i]];
-			if (!rc.getType().equals(RobotType.SCOUT)) {
+			if (!rc.getType().equals(RobotType.SCOUT)
+					&& rc.getType().canClearRubble()) {
 				MapLocation ahead = rc.getLocation().add(maybeForward);
 				if (rc.isCoreReady()
 						&& rc.senseRubble(
