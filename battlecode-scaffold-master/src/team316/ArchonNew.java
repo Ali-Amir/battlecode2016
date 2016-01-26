@@ -40,6 +40,7 @@ public class ArchonNew implements Player {
 	private final static int GATHER_MESSAGE_MAX_DELAY = 15;
 	private final static int MESSAGE_BROADCAST_ATTEMPT_FREQUENCY = 10;
 	private static final int BLITZKRIEG_ANNOUNCEMENT_FREQUENCY_TURNS = 50;
+	private static final int ELM_AMNESIA_PERIOD_TURNS = 500;
 
 	private final RobotController rc;
 	private final int birthTurn;
@@ -64,6 +65,7 @@ public class ArchonNew implements Player {
 	private LinkedList<MapLocation> neutralArchonLocations = new LinkedList<>();
 
 	// Messaging timings.
+	private int lastElmAmnesia = -1000;
 	private int lastHelpAskedTurn = -1000;
 	private int lastBroadcastAttemptTurn = -1000;
 	private int lastBlitzkriegAnnouncement = -1000;
@@ -240,7 +242,7 @@ public class ArchonNew implements Player {
 				break;
 
 			case NEUTRAL_NON_ARCHON_LOCATION :
-				//field.addParticle(new ChargedParticle(30, location, 100));
+				// field.addParticle(new ChargedParticle(30, location, 100));
 				break;
 
 			case Y_BORDER :
@@ -380,8 +382,8 @@ public class ArchonNew implements Player {
 				.sensePartLocations(RobotType.ARCHON.sensorRadiusSquared);
 		for (MapLocation partsLocation : partsLocations) {
 			double amount = rc.senseParts(partsLocation);
-//			field.addParticle(
-//					new ChargedParticle(amount / 100.0, partsLocation, 1));
+			// field.addParticle(
+			// new ChargedParticle(amount / 100.0, partsLocation, 1));
 		}
 
 		RobotInfo[] neutralsLocations = rc.senseNearbyRobots(50, Team.NEUTRAL);
@@ -397,6 +399,10 @@ public class ArchonNew implements Player {
 
 	private void initOnNewTurn(RobotController rc) throws GameActionException {
 		rcWrapper.initOnNewTurn();
+		if (Turn.turnsSince(lastElmAmnesia) >= ELM_AMNESIA_PERIOD_TURNS) {
+			lastElmAmnesia = Turn.currentTurn();
+			elm.zombieDenAmnesia();
+		}
 		elm.onNewTurn();
 
 		// set build intentions if they are not set yet.
@@ -491,8 +497,9 @@ public class ArchonNew implements Player {
 				rc.setIndicatorString(1, "I AM BORN");
 				// Init distribution on birth
 				buildDistribution.clear();
-				buildDistribution.put(RobotType.SCOUT, 10.0);
-				buildDistribution.put(RobotType.SOLDIER, 90.0);
+				buildDistribution.put(RobotType.SCOUT, 5.0);
+				buildDistribution.put(RobotType.VIPER, 20.0);
+				buildDistribution.put(RobotType.SOLDIER, 75.0);
 
 				figureOutRank(rc);
 				healthyArchonCount = rc

@@ -30,9 +30,9 @@ public class EnemyLocationModel {
 	private final RCWrapper rcWrapper;
 	private final Map<Direction, Integer> maxCoordinateSofar;
 	private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
-	
+
 	public Queue<Integer> notificationsPending;
-	
+
 	public EnemyLocationModel() {
 		knownZombieDens = new HashSet<>();
 		knownNeutrals = new HashSet<>();
@@ -42,6 +42,10 @@ public class EnemyLocationModel {
 		this.rc = RobotPlayer.rc;
 		this.rcWrapper = new RCWrapper(rc);
 		maxCoordinateSofar = new HashMap<>();
+	}
+
+	public void zombieDenAmnesia() {
+		knownZombieDens.clear();
 	}
 
 	public int numStrategicLocations() {
