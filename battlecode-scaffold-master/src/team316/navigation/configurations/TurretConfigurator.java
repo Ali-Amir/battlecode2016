@@ -11,22 +11,22 @@ public class TurretConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double oppositeGuardCharge() {
-		return 1.0;
+		return -1.0;
 	}
 
 	@Override
 	protected double oppositeSoldierCharge() {
-		return 1.5;
+		return -1.5;
 	}
 
 	@Override
 	protected double oppositeViperCharge() {
-		return 1.0;
+		return -1.0;
 	}
 
 	@Override
 	protected double oppositeScoutCharge() {
-		return 2.0;
+		return 0.0;
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class TurretConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double allyArchonCharge() {
-		return -1.0;
+		return 20.0;
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class TurretConfigurator extends RobotPotentialConfigurator {
 	
 	@Override
 	protected double allyDefaultCharge() {
-		return -0.5;
+		return 20.0;
 	}
 
 	@Override

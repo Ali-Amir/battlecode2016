@@ -354,13 +354,6 @@ public class ArchonNew implements Player {
 			targetLocation = closestDenLocation;
 			walkReason = WalkReason.ATTACK;
 		}
-
-		/*
-		 * MapLocation closestNeutralArchonLocation = rcWrapper
-		 * .getClosestLocation(neutralArchonLocations); if
-		 * (closestNeutralArchonLocation != null) { targetLocation =
-		 * closestNeutralArchonLocation; walkReason = WalkReason.ACTIVATE; }
-		 */
 	}
 
 	// High level logic here.
