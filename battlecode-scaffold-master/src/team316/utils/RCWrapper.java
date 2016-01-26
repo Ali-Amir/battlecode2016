@@ -1,16 +1,15 @@
 package team316.utils;
 
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
+import java.util.Set;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import battlecode.common.Signal;
 import battlecode.common.Team;
 
 /**
@@ -29,10 +28,10 @@ public class RCWrapper {
 	private RobotInfo[] attackableEnemyTeam = null;
 	private RobotInfo[] allyRobotsNearby = null;
 	private RobotInfo[] zombieDensNearby = null;
-	// private Map<Direction, Integer> maxCoordinate = new HashMap<>();
+	private Signal[] incomingSignals = null;
+
 	private Integer maxCoordinate[] = new Integer[10];
 	private Integer maxSoFarCoordinate[] = new Integer[10];
-	// private Map<Direction, Integer> maxSoFarCoordinate = new HashMap<>();
 	private Integer senseRadius = null;
 	public RobotInfo archonNearby = null;
 	public final Team myTeam;
@@ -84,6 +83,7 @@ public class RCWrapper {
 		allyRobotsNearby = null;
 		archonNearby = null;
 		zombieDensNearby = null;
+		incomingSignals = null;
 		this.previousHealth = this.currentHealth;
 		this.currentHealth = rc.getHealth();
 		this.currentLocation = null;
@@ -96,6 +96,16 @@ public class RCWrapper {
 		}
 		// output += "broadcast:" + maxBroadcastRadius();
 		// rc.setIndicatorString(1, output);
+	}
+
+	/**
+	 * @return Incoming singlas from queue. Caches results.
+	 */
+	public Signal[] incomingSignals() {
+		if (incomingSignals == null) {
+			incomingSignals = rc.emptySignalQueue();
+		}
+		return incomingSignals;
 	}
 
 	/**
@@ -149,6 +159,10 @@ public class RCWrapper {
 	 * @return Zombie dens in the range of sight.
 	 */
 	public RobotInfo[] zombieDensNearby() {
+		if (zombieDensNearby != null) {
+			return zombieDensNearby;
+		}
+		
 		int num = 0;
 		final RobotInfo[] hostileRobots = hostileRobotsNearby();
 		for (RobotInfo r : hostileRobots) {
@@ -163,7 +177,8 @@ public class RCWrapper {
 				robots[index++] = r;
 			}
 		}
-		return robots;
+		zombieDensNearby = robots;
+		return zombieDensNearby;
 	}
 
 	/**
@@ -375,7 +390,7 @@ public class RCWrapper {
 	}
 
 	public Integer getMaxBroadcastRadius() throws GameActionException {
-		if(maxBroadcastRadius != null){
+		if (maxBroadcastRadius != null) {
 			return maxBroadcastRadius;
 		}
 		// loggingString = "";
@@ -394,6 +409,19 @@ public class RCWrapper {
 	}
 
 	public MapLocation getClosestLocation(LinkedList<MapLocation> locations) {
+		MapLocation closestLocation = null;
+		int shortestDistance = INF;
+		for (MapLocation location : locations) {
+			int distance = getCurrentLocation().distanceSquaredTo(location);
+			if (distance < shortestDistance) {
+				closestLocation = location;
+				shortestDistance = distance;
+			}
+		}
+		return closestLocation;
+	}
+
+	public MapLocation getClosestLocation(Set<MapLocation> locations) {
 		MapLocation closestLocation = null;
 		int shortestDistance = INF;
 		for (MapLocation location : locations) {
