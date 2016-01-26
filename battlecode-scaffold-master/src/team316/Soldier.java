@@ -292,15 +292,11 @@ public class Soldier implements Player {
 						"Currently close allies: " + nearbyFriends.length
 								+ ". Neighbors in total: "
 								+ rcWrapper.allyRobotsNearby().length);
-				// Battle.addAllyParticles(nearbyFriends, field, 2);
 				if (!field.particles().isEmpty()) {
 					mc.tryToMove(rc);
 				} else if (nearbyFriends.length > 2) {
 					mc.tryToMoveRandom(rc);
 				}
-				// } else {
-				// mc.tryToMove(rc);
-				// }
 			}
 		} else {
 			rc.setIndicatorString(1, "Core not ready!");
