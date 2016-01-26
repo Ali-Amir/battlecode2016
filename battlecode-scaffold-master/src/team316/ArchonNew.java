@@ -468,7 +468,7 @@ public class ArchonNew implements Player {
 			return ActionIntent.OMG_OMG_IM_ATTACKED;
 		}
 		
-		if (Turn.currentTurn() > 30 && !doneAddScoutToDist) {
+		if (Turn.currentTurn() > 40 && !doneAddScoutToDist) {
 			doneAddScoutToDist = true;
 			this.toBuild = RobotType.SCOUT;
 			buildDistribution.clear();
