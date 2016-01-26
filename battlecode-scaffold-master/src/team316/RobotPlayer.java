@@ -17,7 +17,6 @@ import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
 import team316.utils.RCWrapper;
-import team316.utils.Turn;
 
 public class RobotPlayer {
 
@@ -57,7 +56,7 @@ public class RobotPlayer {
 				case ARCHON :
 					field = PotentialField.archon();
 					mc = new MotionController(field);
-					player = new Archon(field, mc, rcIn);
+					player = new ArchonNew(field, mc, rcIn);
 					break;
 				case GUARD :
 					field = PotentialField.guard();

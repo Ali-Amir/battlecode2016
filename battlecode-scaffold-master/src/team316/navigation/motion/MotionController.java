@@ -89,7 +89,7 @@ public class MotionController {
 				if (rc.isCoreReady()
 						&& rc.senseRubble(
 								ahead) >= GameConstants.RUBBLE_SLOW_THRESH
-						&& rc.senseRubble(ahead) <= 100000) {
+						&& rc.senseRubble(ahead) <= 1000) {
 					rc.clearRubble(maybeForward);
 				}
 			}
@@ -143,7 +143,7 @@ public class MotionController {
 				if (rc.isCoreReady()
 						&& rc.senseRubble(
 								ahead) >= GameConstants.RUBBLE_SLOW_THRESH
-						&& rc.senseRubble(ahead) <= 100000) {
+						&& rc.senseRubble(ahead) <= 1000) {
 					rc.clearRubble(maybeForward);
 				}
 			}

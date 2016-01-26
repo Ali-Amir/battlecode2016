@@ -62,6 +62,15 @@ public abstract class RobotPotentialConfigurator {
 		case PARTS:
 			result = new ChargedParticle(1, location, lifetime);
 			break;
+		case BIG_ZOMBIE:
+			result = new ChargedParticle(bigZombieCharge(), location, lifetime);
+			break;
+		case FAST_ZOMBIE:
+			result = new ChargedParticle(fastZombieCharge(), location, lifetime);
+			break;
+		case RANGED_ZOMBIE:
+			result = new ChargedParticle(rangedZombieCharge(), location, lifetime);
+			break;
 		default:
 			System.out.println("UNKNOWN TYPE: " + type + ". Using default configuration.");
 			result = new ChargedParticle(defaultCharge(), location, lifetime);
@@ -144,4 +153,10 @@ public abstract class RobotPotentialConfigurator {
 	protected abstract double defaultCharge();
 	
 	protected abstract double allyDefaultCharge();
+	
+	protected abstract double bigZombieCharge();
+	
+	protected abstract double fastZombieCharge();
+	
+	protected abstract double rangedZombieCharge();
 }

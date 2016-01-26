@@ -240,7 +240,7 @@ public class ArchonNew implements Player {
 				break;
 
 			case NEUTRAL_NON_ARCHON_LOCATION :
-				field.addParticle(new ChargedParticle(30, location, 100));
+				//field.addParticle(new ChargedParticle(30, location, 100));
 				break;
 
 			case Y_BORDER :
@@ -380,14 +380,18 @@ public class ArchonNew implements Player {
 				.sensePartLocations(RobotType.ARCHON.sensorRadiusSquared);
 		for (MapLocation partsLocation : partsLocations) {
 			double amount = rc.senseParts(partsLocation);
-			field.addParticle(
-					new ChargedParticle(amount / 100.0, partsLocation, 1));
+//			field.addParticle(
+//					new ChargedParticle(amount / 100.0, partsLocation, 1));
 		}
 
 		RobotInfo[] neutralsLocations = rc.senseNearbyRobots(50, Team.NEUTRAL);
 		for (RobotInfo neutralsLocation : neutralsLocations) {
 			field.addParticle(
 					new ChargedParticle(10.0, neutralsLocation.location, 1));
+		}
+
+		if (targetLocation != null) {
+			field.addParticle(new ChargedParticle(20.0, targetLocation, 1));
 		}
 	}
 
@@ -455,6 +459,10 @@ public class ArchonNew implements Player {
 
 		debug_indicator0(false);
 		if (field.numParticles > 0 && rc.getTeamParts() < 300.0) {
+			if (enemyBaseLoc != null) {
+				field.addParticle(
+						new ChargedParticle(-1000.0, enemyBaseLoc, 1));
+			}
 			debug_indicator0(true);
 			mc.tryToMove(rc);
 		}

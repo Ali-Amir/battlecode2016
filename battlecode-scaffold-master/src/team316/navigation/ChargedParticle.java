@@ -38,7 +38,7 @@ public class ChargedParticle {
 		this.location = location;
 		this.expiryTurn = lifetime + Turn.currentTurn();
 	}
-	
+
 	/**
 	 * Creates a new charge.
 	 * 
@@ -55,7 +55,7 @@ public class ChargedParticle {
 	 */
 	public ChargedParticle(int id, double charge, MapLocation location,
 			int lifetime) {
-		
+
 		this.id = id;
 		this.charge = charge;
 		this.location = location;
@@ -82,13 +82,14 @@ public class ChargedParticle {
 	public boolean isAlive() {
 		return Turn.currentTurn() < expiryTurn;
 	}
-	
+
 	public int getID() {
 		return this.id;
 	}
-	
+
 	@Override
 	public String toString() {
-		return this.charge + "(" + location.x + "," + location.y + ")";
+		return this.charge + "(" + location.x + "," + location.y + ")["
+				+ (Turn.currentTurn() - expiryTurn) + "]";
 	}
 }

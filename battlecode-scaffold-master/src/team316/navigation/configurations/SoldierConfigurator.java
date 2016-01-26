@@ -68,5 +68,20 @@ public class SoldierConfigurator extends RobotPotentialConfigurator {
 	protected double defaultCharge() {
 		return 1.0;
 	}
+
+	@Override
+	protected double bigZombieCharge() {
+		return 2.0;
+	}
+
+	@Override
+	protected double fastZombieCharge() {
+		return 1.5;
+	}
+
+	@Override
+	protected double rangedZombieCharge() {
+		return 1.0;
+	}
 	
 }

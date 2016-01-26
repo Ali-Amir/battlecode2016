@@ -69,4 +69,19 @@ public class TurretConfigurator extends RobotPotentialConfigurator {
 		return 1.0;
 	}
 
+	@Override
+	protected double bigZombieCharge() {
+		return 1.0;
+	}
+
+	@Override
+	protected double fastZombieCharge() {
+		return 1.0;
+	}
+
+	@Override
+	protected double rangedZombieCharge() {
+		return 1.0;
+	}
+
 }

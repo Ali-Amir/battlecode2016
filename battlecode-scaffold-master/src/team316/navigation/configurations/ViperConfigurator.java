@@ -1,15 +1,12 @@
 package team316.navigation.configurations;
 
-import battlecode.common.MapLocation;
-import team316.navigation.ChargedParticle;
-import team316.navigation.ParticleType;
 import team316.navigation.RobotPotentialConfigurator;
 
 public class ViperConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double oppositeArchonCharge() {
-		return 3.0;
+		return 10.0;
 	}
 
 	@Override
@@ -72,4 +69,19 @@ public class ViperConfigurator extends RobotPotentialConfigurator {
 		return 1.0;
 	}
 
+	@Override
+	protected double bigZombieCharge() {
+		return 2.0;
+	}
+
+	@Override
+	protected double fastZombieCharge() {
+		return 1.5;
+	}
+
+	@Override
+	protected double rangedZombieCharge() {
+		return 1.0;
+	}
+	
 }

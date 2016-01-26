@@ -165,10 +165,16 @@ public class Battle {
 						lifetime);
 				break;
 			case BIGZOMBIE :
+				field.addParticle(ParticleType.BIG_ZOMBIE, e.location,
+						lifetime);
 				break;
 			case FASTZOMBIE :
+				field.addParticle(ParticleType.FAST_ZOMBIE, e.location,
+						lifetime);
 				break;
 			case RANGEDZOMBIE :
+				field.addParticle(ParticleType.RANGED_ZOMBIE, e.location,
+						lifetime);
 				break;
 			case STANDARDZOMBIE :
 				field.addParticle(ParticleType.ZOMBIE, e.location, lifetime);

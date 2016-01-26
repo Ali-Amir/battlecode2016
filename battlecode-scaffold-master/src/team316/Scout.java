@@ -248,7 +248,7 @@ public class Scout implements Player {
 	public void runaway(RobotController rc) throws GameActionException {
 		RobotInfo[] robotsWhoCanAttackMe = Battle
 				.robotsWhoCanAttackLocationPlusDelta(rc.getLocation(),
-						rcWrapper.enemyTeamRobotsNearby(), 5);
+						rcWrapper.enemyTeamRobotsNearby(), 10);
 		for (RobotInfo r : robotsWhoCanAttackMe) {
 			field.addParticle(new ChargedParticle(-1.0, r.location, 2));
 		}
@@ -265,7 +265,7 @@ public class Scout implements Player {
 		inspectBorders(rcWrapper);
 		inspectEnemyBase();
 		RobotInfo[] robotsWhoCanAttackMe = Battle.robotsWhoCanAttackLocation(
-				rc.getLocation(), rcWrapper.enemyTeamRobotsNearby());
+				rc.getLocation(), rcWrapper.hostileRobotsNearby());
 		if (robotsWhoCanAttackMe.length > 0) {
 			return ScoutState.RUNAWAY;
 		} else {

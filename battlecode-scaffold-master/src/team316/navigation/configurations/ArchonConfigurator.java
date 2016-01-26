@@ -69,4 +69,19 @@ public class ArchonConfigurator extends RobotPotentialConfigurator {
 		return 1.0;
 	}
 
+	@Override
+	protected double bigZombieCharge() {
+		return -1e5;
+	}
+
+	@Override
+	protected double fastZombieCharge() {
+		return -4e4;
+	}
+
+	@Override
+	protected double rangedZombieCharge() {
+		return -2e4;
+	}
+
 }
