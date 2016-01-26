@@ -6,7 +6,6 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
-import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import team316.navigation.ChargedParticle;
 import team316.navigation.EnemyLocationModel;
@@ -30,6 +29,7 @@ public class Soldier implements Player {
 	private final MotionController mc;
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
+	private final RobotController rc;
 
 	private int lastBroadcastTurn = -100;
 	private int lastTimeEnemySeen = -100;
@@ -40,6 +40,8 @@ public class Soldier implements Player {
 	private int maxPartCByteCodes = 0;
 	private int maxPartDByteCodes = 0;
 	private int maxPartEByteCodes = 0;
+	private int maxPartInitByteCodes = 0;
+	private int maxPartSigByteCodes = 0;
 	private boolean gatherMode = false;
 	private MapLocation gatherLocation = null;
 
@@ -54,44 +56,10 @@ public class Soldier implements Player {
 			MotionController mc, RobotController rc) {
 		this.field = field;
 		this.mc = mc;
+		this.rc = rc;
 		this.rcWrapper = new RCWrapper(rc);
 		RobotPlayer.rcWrapper = rcWrapper;
 		this.elm = new EnemyLocationModel();
-	}
-
-	/*
-	 * Smallest number here must be non-negative.
-	 */
-	public static int getAttakTypePriority(RobotType t) {
-		switch (t) {
-			case ARCHON :
-				return 100;
-			case GUARD :
-				return 102;
-			case SOLDIER :
-				return 104;
-			case SCOUT :
-				return 101;
-			case VIPER :
-				return 103;
-			case TTM :
-				return 105;
-			case TURRET :
-				return 106;
-
-			case BIGZOMBIE :
-				return 5;
-			case RANGEDZOMBIE :
-				return 4;
-			case STANDARDZOMBIE :
-				return 2;
-			case FASTZOMBIE :
-				return 3;
-			case ZOMBIEDEN :
-				return 1;
-			default :
-				throw new RuntimeException("UNKNOWN ROBOT TYPE!");
-		}
 	}
 
 	public void processMessage(MapLocation senderLocation, int message,
@@ -235,7 +203,6 @@ public class Soldier implements Player {
 		// field.addParticle(elm.predictEnemyBase(rc));
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
-		field.discardDeadParticles();
 		if (gatherMode) {
 			if (gatherLocation.distanceSquaredTo(
 					rc.getLocation()) <= rc.getType().attackRadiusSquared
@@ -266,11 +233,17 @@ public class Soldier implements Player {
 	 * @throws GameActionException
 	 */
 	public void walkingModeCode(RobotController rc) throws GameActionException {
+		startByteCodes = Clock.getBytecodeNum();
+
 		if (rc.getHealth() < rc.getType().maxHealth
 				&& rcWrapper.archonNearby != null) {
 			field.addParticle(new ChargedParticle(100,
 					rcWrapper.archonNearby.location, 2));
 		}
+
+		maxPartAByteCodes = Math.max(maxPartAByteCodes,
+				Clock.getBytecodeNum() - startByteCodes); // TODO
+		startByteCodes = Clock.getBytecodeNum();
 
 		// rc.setIndicatorString(1, "Got here " + Turn.currentTurn());
 		// there are no enemies nearby
@@ -290,11 +263,16 @@ public class Soldier implements Player {
 						"Currently close allies: " + nearbyFriends.length
 								+ ". Neighbors in total: "
 								+ rcWrapper.allyRobotsNearby().length);
+				maxPartBByteCodes = Math.max(maxPartBByteCodes,
+						Clock.getBytecodeNum() - startByteCodes); // TODO
+				startByteCodes = Clock.getBytecodeNum();
 				if (!field.particles().isEmpty()) {
 					mc.tryToMove(rc);
 				} else if (nearbyFriends.length > 2) {
 					mc.tryToMoveRandom(rc);
 				}
+				maxPartCByteCodes = Math.max(maxPartCByteCodes,
+						Clock.getBytecodeNum() - startByteCodes); // TODO
 			}
 		} else {
 			rc.setIndicatorString(1, "Core not ready!");
@@ -375,51 +353,64 @@ public class Soldier implements Player {
 		mc.tryToMove(rc);
 	}
 
+	private void debug_indicator1(String str) {
+		maxParticlesSoFar = Math.max(field.particles().size(),
+				maxParticlesSoFar);
+		String status = "Currently have " + field.particles().size()
+				+ " particles in store. Max so far: " + maxParticlesSoFar
+				+ " maxA(" + maxPartAByteCodes + ") maxB("
+				+ maxPartBByteCodes + ") maxC(" + maxPartCByteCodes
+				+ ") maxD(" + maxPartDByteCodes + ") maxE("
+				+ maxPartEByteCodes + ")" + " maxInit("
+				+ maxPartInitByteCodes + ") maxSig(" + maxPartSigByteCodes
+				+ ")";
+		rc.setIndicatorString(1, str + status);
+	}
+	
+	private void debug_indicator2() {
+		rc.setIndicatorString(2, "" + gatherMode + " Location: "
+				+ gatherLocation + "field:" + field.particles());
+	}
+	
 	@Override
 	public void play(RobotController rc) throws GameActionException {
+		startByteCodes = Clock.getBytecodeNum();
 		// Initialize all we can.
 		initOnNewTurn(rc);
-
+		maxPartInitByteCodes = Math.max(maxPartInitByteCodes,
+				Clock.getBytecodeNum() - startByteCodes); // TODO
+		startByteCodes = Clock.getBytecodeNum();
 		// Receive signals and update field based on the contents.
 		receiveIncomingSignals(rc);
+		maxPartSigByteCodes = Math.max(maxPartSigByteCodes,
+				Clock.getBytecodeNum() - startByteCodes); // TODO
 
-		String statusString;
-		{
-			maxParticlesSoFar = Math.max(field.particles().size(),
-					maxParticlesSoFar);
-			statusString = "Currently have " + field.particles().size()
-					+ " particles in store. Max so far: " + maxParticlesSoFar
-					+ " maxA(" + maxPartAByteCodes + ") maxB("
-					+ maxPartBByteCodes + ") maxC(" + maxPartCByteCodes
-					+ ") maxD(" + maxPartDByteCodes + ") maxE("
-					+ maxPartEByteCodes + ")";
-		}
 		startByteCodes = Clock.getBytecodeNum();
 
 		// Decide on mode: Walking vs. Fighting.
 		if (rcWrapper.hostileRobotsNearby().length != 0) { // Fighting.
-			rc.setIndicatorString(0, "MODE: FIGHTING. " + statusString);
+			debug_indicator1("MODE: FIGHTING. ");
 
 			maxPartEByteCodes = Math.max(maxPartEByteCodes,
 					Clock.getBytecodeNum() - startByteCodes); // TODO
 			fightingModeCode(rc);
 		} else if (isBlitzkriegActivated) { // Blitzkrieg.
-			rc.setIndicatorString(0, "MODE: BLITZKRIEG. " + statusString);
+			debug_indicator1("MODE: BLITZKRIEG. ");
 
 			maxPartEByteCodes = Math.max(maxPartEByteCodes,
 					Clock.getBytecodeNum() - startByteCodes); // TODO
 
 			blitzkriegModeCode(rc);
 		} else { // Walking.
-			rc.setIndicatorString(0, "MODE: WALKING. " + statusString);
+			debug_indicator1("MODE: WALKING. ");
 
 			maxPartEByteCodes = Math.max(maxPartEByteCodes,
 					Clock.getBytecodeNum() - startByteCodes); // TODO
 
 			walkingModeCode(rc);
 		}
-		rc.setIndicatorString(2, "" + gatherMode + " Location: "
-				+ gatherLocation + "field:" + field.particles());
+
+		debug_indicator2();
 	}
 
 }

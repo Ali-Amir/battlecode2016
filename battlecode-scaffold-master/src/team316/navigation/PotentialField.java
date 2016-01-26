@@ -24,6 +24,8 @@ public class PotentialField {
 			Direction.SOUTH_EAST.ordinal(), Direction.SOUTH.ordinal(),
 			Direction.SOUTH_WEST.ordinal(), Direction.WEST.ordinal(),
 			Direction.NORTH_WEST.ordinal()};
+	private static final int[] dx = {0, 1, 1, 1, 0, -1, -1, -1};
+	private static final int[] dy = {-1, -1, 0, 1, 1, 1, 0, -1};
 
 	private final static double SQRT2 = Math.sqrt(2.0);
 	// Configuration object that gives correct charged particles for each
@@ -140,9 +142,6 @@ public class PotentialField {
 			totalY += newForce.y();
 		}
 		Vector totalForce = new Vector(totalX, totalY);
-
-		final int[] dx = {0, 1, 1, 1, 0, -1, -1, -1};
-		final int[] dy = {-1, -1, 0, 1, 1, 1, 0, -1};
 
 		double strongestAttraction = -(1e9);
 		int strongestDir = -1;

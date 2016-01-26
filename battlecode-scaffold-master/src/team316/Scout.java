@@ -17,14 +17,24 @@ import team316.utils.Turn;
 
 public class Scout implements Player {
 
+	// ======= Helper enum's =======
+	public enum ScoutState {
+		RUNAWAY, ROAM_AROUND, NEED_TO_BROADCAST
+	}
+
+	// ======= Static fields =======
 	private static final int BROADCAST_RADIUS = 80 * 80 * 2;
 	private static final int BROADCAST_INTERVAL_MIN = 50;
 	private static final int ENEMY_BASE_NOTIFICATION_PERIOD_TURNS = 200;
+	private static final int WALK_ORDER_RESET_PERIOD_TURNS = 800;
+	private static final int BLOCK_SIZE = 7;
 
+	// ======= Main fields =======
 	private final PotentialField field;
 	private final MotionController mc;
 	private final EnemyLocationModel elm;
 	private final RCWrapper rcWrapper;
+	private final RobotController rc;
 
 	private int minX;
 	private int minY;
@@ -35,29 +45,95 @@ public class Scout implements Player {
 	private int curFlowerStage = 0;
 	private int lastBroadcast = -100;
 
+	private MapLocation initExploreLocation;
+	private int lastWalkOrderInitTurn;
+	private int nextExploreLocationExpiryTurn = -1000;
+	private MapLocation nextExploreLocation = null;
+	private int preWalkOrderNum;
+	private int walkOrderNum;
+	private MapLocation[] preWalkOrder;
+
 	private Direction[] bordersYetToDiscover = {Direction.NORTH,
 			Direction.SOUTH, Direction.EAST, Direction.WEST};
 
-	public enum ScoutState {
-		RUNAWAY, ROAM_AROUND, NEED_TO_BROADCAST
-	}
+	// ======= Constructors and initialization =======
 
 	public Scout(MapLocation archonLoc, PotentialField field,
 			MotionController mc, RobotController rc) {
 		this.field = field;
 		this.mc = mc;
+		this.rc = rc;
 		this.rcWrapper = new RCWrapper(rc);
 		RobotPlayer.rcWrapper = rcWrapper;
 		this.elm = new EnemyLocationModel();
 		minX = Math.max(0, rc.getLocation().x - 80);
 		minY = Math.max(0, rc.getLocation().y - 80);
 		maxX = Math.min(580, rc.getLocation().x + 80);
-		maxY = Math.max(580, rc.getLocation().y + 80);
+		maxY = Math.min(580, rc.getLocation().y + 80);
+		preWalkOrder = new MapLocation[1024];
+		initializeWalkingOrder();
+	}
+
+	private void initializeWalkingOrder() {
+		lastWalkOrderInitTurn = Turn.currentTurn();
+		preWalkOrderNum = 0;
+		initExploreLocation = rc.getLocation();
+		for (int x = minX + BLOCK_SIZE - 1; x <= maxX; x += BLOCK_SIZE) {
+			for (int y = minY + BLOCK_SIZE - 1; y <= maxY; y += BLOCK_SIZE) {
+				preWalkOrder[preWalkOrderNum++] = new MapLocation(x, y);
+			}
+		}
+	}
+
+	// ======= Main methods =======
+
+	private void discardThingsOutside() {
+		for (int i = 0; i < preWalkOrderNum; ++i) {
+			MapLocation curLoc = preWalkOrder[i];
+			if (curLoc.x < minX || curLoc.y < minY || curLoc.x > maxX
+					|| curLoc.y > maxY) {
+				preWalkOrder[i] = preWalkOrder[preWalkOrderNum - 1];
+				--preWalkOrderNum;
+			}
+		}
+	}
+
+	private void figureOutExploreLocation() {
+		// If nothing is set or it is expired.
+		if (nextExploreLocation == null
+				|| nextExploreLocationExpiryTurn <= Turn.currentTurn()) {
+			int closestDist = 1000000000;
+			int closestLoc = -1;
+			for (int i = 0; i < preWalkOrderNum; ++i) {
+				int curDist = initExploreLocation
+						.distanceSquaredTo(preWalkOrder[i])
+						+ rc.getLocation().distanceSquaredTo(preWalkOrder[i])/2;
+				if (curDist < closestDist) {
+					closestDist = curDist;
+					closestLoc = i;
+				}
+			}
+			nextExploreLocation = preWalkOrder[closestLoc];
+			nextExploreLocationExpiryTurn = (Math
+					.abs(nextExploreLocation.x - rc.getLocation().x)
+					+ Math.abs(nextExploreLocation.y - rc.getLocation().y)) / 2
+					+ Turn.currentTurn();
+			preWalkOrder[closestLoc] = preWalkOrder[preWalkOrderNum - 1];
+			--preWalkOrderNum;
+			if (preWalkOrderNum == 0) {
+				initializeWalkingOrder();
+			}
+		}
 	}
 
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
+		if (Turn.turnsSince(
+				lastWalkOrderInitTurn) >= WALK_ORDER_RESET_PERIOD_TURNS) {
+			initializeWalkingOrder();
+		}
+		figureOutExploreLocation();
 	}
 
 	@Override
@@ -97,71 +173,75 @@ public class Scout implements Player {
 		// System.out.println("messageA: " + messageA + ", messageB:" +
 		// messageB);
 		lastBroadcast = Turn.currentTurn();
-		rc.broadcastMessageSignal(messageA, messageB, rcWrapper.getMaxBroadcastRadius());
+		rc.broadcastMessageSignal(messageA, messageB,
+				rcWrapper.getMaxBroadcastRadius());
 	}
 
 	public void roamAround(RobotController rc) throws GameActionException {
-		if (nextFlowerSwitchTurn <= Turn.currentTurn()) {
-			nextFlowerSwitchTurn = Turn.currentTurn()
-					+ (maxY - minY + maxX - minX + 2) / 4;
-			curFlowerStage = (curFlowerStage + 1) & 15;
+		// if (nextFlowerSwitchTurn <= Turn.currentTurn()) {
+		// nextFlowerSwitchTurn = Turn.currentTurn()
+		// + (maxY - minY + maxX - minX + 2) / 4;
+		// curFlowerStage = (curFlowerStage + 1) & 15;
+		//
+		// int whichCorner = curFlowerStage / 2;
+		//
+		// final double TARGET_CHARGE = 1.0 / 100.0;
+		// final double DEVIATION_CHARGE = 0.02 / 100.0;
+		// final int midX = (maxX + minX) / 2;
+		// final int midY = (maxY + minY) / 2;
+		// MapLocation targetLocation;
+		// MapLocation deviationLocation;
+		// if (whichCorner == 0) {
+		// targetLocation = new MapLocation(midX, minY);
+		// deviationLocation = new MapLocation((minX + 3 * midX) / 4,
+		// (midY + minY) / 2);
+		// } else if (whichCorner == 1) {
+		// targetLocation = new MapLocation(maxX, minY);
+		// deviationLocation = new MapLocation((maxX + 2 * midX) / 3,
+		// ((midY + minY) / 2 + minY) / 2);
+		// } else if (whichCorner == 2) {
+		// targetLocation = new MapLocation(maxX, midY);
+		// deviationLocation = new MapLocation((maxX + midX) / 2,
+		// (midY * 2 + minY) / 3);
+		// } else if (whichCorner == 3) {
+		// targetLocation = new MapLocation(maxX, maxY);
+		// deviationLocation = new MapLocation(
+		// ((maxX + midX) / 2 + maxX) / 2, (midY * 2 + maxY) / 3);
+		// } else if (whichCorner == 4) {
+		// targetLocation = new MapLocation(midX, maxY);
+		// deviationLocation = new MapLocation((maxX + 3 * midX) / 4,
+		// (midY + maxY) / 2);
+		// } else if (whichCorner == 5) {
+		// targetLocation = new MapLocation(minX, maxY);
+		// deviationLocation = new MapLocation(
+		// ((minX + midX) / 2 + minX) / 2, (midY * 2 + maxY) / 3);
+		// } else if (whichCorner == 6) {
+		// targetLocation = new MapLocation(minX, midY);
+		// deviationLocation = new MapLocation((minX + midX) / 2,
+		// (midY * 2 + maxY) / 3);
+		// } else if (whichCorner == 7) {
+		// targetLocation = new MapLocation(minX, minY);
+		// deviationLocation = new MapLocation((minX + 2 * midX) / 3,
+		// ((midY + minY) / 2 + minY) / 2);
+		// } else {
+		// throw new RuntimeException(
+		// "Unknown whichCorner " + whichCorner);
+		// }
+		//
+		// if (curFlowerStage % 2 != 0) {
+		// targetLocation = new MapLocation(midX, midY);
+		// }
+		//
+		// field.addParticle(new ChargedParticle(DEVIATION_CHARGE,
+		// deviationLocation,
+		// (nextFlowerSwitchTurn - Turn.currentTurn() + 1) / 2));
+		// field.addParticle(new ChargedParticle(TARGET_CHARGE, targetLocation,
+		// nextFlowerSwitchTurn - Turn.currentTurn() + 1));
+		// }
 
-			int whichCorner = curFlowerStage / 2;
-
-			final double TARGET_CHARGE = 1.0 / 100.0;
-			final double DEVIATION_CHARGE = 0.02 / 100.0;
-			final int midX = (maxX + minX) / 2;
-			final int midY = (maxY + minY) / 2;
-			MapLocation targetLocation;
-			MapLocation deviationLocation;
-			if (whichCorner == 0) {
-				targetLocation = new MapLocation(midX, minY);
-				deviationLocation = new MapLocation((minX + 3 * midX) / 4,
-						(midY + minY) / 2);
-			} else if (whichCorner == 1) {
-				targetLocation = new MapLocation(maxX, minY);
-				deviationLocation = new MapLocation((maxX + 2 * midX) / 3,
-						((midY + minY) / 2 + minY) / 2);
-			} else if (whichCorner == 2) {
-				targetLocation = new MapLocation(maxX, midY);
-				deviationLocation = new MapLocation((maxX + midX) / 2,
-						(midY * 2 + minY) / 3);
-			} else if (whichCorner == 3) {
-				targetLocation = new MapLocation(maxX, maxY);
-				deviationLocation = new MapLocation(
-						((maxX + midX) / 2 + maxX) / 2, (midY * 2 + maxY) / 3);
-			} else if (whichCorner == 4) {
-				targetLocation = new MapLocation(midX, maxY);
-				deviationLocation = new MapLocation((maxX + 3 * midX) / 4,
-						(midY + maxY) / 2);
-			} else if (whichCorner == 5) {
-				targetLocation = new MapLocation(minX, maxY);
-				deviationLocation = new MapLocation(
-						((minX + midX) / 2 + minX) / 2, (midY * 2 + maxY) / 3);
-			} else if (whichCorner == 6) {
-				targetLocation = new MapLocation(minX, midY);
-				deviationLocation = new MapLocation((minX + midX) / 2,
-						(midY * 2 + maxY) / 3);
-			} else if (whichCorner == 7) {
-				targetLocation = new MapLocation(minX, minY);
-				deviationLocation = new MapLocation((minX + 2 * midX) / 3,
-						((midY + minY) / 2 + minY) / 2);
-			} else {
-				throw new RuntimeException(
-						"Unknown whichCorner " + whichCorner);
-			}
-
-			if (curFlowerStage % 2 != 0) {
-				targetLocation = new MapLocation(midX, midY);
-			}
-
-			field.addParticle(new ChargedParticle(DEVIATION_CHARGE,
-					deviationLocation,
-					(nextFlowerSwitchTurn - Turn.currentTurn() + 1) / 2));
-			field.addParticle(new ChargedParticle(TARGET_CHARGE, targetLocation,
-					nextFlowerSwitchTurn - Turn.currentTurn() + 1));
+		if (nextExploreLocation != null) {
+			field.addParticle(new ChargedParticle(1.0, nextExploreLocation, 1));
 		}
-
 		mc.tryToMove(rc);
 	}
 
@@ -242,6 +322,7 @@ public class Scout implements Player {
 				if (direction.equals(Direction.WEST)) {
 					minX = rcWrapper.getMaxCoordinate(direction);
 				}
+				discardThingsOutside();
 				nextFlowerSwitchTurn = Turn.currentTurn();
 				bordersYetToDiscover[i] = Direction.NONE;
 			}

@@ -40,6 +40,7 @@ public class ArchonNew implements Player {
 	private final static int HELP_MESSAGE_MAX_DELAY = 30;
 	private final static int GATHER_MESSAGE_MAX_DELAY = 15;
 	private final static int MESSAGE_BROADCAST_ATTEMPT_FREQUENCY = 10;
+	private static final int BLITZKRIEG_ANNOUNCEMENT_FREQUENCY_TURNS = 50;
 
 	private final RobotController rc;
 	private final int birthTurn;
@@ -60,12 +61,14 @@ public class ArchonNew implements Player {
 	private RobotType toBuild = null;
 	private WalkReason walkReason = null;
 	private MapLocation targetLocation = null;
+	private MapLocation enemyBaseLoc = null;
 	private ArrayList<ArrayList<Integer>> toBroadcastNextTurnList = new ArrayList<>();
 	private LinkedList<MapLocation> neutralArchonLocations = new LinkedList<>();
 
 	// Messaging timings.
 	private int lastHelpAskedTurn = -1000;
 	private int lastBroadcastAttemptTurn = -1000;
+	private int lastBlitzkriegAnnouncement = -1000;
 
 	public ArchonNew(PotentialField field, MotionController mc,
 			RobotController rc) {
@@ -76,6 +79,7 @@ public class ArchonNew implements Player {
 		this.birthTurn = Turn.currentTurn();
 		this.elm = new EnemyLocationModel();
 		this.messageQueue = new ArrayList<>();
+		this.toBuild = RobotType.SCOUT;
 	}
 
 	private boolean attemptBuild(RobotController rc)
@@ -260,6 +264,10 @@ public class ArchonNew implements Player {
 
 				break;
 
+			case ENEMY_BASE_LOCATION :
+				enemyBaseLoc = location;
+				break;
+
 			default :
 				System.out.println(EncodedMessage.getMessageType(message));
 				break;
@@ -403,8 +411,23 @@ public class ArchonNew implements Player {
 			return ActionIntent.OMG_OMG_IM_ATTACKED;
 		}
 
-		if (Turn.currentTurn() > 1000) {
-			return ActionIntent.DEFENSE;
+		/*
+		 * if (Turn.currentTurn() > 1000) { return ActionIntent.DEFENSE; }
+		 */
+		if (enemyBaseLoc != null) {
+			if (Turn.currentTurn() > 2000) {
+				buildDistribution.clear();
+				buildDistribution.put(RobotType.VIPER, 100.0);
+			}
+
+			if (Turn.currentTurn() > 2500 && Turn.turnsSince(
+					lastBlitzkriegAnnouncement) > BLITZKRIEG_ANNOUNCEMENT_FREQUENCY_TURNS) {
+				lastBlitzkriegAnnouncement = Turn.currentTurn();
+				addToMessageQueue(
+						EncodedMessage.makeMessage(MessageType.BLITZKRIEG,
+								enemyBaseLoc),
+						rcWrapper.getMaxBroadcastRadius());
+			}
 		}
 
 		if (Turn.currentTurn() > 200) {
