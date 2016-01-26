@@ -382,8 +382,8 @@ public class ArchonNew implements Player {
 				.sensePartLocations(RobotType.ARCHON.sensorRadiusSquared);
 		for (MapLocation partsLocation : partsLocations) {
 			double amount = rc.senseParts(partsLocation);
-			// field.addParticle(
-			// new ChargedParticle(amount / 100.0, partsLocation, 1));
+			field.addParticle(
+					new ChargedParticle(amount / 100.0, partsLocation, 1));
 		}
 
 		RobotInfo[] neutralsLocations = rc.senseNearbyRobots(50, Team.NEUTRAL);
