@@ -19,6 +19,11 @@ import team316.utils.Vector;
 public class PotentialField {
 	private final static int PARTICLE_LIMIT = 20;
 	private final static int COMPRESSION_DISTANCE = 20;
+	private static final int[] directions = new int[]{Direction.NORTH.ordinal(),
+			Direction.NORTH_EAST.ordinal(), Direction.EAST.ordinal(),
+			Direction.SOUTH_EAST.ordinal(), Direction.SOUTH.ordinal(),
+			Direction.SOUTH_WEST.ordinal(), Direction.WEST.ordinal(),
+			Direction.NORTH_WEST.ordinal()};
 
 	private final static double SQRT2 = Math.sqrt(2.0);
 	// Configuration object that gives correct charged particles for each
@@ -27,14 +32,7 @@ public class PotentialField {
 	// List of observed particles in the field.
 	private final ChargedParticle[] particles;
 	public int numParticles;
-	// List of IDs currently in particles.
-	// private final Set<Integer> currentIDs = new HashSet<>();
-	// List of IDs to be removed in the next time directionsByAttraction is
-	// called.
-	// private final Set<Integer> removeIDWaitlist = new HashSet<>();
-
-	// private final Map<Integer, ChargedParticle> queuedParticles = new
-	// HashMap<>();
+	
 	public PotentialField(RobotPotentialConfigurator config) {
 		this.config = config;
 
@@ -143,11 +141,6 @@ public class PotentialField {
 		}
 		Vector totalForce = new Vector(totalX, totalY);
 
-		final int[] directions = new int[]{Direction.NORTH.ordinal(),
-				Direction.NORTH_EAST.ordinal(), Direction.EAST.ordinal(),
-				Direction.SOUTH_EAST.ordinal(), Direction.SOUTH.ordinal(),
-				Direction.SOUTH_WEST.ordinal(), Direction.WEST.ordinal(),
-				Direction.NORTH_WEST.ordinal()};
 		final int[] dx = {0, 1, 1, 1, 0, -1, -1, -1};
 		final int[] dy = {-1, -1, 0, 1, 1, 1, 0, -1};
 
