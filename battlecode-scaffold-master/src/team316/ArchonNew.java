@@ -41,7 +41,7 @@ public class ArchonNew implements Player {
 	private final static int MESSAGE_BROADCAST_ATTEMPT_FREQUENCY = 10;
 	private static final int BLITZKRIEG_ANNOUNCEMENT_FREQUENCY_TURNS = 50;
 	private static final int ELM_AMNESIA_PERIOD_TURNS = 500;
-	private static final int KUCHKUEM_GADOV_REMINDER = 50;
+	private static final int KUCHKUEM_GADOV_REMINDER = 20;
 
 	private final RobotController rc;
 	private final int birthTurn;
@@ -408,10 +408,18 @@ public class ArchonNew implements Player {
 					new ChargedParticle(amount / 100.0, partsLocation, 1));
 		}
 
-		RobotInfo[] neutralsLocations = rc.senseNearbyRobots(50, Team.NEUTRAL);
+		RobotInfo[] neutralsLocations = rc.senseNearbyRobots(
+				rc.getType().sensorRadiusSquared, Team.NEUTRAL);
+		MapLocation closestNeutral = null;
 		for (RobotInfo neutralsLocation : neutralsLocations) {
-			field.addParticle(
-					new ChargedParticle(10.0, neutralsLocation.location, 1));
+			if (closestNeutral == null || neutralsLocation.location
+					.distanceSquaredTo(rc.getLocation()) < closestNeutral
+							.distanceSquaredTo(rc.getLocation())) {
+				closestNeutral = neutralsLocation.location;
+			}
+		}
+		if (closestNeutral != null) {
+			field.addParticle(new ChargedParticle(20.0, closestNeutral, 1));
 		}
 
 		if (targetLocation != null) {
@@ -508,7 +516,7 @@ public class ArchonNew implements Player {
 			lastBroadcastAttemptTurn = Turn.currentTurn();
 			trySendingMessages(rc);
 		}
-		
+
 		addParticlesToField(rc);
 		tryActivateNearbyNeutrals(rc);
 
@@ -523,6 +531,8 @@ public class ArchonNew implements Player {
 		}
 
 		attemptBuild(rc);
+		
+		mc.tryToMoveRandom(rc);
 	}
 
 	@Override

@@ -131,11 +131,11 @@ public class Soldier implements Player {
 				break;
 
 			case ATTACK :
-				if (Turn.turnsSince(
-						lastKuchkuemTurn) > KUCHKUEM_DURATION_TURNS) {
-					lastKuchkuemTurn = Turn.currentTurn();
-					kuchkuemLocation = location;
-				}
+				// if (Turn.turnsSince(
+				// lastKuchkuemTurn) > KUCHKUEM_DURATION_TURNS) {
+				lastKuchkuemTurn = Turn.currentTurn();
+				kuchkuemLocation = location;
+				// }
 				// if (distanceFromSender < nearestFollowerDistance) {
 				// gatherMode = true;
 				// movementDirection = senderLocation.directionTo(location);
