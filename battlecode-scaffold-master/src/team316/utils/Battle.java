@@ -103,6 +103,11 @@ public class Battle {
 					break;
 				case SCOUT :
 					break;
+				case FASTZOMBIE:
+					added = true;
+					field.addParticle(
+							new ChargedParticle(-1000.0, s.location, lifetime));
+					break;
 				default :
 					added = true;
 					field.addParticle(
