@@ -192,7 +192,7 @@ public class Archon implements Player {
 				int message = EncodedMessage.makeMessage(
 						MessageType.MESSAGE_HELP_ARCHON,
 						rcWrapper.getCurrentLocation());
-				rc.broadcastMessageSignal(message, emptyMessage, 1000);
+				rc.broadcastMessageSignal(message, EncodedMessage.makeEmptyMessage(), 1000);
 				helpMessageDelay = this.HELP_MESSASGE_MAX_DELAY;
 			}
 		}
@@ -306,8 +306,6 @@ public class Archon implements Player {
 		}
 
 		switch (EncodedMessage.getMessageType(message)) {
-			case EMPTY_MESSAGE :
-				break;
 
 			case ZOMBIE_DEN_LOCATION :
 				if (!densLocations.contains(location)) {

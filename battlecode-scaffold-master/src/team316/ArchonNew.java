@@ -129,7 +129,7 @@ public class ArchonNew implements Player {
 
 		Message message0 = messageQueue.get(0);
 		messageQueue.remove(0);
-		Message message1 = new Message(0, 0);
+		Message message1 = new Message(EncodedMessage.makeEmptyMessage(), 0);
 		if (!messageQueue.isEmpty()) {
 			message1 = messageQueue.get(0);
 			messageQueue.remove(0);
@@ -193,24 +193,28 @@ public class ArchonNew implements Player {
 		archonRank++;
 
 		// Find farthest archon from me and broadcast that I'm initialized.
+		
 		MapLocation[] archonLocations = rc
 				.getInitialArchonLocations(rcWrapper.myTeam);
 		int furthestArchonDistance = 0;
 		if (Turn.currentTurn() == 0) {
 			for (MapLocation location : archonLocations) {
+				System.out.println(location);
 				int distance = rc.getLocation().distanceSquaredTo(location);
 				if (distance > furthestArchonDistance) {
 					furthestArchonDistance = distance;
 				}
 			}
+			//System.out.println("furthest Distance: " + furthestArchonDistance);
 		} else {
-			furthestArchonDistance = MAX_RADIUS;
+			furthestArchonDistance = rcWrapper.getMaxBroadcastRadius();
 		}
+
 		// TODO furthestArchonDistance doesn't work.
 		int message = EncodedMessage.makeMessage(
 				MessageType.MESSAGE_HELLO_ARCHON,
 				rcWrapper.getCurrentLocation());
-		rc.broadcastMessageSignal(message, 0, MAX_RADIUS);
+		rc.broadcastMessageSignal(message, EncodedMessage.makeEmptyMessage(), furthestArchonDistance);
 
 		rc.setIndicatorString(0, "My archon rank is: " + archonRank);
 	}
@@ -325,6 +329,14 @@ public class ArchonNew implements Player {
 			targetLocation = closestNeutralArchonLocation;
 			walkReason = WalkReason.ACTIVATE;
 		}
+		/*
+		MapLocation closestNeutralArchonLocation = rcWrapper
+				.getClosestLocation(neutralArchonLocations);
+		if (closestNeutralArchonLocation != null) {
+			targetLocation = closestNeutralArchonLocation;
+			walkReason = WalkReason.ACTIVATE;
+		}
+		*/
 	}
 
 	// High level logic here.
@@ -416,7 +428,6 @@ public class ArchonNew implements Player {
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		initOnNewTurn(rc);
-
 		if (Turn.turnsSince(
 				lastBroadcastAttemptTurn) >= MESSAGE_BROADCAST_ATTEMPT_FREQUENCY) {
 			lastBroadcastAttemptTurn = Turn.currentTurn();

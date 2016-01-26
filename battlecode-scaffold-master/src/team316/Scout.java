@@ -97,7 +97,7 @@ public class Scout implements Player {
 		// System.out.println("messageA: " + messageA + ", messageB:" +
 		// messageB);
 		lastBroadcast = Turn.currentTurn();
-		rc.broadcastMessageSignal(messageA, messageB, BROADCAST_RADIUS);
+		rc.broadcastMessageSignal(messageA, messageB, rcWrapper.getMaxBroadcastRadius());
 	}
 
 	public void roamAround(RobotController rc) throws GameActionException {
