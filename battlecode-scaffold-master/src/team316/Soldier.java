@@ -103,8 +103,6 @@ public class Soldier implements Player {
 			return;
 		}
 		switch (EncodedMessage.getMessageType(message)) {
-			case EMPTY_MESSAGE :
-				return;
 
 			case ZOMBIE_DEN_LOCATION :
 				rc.setIndicatorString(2,
