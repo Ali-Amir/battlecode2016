@@ -26,6 +26,7 @@ public class Soldier implements Player {
 	private static final int TURNS_BEFORE_AMBUSH = 300;
 	private static final int BUDDY_HELP_FREQUENCY_TURNS = 10;
 	private static final int ELM_AMNESIA_PERIOD_TURNS = 500;
+	private static final int KUCHKUEM_DURATION_TURNS = 50;
 
 	private final PotentialField field;
 	private final MotionController mc;
@@ -48,12 +49,15 @@ public class Soldier implements Player {
 	private boolean gatherMode = false;
 	private MapLocation gatherLocation = null;
 
+	private MapLocation kuchkuemLocation = null;
 	private boolean isBlitzkriegActivated = false;
 	private MapLocation enemyBaseLocation = null;
 
 	private static int nearestFollowerDistance;
 	private boolean archonAttacked;
+
 	private int lastHelpedABuddy = -1000;
+	private int lastKuchkuemTurn = -1000;
 
 	public Soldier(MapLocation archonLoc, PotentialField field,
 			MotionController mc, RobotController rc) {
@@ -127,26 +131,21 @@ public class Soldier implements Player {
 				break;
 
 			case ATTACK :
-				if (distanceFromSender < nearestFollowerDistance) {
-					gatherMode = true;
-					movementDirection = senderLocation.directionTo(location);
-					gatherLocation = senderLocation.add(
-							movementDirection.dx * 4, movementDirection.dy * 4);
-					nearestFollowerDistance = distanceFromSender;
+				if (Turn.turnsSince(
+						lastKuchkuemTurn) > KUCHKUEM_DURATION_TURNS) {
+					lastKuchkuemTurn = Turn.currentTurn();
+					kuchkuemLocation = location;
 				}
+				// if (distanceFromSender < nearestFollowerDistance) {
+				// gatherMode = true;
+				// movementDirection = senderLocation.directionTo(location);
+				// gatherLocation = senderLocation.add(
+				// movementDirection.dx * 4, movementDirection.dy * 4);
+				// nearestFollowerDistance = distanceFromSender;
+				// }
 				break;
 
 			case ACTIVATE :
-				if (distanceFromSender < nearestFollowerDistance) {
-					gatherMode = true;
-					movementDirection = senderLocation.directionTo(location);
-					gatherLocation = senderLocation.add(
-							movementDirection.dx * 4, movementDirection.dy * 4);
-					nearestFollowerDistance = distanceFromSender;
-				}
-				break;
-
-			case DEFENSE_MODE_ON :
 				if (distanceFromSender < nearestFollowerDistance) {
 					gatherMode = true;
 					movementDirection = senderLocation.directionTo(location);
@@ -257,8 +256,15 @@ public class Soldier implements Player {
 		// check to see if we are in the way of friends
 		// we are obstructing them
 		if (rc.isCoreReady()) {
+			debug_indicator0();
+			if (Turn.turnsSince(lastKuchkuemTurn) < KUCHKUEM_DURATION_TURNS) {
+				field.addParticle(
+						new ChargedParticle(1.0, kuchkuemLocation, 1));
+			}
+
 			if (rcWrapper.allyRobotsNearby().length > ARMY_MARCH_SIZE
-					&& elm.numStrategicLocations() > 0) {
+					&& elm.numStrategicLocations() > 0 && !(Turn.turnsSince(
+							lastKuchkuemTurn) < KUCHKUEM_DURATION_TURNS)) {
 				elm.pushStrategicLocationsToField(field, 1);
 				mc.tryToMove(rc, Battle.centerOfMassPlusPoint(
 						rcWrapper.allyRobotsNearby(), rc.getLocation()));
@@ -278,9 +284,17 @@ public class Soldier implements Player {
 				} else if (nearbyFriends.length > 2) {
 					mc.tryToMoveRandom(rc);
 				} else {
-					if (rc.senseRubble(rc
+					if (rc.isCoreReady() && rc.senseRubble(rc
 							.getLocation()) >= GameConstants.RUBBLE_SLOW_THRESH) {
 						rc.clearRubble(Direction.NONE);
+					}
+					for (int i = 0; i < 8; ++i) {
+						MapLocation ahead = rc.getLocation()
+								.add(Direction.values()[i]);
+						if (rc.isCoreReady() && rc.senseRubble(
+								ahead) >= GameConstants.RUBBLE_SLOW_THRESH) {
+							rc.clearRubble(Direction.values()[i]);
+						}
 					}
 				}
 				maxPartCByteCodes = Math.max(maxPartCByteCodes,
@@ -363,6 +377,15 @@ public class Soldier implements Player {
 		}
 
 		mc.tryToMove(rc);
+	}
+
+	private void debug_indicator0() {
+		String status = "Kuchkuem: "
+				+ (Turn.turnsSince(lastKuchkuemTurn) < KUCHKUEM_DURATION_TURNS
+						? "true"
+						: "false")
+				+ " Location: " + kuchkuemLocation;
+		rc.setIndicatorString(0, status);
 	}
 
 	private void debug_indicator1(String str) {

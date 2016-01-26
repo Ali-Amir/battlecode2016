@@ -90,6 +90,6 @@ public class ChargedParticle {
 	@Override
 	public String toString() {
 		return this.charge + "(" + location.x + "," + location.y + ")["
-				+ (Turn.currentTurn() - expiryTurn) + "]";
+				+ (expiryTurn) + "]";
 	}
 }

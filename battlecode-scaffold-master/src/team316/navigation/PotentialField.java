@@ -17,7 +17,7 @@ import team316.utils.Turn;
 import team316.utils.Vector;
 
 public class PotentialField {
-	private final static int PARTICLE_LIMIT = 20;
+	private final static int PARTICLE_LIMIT = 10;
 	private final static int COMPRESSION_DISTANCE = 20;
 	private static final int[] directions = new int[]{Direction.NORTH.ordinal(),
 			Direction.NORTH_EAST.ordinal(), Direction.EAST.ordinal(),

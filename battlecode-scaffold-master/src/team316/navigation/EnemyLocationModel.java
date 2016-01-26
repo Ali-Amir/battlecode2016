@@ -88,9 +88,9 @@ public class EnemyLocationModel {
 
 	public void addNeutralNonArchon(MapLocation loc) {
 		if (!knownNeutrals.contains(loc)) {
-			knownNeutrals.add(loc);
-			notificationsPending.add(EncodedMessage
-					.makeMessage(MessageType.NEUTRAL_NON_ARCHON_LOCATION, loc));
+			// knownNeutrals.add(loc);
+			// notificationsPending.add(EncodedMessage
+			// .makeMessage(MessageType.NEUTRAL_NON_ARCHON_LOCATION, loc));
 		}
 	}
 

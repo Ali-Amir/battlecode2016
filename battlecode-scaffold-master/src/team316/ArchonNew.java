@@ -41,6 +41,7 @@ public class ArchonNew implements Player {
 	private final static int MESSAGE_BROADCAST_ATTEMPT_FREQUENCY = 10;
 	private static final int BLITZKRIEG_ANNOUNCEMENT_FREQUENCY_TURNS = 50;
 	private static final int ELM_AMNESIA_PERIOD_TURNS = 500;
+	private static final int KUCHKUEM_GADOV_REMINDER = 50;
 
 	private final RobotController rc;
 	private final int birthTurn;
@@ -65,6 +66,7 @@ public class ArchonNew implements Player {
 	private LinkedList<MapLocation> neutralArchonLocations = new LinkedList<>();
 
 	// Messaging timings.
+	private int lastKuchkuemRimender = -1000;
 	private int lastElmAmnesia = -1000;
 	private int lastHelpAskedTurn = -1000;
 	private int lastBroadcastAttemptTurn = -1000;
@@ -200,7 +202,6 @@ public class ArchonNew implements Player {
 		int furthestArchonDistance = 0;
 		if (Turn.currentTurn() == 0) {
 			for (MapLocation location : archonLocations) {
-				System.out.println(location);
 				int distance = rc.getLocation().distanceSquaredTo(location);
 				if (distance > furthestArchonDistance) {
 					furthestArchonDistance = distance;
@@ -268,8 +269,16 @@ public class ArchonNew implements Player {
 				enemyBaseLoc = location;
 				break;
 
+			case ATTACK :
+				if (Turn.turnsSince(
+						lastKuchkuemRimender) >= KUCHKUEM_GADOV_REMINDER) {
+					lastKuchkuemRimender = Turn.currentTurn();
+					walkReason = WalkReason.ATTACK;
+					targetLocation = location;
+				}
+				break;
+
 			default :
-				System.out.println(EncodedMessage.getMessageType(message));
 				break;
 		}
 	}
@@ -330,12 +339,22 @@ public class ArchonNew implements Player {
 			return;
 		}
 
+		MapLocation closestDenLocation = rcWrapper
+				.getClosestLocation(elm.knownZombieDens);
+
 		MapLocation closestNeutralArchonLocation = rcWrapper
 				.getClosestLocation(neutralArchonLocations);
-		if (closestNeutralArchonLocation != null) {
+		if (closestNeutralArchonLocation != null && (closestDenLocation == null
+				|| rc.getLocation().distanceSquaredTo(closestDenLocation) > rc
+						.getLocation()
+						.distanceSquaredTo(closestNeutralArchonLocation))) {
 			targetLocation = closestNeutralArchonLocation;
 			walkReason = WalkReason.ACTIVATE;
+		} else if (closestDenLocation != null) {
+			targetLocation = closestDenLocation;
+			walkReason = WalkReason.ATTACK;
 		}
+
 		/*
 		 * MapLocation closestNeutralArchonLocation = rcWrapper
 		 * .getClosestLocation(neutralArchonLocations); if
@@ -362,6 +381,16 @@ public class ArchonNew implements Player {
 				if (targetRobot == null
 						|| !targetRobot.team.equals(Team.NEUTRAL)) {
 					// Successfully completed the mission.
+					targetLocation = null;
+				}
+				break;
+			case ATTACK :
+				if (distance > rc.getType().sensorRadiusSquared) {
+					return;
+				}
+				RobotInfo remainder = rc.senseRobotAtLocation(targetLocation);
+				if (remainder == null
+						|| !remainder.type.equals(RobotType.ZOMBIEDEN)) {
 					targetLocation = null;
 				}
 				break;
@@ -420,6 +449,16 @@ public class ArchonNew implements Player {
 			return ActionIntent.I_AM_BORN;
 		}
 
+		figureOutWalkTarget(rc);
+
+		if (targetLocation != null && walkReason.equals(WalkReason.ATTACK)
+				&& Turn.turnsSince(
+						lastKuchkuemRimender) >= KUCHKUEM_GADOV_REMINDER) {
+			lastKuchkuemRimender = Turn.currentTurn();
+			addToMessageQueue(EncodedMessage.makeMessage(MessageType.ATTACK,
+					targetLocation), rcWrapper.getMaxBroadcastRadius());
+		}
+
 		// Check incoming messages to possibly change strategy.
 		checkInbox(rc);
 
@@ -446,17 +485,27 @@ public class ArchonNew implements Player {
 			}
 		}
 
-		if (Turn.currentTurn() > 200) {
-			figureOutWalkTarget(rc);
-		}
-
 		return ActionIntent.USUAL_ROUTINE;
 	}
 
 	private void debug_indicator0(boolean tryToMove) {
+		field.discardDeadParticles();
 		String status = (tryToMove ? "MOVING!" : "STANDING.") + " field: "
 				+ field.particles();
 		rc.setIndicatorString(0, status);
+	}
+
+	private void debug_indicator1(String str) {
+		field.discardDeadParticles();
+		rc.setIndicatorString(1, str + " Field: " + field.particles());
+	}
+
+	private void debug_indicator2() {
+		String dens = "dens: ";
+		for (MapLocation l : elm.knownZombieDens) {
+			dens += l.x + "," + l.y + " ";
+		}
+		rc.setIndicatorString(2, dens);
 	}
 
 	private void usualRoutineCode() throws GameActionException {
@@ -481,6 +530,13 @@ public class ArchonNew implements Player {
 		// INITIALIZATION.
 		initOnNewTurn(rc);
 
+		// REPAIRING. (No cost but bytecost)
+		attemptRepairingWeakest(rc);
+
+		ActionIntent mode = assessSitutation();
+
+		debug_indicator2();
+
 		// MESSAGING.
 		if (Turn.turnsSince(
 				lastBroadcastAttemptTurn) >= MESSAGE_BROADCAST_ATTEMPT_FREQUENCY) {
@@ -488,10 +544,6 @@ public class ArchonNew implements Player {
 			trySendingMessages(rc);
 		}
 
-		// REPAIRING. (No cost but bytecost)
-		attemptRepairingWeakest(rc);
-
-		ActionIntent mode = assessSitutation();
 		switch (mode) {
 			case I_AM_BORN :
 				rc.setIndicatorString(1, "I AM BORN");
@@ -524,13 +576,13 @@ public class ArchonNew implements Player {
 							1000);
 				}
 
-				rc.setIndicatorString(1,
-						"OMG_OMG_IM_ATTACKED. Particles: " + field.particles());
+				debug_indicator1("OMG_OMG_IM_ATTACKED.");
+
 				mc.fallBack(rc);
 				break;
 
 			case USUAL_ROUTINE :
-				rc.setIndicatorString(1, "USUAL ROUTINE");
+				debug_indicator1("USUAL ROUTINE.");
 				usualRoutineCode();
 				break;
 		}

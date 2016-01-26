@@ -12,6 +12,7 @@ import team316.navigation.EnemyLocationModel;
 import team316.navigation.PotentialField;
 import team316.navigation.motion.MotionController;
 import team316.utils.Battle;
+import team316.utils.EncodedMessage;
 import team316.utils.RCWrapper;
 import team316.utils.Turn;
 
@@ -27,7 +28,7 @@ public class Scout implements Player {
 	private static final int BROADCAST_INTERVAL_MIN = 50;
 	private static final int ENEMY_BASE_NOTIFICATION_PERIOD_TURNS = 200;
 	private static final int WALK_ORDER_RESET_PERIOD_TURNS = 800;
-	private static final int BLOCK_SIZE = 7;
+	private static final int BLOCK_SIZE = 10;
 
 	// ======= Main fields =======
 	private final PotentialField field;
@@ -145,6 +146,14 @@ public class Scout implements Player {
 		rc.setIndicatorString(1, statusString);
 	}
 
+	private void debug_indicator2() {
+		String dens = "dens: ";
+		for (MapLocation l : elm.knownZombieDens) {
+			dens += l + " ";
+		}
+		rc.setIndicatorString(2, dens);
+	}
+
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		initOnNewTurn(rc);
@@ -156,9 +165,11 @@ public class Scout implements Player {
 		switch (state) {
 			case RUNAWAY :
 				runaway(rc);
+				debug_indicator2();
 				break;
 			case ROAM_AROUND :
 				roamAround(rc);
+				debug_indicator2();
 				break;
 			case NEED_TO_BROADCAST :
 				publishData(rc);
@@ -175,8 +186,10 @@ public class Scout implements Player {
 		int messageB = elm.notificationsPending.isEmpty()
 				? 0
 				: elm.notificationsPending.poll();
-		// System.out.println("messageA: " + messageA + ", messageB:" +
-		// messageB);
+		rc.setIndicatorString(2,
+				"Sending messages: " + EncodedMessage.getMessageType(messageA)
+						+ " loc: " + EncodedMessage.getMessageLocation(messageA)
+						+ " " + EncodedMessage.getMessageType(messageB));
 		lastBroadcast = Turn.currentTurn();
 		rc.broadcastMessageSignal(messageA, messageB,
 				rcWrapper.getMaxBroadcastRadius());
