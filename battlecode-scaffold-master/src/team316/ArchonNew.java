@@ -43,6 +43,7 @@ public class ArchonNew implements Player {
 	private static final int ELM_AMNESIA_PERIOD_TURNS = 500;
 	private static final int KUCHKUEM_GADOV_REMINDER = 20;
 
+	private boolean doneAddScoutToDist = false;
 	private final RobotController rc;
 	private final int birthTurn;
 	private final EnemyLocationModel elm;
@@ -466,6 +467,14 @@ public class ArchonNew implements Player {
 		if (rcWrapper.isUnderAttack()) {
 			return ActionIntent.OMG_OMG_IM_ATTACKED;
 		}
+		
+		if (Turn.currentTurn() > 30 && !doneAddScoutToDist) {
+			doneAddScoutToDist = true;
+			this.toBuild = RobotType.SCOUT;
+			buildDistribution.clear();
+			buildDistribution.put(RobotType.SCOUT, 5.0);
+			buildDistribution.put(RobotType.SOLDIER, 75.0);
+		}	
 
 		if (Turn.currentTurn() > 100) {
 			buildDistribution.clear();
@@ -559,8 +568,6 @@ public class ArchonNew implements Player {
 				rc.setIndicatorString(1, "I AM BORN");
 				// Init distribution on birth
 				buildDistribution.clear();
-				buildDistribution.put(RobotType.SCOUT, 5.0);
-				buildDistribution.put(RobotType.VIPER, 20.0);
 				buildDistribution.put(RobotType.SOLDIER, 75.0);
 
 				figureOutRank(rc);
