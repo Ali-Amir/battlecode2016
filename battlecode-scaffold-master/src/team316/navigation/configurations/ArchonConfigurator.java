@@ -11,27 +11,27 @@ public class ArchonConfigurator extends RobotPotentialConfigurator {
 
 	@Override
 	protected double oppositeGuardCharge() {
-		return -10.0;
+		return -1e3;
 	}
 
 	@Override
 	protected double oppositeSoldierCharge() {
-		return -10;
+		return -5e3;
 	}
 
 	@Override
 	protected double oppositeViperCharge() {
-		return -10;
+		return -1e3;
 	}
 
 	@Override
 	protected double oppositeScoutCharge() {
-		return -0.5;
+		return 0.0;
 	}
 
 	@Override
 	protected double oppositeTurretCharge() {
-		return -20.0;
+		return -1e4;
 	}
 
 	@Override
@@ -51,17 +51,17 @@ public class ArchonConfigurator extends RobotPotentialConfigurator {
 	
 	@Override
 	protected double allyDefaultCharge() {
-		return 10.0;
+		return 1e2;
 	}
 
 	@Override
 	protected double zombieCharge() {
-		return -90.0;
+		return -1e4;
 	}
 
 	@Override
 	protected double denCharge() {
-		return -100.0;
+		return -1e3;
 	}
 
 	@Override
