@@ -134,7 +134,10 @@ public class ArchonNew implements Player {
 			message1 = messageQueue.get(0);
 			messageQueue.remove(0);
 		}
-
+		rc.setIndicatorString(2,
+				"Sending messages: "
+						+ EncodedMessage.getMessageType(message0.message) + ","
+						+ EncodedMessage.getMessageType(message1.message));
 		rc.broadcastMessageSignal(message0.message, message1.message,
 				Math.max(message0.radiusSqr, message1.radiusSqr));
 	}
@@ -423,6 +426,7 @@ public class ArchonNew implements Player {
 		ActionIntent mode = assessSitutation();
 		switch (mode) {
 			case I_AM_BORN :
+				rc.setIndicatorString(1, "I AM BORN");
 				// Init distribution on birth
 				buildDistribution.clear();
 				buildDistribution.put(RobotType.SCOUT, 10.0);
@@ -445,15 +449,19 @@ public class ArchonNew implements Player {
 
 				if (Turn.turnsSince(
 						lastHelpAskedTurn) >= HELP_MESSAGE_MAX_DELAY) {
+					lastHelpAskedTurn = Turn.currentTurn();
 					addToMessageQueue(EncodedMessage.makeMessage(
 							MessageType.MESSAGE_HELP_ARCHON, rc.getLocation()),
 							1000);
 				}
 
+				rc.setIndicatorString(1,
+						"OMG_OMG_IM_ATTACKED. Particles: " + field.particles());
 				mc.tryToMove(rc);
 				break;
 
 			case USUAL_ROUTINE :
+				rc.setIndicatorString(1, "USUAL ROUTINE");
 				usualRoutineCode();
 				break;
 		}
