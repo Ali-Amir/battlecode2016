@@ -83,6 +83,8 @@ public class Battle {
 					field.addParticle(
 							new ChargedParticle(-1000.0, s.location, lifetime));
 					break;
+				case VIPER:
+					break;
 				case BIGZOMBIE :
 					if (s.location.distanceSquaredTo(
 							RobotPlayer.rc.getLocation()) >= 9) {
