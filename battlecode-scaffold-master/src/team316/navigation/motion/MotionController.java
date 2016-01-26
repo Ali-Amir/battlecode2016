@@ -10,6 +10,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+import battlecode.common.RobotType;
 import team316.navigation.PotentialField;
 
 public class MotionController {
@@ -81,29 +82,70 @@ public class MotionController {
 		}
 
 		int[] directions = field.directionsByAttraction(reference);
-		// Collections.shuffle(directions.subList(0, 2));
-		// Collections.shuffle(directions.subList(2, 4));
-		// Collections.shuffle(directions.subList(4, directions.size()));
 		for (int i = 0; i < directions.length; ++i) {
 			Direction maybeForward = Direction.values()[directions[i]];
-			if (rc.canMove(maybeForward)
+			if (!rc.getType().equals(RobotType.SCOUT)) {
+				MapLocation ahead = rc.getLocation().add(maybeForward);
+				if (rc.isCoreReady()
+						&& rc.senseRubble(
+								ahead) >= GameConstants.RUBBLE_SLOW_THRESH
+						&& rc.senseRubble(ahead) <= 100000) {
+					rc.clearRubble(maybeForward);
+				}
+			}
+			if (rc.isCoreReady() && rc.canMove(maybeForward)
 					&& rc.onTheMap(rc.getLocation().add(maybeForward))) {
 				rc.move(maybeForward);
 				return true;
 			}
 		}
 
-		if (!rc.getType().canClearRubble()) {
+		return false;
+	}
+	
+
+	public boolean fallBack(RobotController rc)
+			throws GameActionException {
+		if (!rc.isCoreReady()) {
+			return false;
+		}
+		
+		MapLocation reference = rc.getLocation();
+
+		if (field.numParticles == 0) {
+			int[] directions = field.directionsByAttraction(reference);
+			for (int i = 0; i < directions.length; ++i) {
+				Direction maybeForward = Direction.values()[directions[i]];
+				MapLocation ahead = rc.getLocation().add(maybeForward);
+				if (rc.getType().canClearRubble() && rc.senseRubble(
+						ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+					rc.clearRubble(maybeForward);
+					return true;
+				}
+			}
 			return false;
 		}
 
+		int[] directions = field.directionsByAttraction(reference);
+		for (int i = 0; i < 4; ++i) {
+			Direction maybeForward = Direction.values()[directions[i]];
+			if (rc.isCoreReady() && rc.canMove(maybeForward)
+					&& rc.onTheMap(rc.getLocation().add(maybeForward))) {
+				rc.move(maybeForward);
+				return true;
+			}
+		}
+		
 		for (int i = 0; i < directions.length; ++i) {
 			Direction maybeForward = Direction.values()[directions[i]];
-			MapLocation ahead = rc.getLocation().add(maybeForward);
-			if (rc.senseRubble(
-					ahead) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-				rc.clearRubble(maybeForward);
-				return true;
+			if (!rc.getType().equals(RobotType.SCOUT)) {
+				MapLocation ahead = rc.getLocation().add(maybeForward);
+				if (rc.isCoreReady()
+						&& rc.senseRubble(
+								ahead) >= GameConstants.RUBBLE_SLOW_THRESH
+						&& rc.senseRubble(ahead) <= 100000) {
+					rc.clearRubble(maybeForward);
+				}
 			}
 		}
 

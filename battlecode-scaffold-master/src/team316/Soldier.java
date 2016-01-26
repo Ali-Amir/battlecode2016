@@ -3,6 +3,7 @@ package team316;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -270,6 +271,11 @@ public class Soldier implements Player {
 					mc.tryToMove(rc);
 				} else if (nearbyFriends.length > 2) {
 					mc.tryToMoveRandom(rc);
+				} else {
+					if (rc.senseRubble(rc
+							.getLocation()) >= GameConstants.RUBBLE_SLOW_THRESH) {
+						rc.clearRubble(Direction.NONE);
+					}
 				}
 				maxPartCByteCodes = Math.max(maxPartCByteCodes,
 						Clock.getBytecodeNum() - startByteCodes); // TODO
@@ -315,7 +321,7 @@ public class Soldier implements Player {
 		startByteCodes = Clock.getBytecodeNum();
 
 		if (somethingIsScary && rc.isCoreReady()) {
-			mc.tryToMove(rc);
+			mc.fallBack(rc);
 			return;
 		}
 
@@ -358,20 +364,19 @@ public class Soldier implements Player {
 				maxParticlesSoFar);
 		String status = "Currently have " + field.particles().size()
 				+ " particles in store. Max so far: " + maxParticlesSoFar
-				+ " maxA(" + maxPartAByteCodes + ") maxB("
-				+ maxPartBByteCodes + ") maxC(" + maxPartCByteCodes
-				+ ") maxD(" + maxPartDByteCodes + ") maxE("
-				+ maxPartEByteCodes + ")" + " maxInit("
+				+ " maxA(" + maxPartAByteCodes + ") maxB(" + maxPartBByteCodes
+				+ ") maxC(" + maxPartCByteCodes + ") maxD(" + maxPartDByteCodes
+				+ ") maxE(" + maxPartEByteCodes + ")" + " maxInit("
 				+ maxPartInitByteCodes + ") maxSig(" + maxPartSigByteCodes
 				+ ")";
 		rc.setIndicatorString(1, str + status);
 	}
-	
+
 	private void debug_indicator2() {
 		rc.setIndicatorString(2, "" + gatherMode + " Location: "
 				+ gatherLocation + "field:" + field.particles());
 	}
-	
+
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		startByteCodes = Clock.getBytecodeNum();

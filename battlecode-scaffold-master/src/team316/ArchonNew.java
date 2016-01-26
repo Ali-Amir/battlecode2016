@@ -7,7 +7,6 @@ import java.util.Map;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -62,7 +61,6 @@ public class ArchonNew implements Player {
 	private WalkReason walkReason = null;
 	private MapLocation targetLocation = null;
 	private MapLocation enemyBaseLoc = null;
-	private ArrayList<ArrayList<Integer>> toBroadcastNextTurnList = new ArrayList<>();
 	private LinkedList<MapLocation> neutralArchonLocations = new LinkedList<>();
 
 	// Messaging timings.
@@ -373,15 +371,23 @@ public class ArchonNew implements Player {
 		RobotInfo[] enemyArray = rc.senseHostileRobots(rc.getLocation(),
 				RobotType.ARCHON.sensorRadiusSquared);
 		Battle.addEnemyParticles(enemyArray, field, 1);
-		RobotInfo[] allyArray = rc.senseNearbyRobots(
-				RobotType.ARCHON.sensorRadiusSquared, rcWrapper.myTeam);
-		Battle.addAllyParticles(allyArray, field, 1);
+		/*
+		 * RobotInfo[] allyArray = rc.senseNearbyRobots(
+		 * RobotType.ARCHON.sensorRadiusSquared, rcWrapper.myTeam);
+		 * Battle.addAllyParticles(allyArray, field, 1);
+		 */
 		MapLocation[] partsLocations = rc
 				.sensePartLocations(RobotType.ARCHON.sensorRadiusSquared);
 		for (MapLocation partsLocation : partsLocations) {
 			double amount = rc.senseParts(partsLocation);
 			field.addParticle(
 					new ChargedParticle(amount / 100.0, partsLocation, 1));
+		}
+
+		RobotInfo[] neutralsLocations = rc.senseNearbyRobots(50, Team.NEUTRAL);
+		for (RobotInfo neutralsLocation : neutralsLocations) {
+			field.addParticle(
+					new ChargedParticle(10.0, neutralsLocation.location, 1));
 		}
 	}
 
@@ -437,22 +443,39 @@ public class ArchonNew implements Player {
 		return ActionIntent.USUAL_ROUTINE;
 	}
 
+	private void debug_indicator0(boolean tryToMove) {
+		String status = (tryToMove ? "MOVING!" : "STANDING.") + " field: "
+				+ field.particles();
+		rc.setIndicatorString(0, status);
+	}
+
 	private void usualRoutineCode() throws GameActionException {
-		tryActivateNearbyNeutrals(rc);
-		attemptBuild(rc);
-		attemptRepairingWeakest(rc);
 		addParticlesToField(rc);
-		mc.tryToMove(rc);
+		tryActivateNearbyNeutrals(rc);
+
+		debug_indicator0(false);
+		if (field.numParticles > 0 && rc.getTeamParts() < 300.0) {
+			debug_indicator0(true);
+			mc.tryToMove(rc);
+		}
+
+		attemptBuild(rc);
 	}
 
 	@Override
 	public void play(RobotController rc) throws GameActionException {
+		// INITIALIZATION.
 		initOnNewTurn(rc);
+
+		// MESSAGING.
 		if (Turn.turnsSince(
 				lastBroadcastAttemptTurn) >= MESSAGE_BROADCAST_ATTEMPT_FREQUENCY) {
 			lastBroadcastAttemptTurn = Turn.currentTurn();
 			trySendingMessages(rc);
 		}
+
+		// REPAIRING. (No cost but bytecost)
+		attemptRepairingWeakest(rc);
 
 		ActionIntent mode = assessSitutation();
 		switch (mode) {
@@ -488,7 +511,7 @@ public class ArchonNew implements Player {
 
 				rc.setIndicatorString(1,
 						"OMG_OMG_IM_ATTACKED. Particles: " + field.particles());
-				mc.tryToMove(rc);
+				mc.fallBack(rc);
 				break;
 
 			case USUAL_ROUTINE :
