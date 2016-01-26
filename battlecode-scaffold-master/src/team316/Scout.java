@@ -107,7 +107,8 @@ public class Scout implements Player {
 			for (int i = 0; i < preWalkOrderNum; ++i) {
 				int curDist = initExploreLocation
 						.distanceSquaredTo(preWalkOrder[i])
-						+ rc.getLocation().distanceSquaredTo(preWalkOrder[i])/2;
+						+ rc.getLocation().distanceSquaredTo(preWalkOrder[i])
+								/ 2;
 				if (curDist < closestDist) {
 					closestDist = curDist;
 					closestLoc = i;
@@ -136,17 +137,21 @@ public class Scout implements Player {
 		figureOutExploreLocation();
 	}
 
+	private void debug_indicator0(ScoutState state) {
+		rc.setIndicatorString(0, "Currently in mode: " + state);
+		String statusString = "minX: " + minX + " maxX: " + maxX + " minY: "
+				+ minY + " maxY: " + maxY + " nextTurn: " + nextFlowerSwitchTurn
+				+ " particles: " + field.particles();
+		rc.setIndicatorString(1, statusString);
+	}
+
 	@Override
 	public void play(RobotController rc) throws GameActionException {
 		initOnNewTurn(rc);
 
 		ScoutState state = assessSituation(rc);
 
-		rc.setIndicatorString(0, "Currently in mode: " + state);
-		String statusString = "minX: " + minX + " maxX: " + maxX + " minY: "
-				+ minY + " maxY: " + maxY + " nextTurn: " + nextFlowerSwitchTurn
-				+ " particles: " + field.particles();
-		rc.setIndicatorString(1, statusString);
+		debug_indicator0(state);
 
 		switch (state) {
 			case RUNAWAY :
@@ -240,7 +245,7 @@ public class Scout implements Player {
 		// }
 
 		if (nextExploreLocation != null) {
-			field.addParticle(new ChargedParticle(1.0, nextExploreLocation, 1));
+			field.addParticle(new ChargedParticle(0.1, nextExploreLocation, 1));
 		}
 		mc.tryToMove(rc);
 	}
@@ -248,10 +253,12 @@ public class Scout implements Player {
 	public void runaway(RobotController rc) throws GameActionException {
 		RobotInfo[] robotsWhoCanAttackMe = Battle
 				.robotsWhoCanAttackLocationPlusDelta(rc.getLocation(),
-						rcWrapper.enemyTeamRobotsNearby(), 10);
+						rcWrapper.hostileRobotsNearby(), 10);
 		for (RobotInfo r : robotsWhoCanAttackMe) {
 			field.addParticle(new ChargedParticle(-1.0, r.location, 2));
 		}
+
+		debug_indicator0(ScoutState.RUNAWAY);
 
 		if (rc.isCoreReady()) {
 			mc.tryToMove(rc);

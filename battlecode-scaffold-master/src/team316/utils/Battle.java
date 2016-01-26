@@ -83,7 +83,7 @@ public class Battle {
 					field.addParticle(
 							new ChargedParticle(-1000.0, s.location, lifetime));
 					break;
-				case VIPER:
+				case VIPER :
 					break;
 				case BIGZOMBIE :
 					if (s.location.distanceSquaredTo(
@@ -105,7 +105,7 @@ public class Battle {
 					break;
 				case SCOUT :
 					break;
-				case FASTZOMBIE:
+				case FASTZOMBIE :
 					added = true;
 					field.addParticle(
 							new ChargedParticle(-1000.0, s.location, lifetime));
@@ -188,8 +188,12 @@ public class Battle {
 	}
 
 	public static double weakness(RobotInfo r) {
-		double weakness = (r.attackPower + 5) * (r.attackPower + 5)
-				/ (r.health + 1.0) / r.maxHealth;
+		if (RobotPlayer.rc.getType().equals(RobotType.VIPER)) {
+			return r.maxHealth - r.health
+					+ (r.viperInfectedTurns > 0 ? 0 : 1e5);
+		}
+
+		double weakness = (r.attackPower + 5) / (r.health + 1.0) / r.maxHealth;
 		if (r.type.equals(RobotType.SCOUT)) {
 			return weakness - 1e5;
 		}

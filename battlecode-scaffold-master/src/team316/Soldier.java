@@ -25,6 +25,7 @@ public class Soldier implements Player {
 	private static final int ARMY_MARCH_SIZE = 4;
 	private static final int TURNS_BEFORE_AMBUSH = 300;
 	private static final int BUDDY_HELP_FREQUENCY_TURNS = 10;
+	private static final int ELM_AMNESIA_PERIOD_TURNS = 500;
 
 	private final PotentialField field;
 	private final MotionController mc;
@@ -32,6 +33,7 @@ public class Soldier implements Player {
 	private final RCWrapper rcWrapper;
 	private final RobotController rc;
 
+	private int lastElmAmnesia = -1000;
 	private int lastBroadcastTurn = -100;
 	private int lastTimeEnemySeen = -100;
 	private int maxParticlesSoFar = 0;
@@ -202,6 +204,10 @@ public class Soldier implements Player {
 	public void initOnNewTurn(RobotController rc) throws GameActionException {
 		// Attract towards closest enemy base location prediction.
 		// field.addParticle(elm.predictEnemyBase(rc));
+		if (Turn.turnsSince(lastElmAmnesia) >= ELM_AMNESIA_PERIOD_TURNS) {
+			lastElmAmnesia = Turn.currentTurn();
+			elm.zombieDenAmnesia();
+		}
 		elm.onNewTurn();
 		rcWrapper.initOnNewTurn();
 		if (gatherMode) {
